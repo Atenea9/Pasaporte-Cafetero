@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { VisitanteStackParamList } from './types';
 
+import RegistroScreen from '../screens/RegistroScreen';
 import HomeScreen from '../screens/HomeScreen';
 import PasaporteScreen from '../screens/PasaporteScreen';
 import RankingScreen from '../screens/RankingScreen';
@@ -12,9 +13,10 @@ const Stack = createNativeStackNavigator<VisitanteStackParamList>();
 export default function VisitanteNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="Inicio"
+      initialRouteName="Registro"
       screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
     >
+      <Stack.Screen name="Registro" component={RegistroScreen} />
       <Stack.Screen name="Inicio" component={HomeScreen} />
       <Stack.Screen name="Pasaporte" component={PasaporteScreen} />
       <Stack.Screen name="Ranking" component={RankingScreen} />

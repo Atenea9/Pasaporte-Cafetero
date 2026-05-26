@@ -10,6 +10,7 @@ export type RootStackParamList = {
 };
 
 export type VisitanteStackParamList = {
+  Registro: undefined;
   Inicio: undefined;
   Pasaporte: undefined;
   Ranking: undefined;

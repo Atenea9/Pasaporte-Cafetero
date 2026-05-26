@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paso 2: Sistema de Autenticación y Enrutamiento por Roles</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 1000px; margin: auto; }
+        h1 { color: #4A3B32; }
+        .file-block { border: 1px solid #ddd; margin-bottom: 30px; padding: 15px; border-radius: 5px; background-color: #f9f9f9; }
+        .filepath { font-family: monospace; font-size: 1.2em; color: #d6336c; font-weight: bold; }
+        .action { font-weight: bold; padding: 3px 8px; border-radius: 3px; color: white; display: inline-block; margin-bottom: 10px; }
+        .create { background-color: #28a745; }
+        .modify { background-color: #007bff; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; overflow-x: auto; border-radius: 5px; }
+        code { font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace; }
+    </style>
+</head>
+<body>
+
+    <h1>Ejecución del Paso 2: Autenticación Mock y Rutas</h1>
+    <p><strong>Contexto para el Agente Replit:</strong> Por favor, lee los siguientes bloques. Para cada bloque, crea o modifica el archivo en la ruta especificada (<code>data-filepath</code>) con el código exacto proporcionado en la etiqueta <code>&lt;code&gt;</code>.</p>
+
+    <article class="file-block" data-filepath="src/services/mockAuth.service.ts" data-action="CREATE">
+        <div class="filepath">// Ruta: src/services/mockAuth.service.ts</div>
+        <div class="action create">Acción: CREAR</div>
+<pre><code class="language-typescript">import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Simulamos el retraso de red de Firebase (800ms)
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export type UserRole = 'visitante' | 'expositor' | 'comprador' | 'admin' | 'ceo';
+
+export interface UserProfile {
+  uid: string;
+  role: UserRole;
+  name?: string;
+  phone?: string;
+  email?: string;
+}
+
+const USERS_STORAGE_KEY = '@mock_firestore_users';
+const SESSION_KEY = '@mock_auth_session';
+
+export const mockAuthService = {
+  // Simula el login y devuelve el perfil del usuario con su rol
+  async login(identifier: string, type: 'phone' | 'email'): Promise<UserProfile> {
+    await delay(800);
+    
+    // Aquí simulamos que si el usuario escribe 'admin', entra como admin. 
+    // En producción esto lo validará Firebase Auth + Firestore
+    let role: UserRole = 'visitante';
+    if (identifier.includes('admin')) role = 'admin';
+    if (identifier.includes('ceo')) role = 'ceo';
+    if (identifier.includes('expositor')) role = 'expositor';
+    if (identifier.includes('comprador')) role = 'comprador';
+
+    const mockUser: UserProfile = {
+      uid: `mock-uid-${Date.now()}`,
+      role,
+      name: `Usuario ${role}`,
+      [type]: identifier,
+    };
+
+    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(mockUser));
+    return mockUser;
+  },
+
+  async checkSession(): Promise<UserProfile | null> {
+    await delay(500);
+    const session = await AsyncStorage.getItem(SESSION_KEY);
+    return session ? JSON.parse(session) : null;
+  },
+
+  async logout(): Promise<void> {
+    await delay(300);
+    await AsyncStorage.removeItem(SESSION_KEY);
+  }
+};
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/contexts/AuthContext.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/contexts/AuthContext.tsx</div>
+        <div class="action create">Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { createContext, useContext, useState, useEffect } from 'react';
+import { mockAuthService, UserProfile } from '../services/mockAuth.service';
+
+interface AuthContextType {
+  user: UserProfile | null;
+  isLoading: boolean;
+  login: (identifier: string, type: 'phone' | 'email') => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadSession();
+  }, []);
+
+  const loadSession = async () => {
+    try {
+      const sessionUser = await mockAuthService.checkSession();
+      setUser(sessionUser);
+    } catch (error) {
+      console.error("Error loading session:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async (identifier: string, type: 'phone' | 'email') => {
+    setIsLoading(true);
+    try {
+      const loggedUser = await mockAuthService.login(identifier, type);
+      setUser(loggedUser);
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await mockAuthService.logout();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/auth/LoginScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/auth/LoginScreen.tsx</div>
+        <div class="action create">Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
+
+export const LoginScreen = () => {
+  const { login } = useAuth();
+  const [identifier, setIdentifier] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!identifier) return;
+    setIsLoading(true);
+    try {
+      // Usamos el type 'phone' por defecto para el mock. 
+      // Si el identificador tiene '@', asumimos email (Comprador/Admin).
+      const type = identifier.includes('@') ? 'email' : 'phone';
+      await login(identifier, type);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Pasaporte Cafetero</Text>
+      <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
+      
+      <TextInput
+        style={styles.input}
+        placeholder="Teléfono (Visitante/Expositor) o Email"
+        value={identifier}
+        onChangeText={setIdentifier}
+        autoCapitalize="none"
+      />
+
+      <TouchableOpacity 
+        style={[styles.button, isLoading && styles.buttonDisabled]} 
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Ingresar</Text>
+        )}
+      </TouchableOpacity>
+
+      <Text style={styles.hint}>
+        Mock Hint: Escribe 'admin', 'ceo', 'expositor' o 'comprador' en el texto para simular roles. Cualquier otra cosa será Visitante.
+      </Text>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#FAF7F2' },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#4A3B32', textAlign: 'center', marginBottom: 10 },
+  subtitle: { fontSize: 16, color: '#7A6B62', textAlign: 'center', marginBottom: 30 },
+  input: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#DDD', padding: 15, borderRadius: 8, marginBottom: 20 },
+  button: { backgroundColor: '#4A3B32', padding: 15, borderRadius: 8, alignItems: 'center' },
+  buttonDisabled: { opacity: 0.7 },
+  buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  hint: { marginTop: 20, fontSize: 12, color: '#999', textAlign: 'center' }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/navigation/AuthStack.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/navigation/AuthStack.tsx</div>
+        <div class="action create">Acción: CREAR</div>
+<pre><code class="language-tsx">import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { LoginScreen } from '../screens/auth/LoginScreen';
+
+const Stack = createNativeStackNavigator();
+
+export const AuthStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Login" component={LoginScreen} />
+    </Stack.Navigator>
+  );
+};
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/navigation/RootNavigator.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/navigation/RootNavigator.tsx</div>
+        <div class="action modify">Acción: MODIFICAR / CREAR</div>
+<pre><code class="language-tsx">import React from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { useAuth } from '../contexts/AuthContext';
+import { AuthStack } from './AuthStack';
+
+// Asumimos que estos navegadores fueron creados como placeholders en el Paso 1
+// Si Replit marca error de importación, crea archivos vacíos básicos para ellos.
+import { VisitanteNavigator } from './VisitanteNavigator';
+import { ExpositorNavigator } from './ExpositorNavigator';
+import { CompradorNavigator } from './CompradorNavigator';
+import { AdminNavigator } from './AdminNavigator';
+import { CeoNavigator } from './CeoNavigator';
+
+export const RootNavigator = () => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAF7F2' }}>
+        <ActivityIndicator size="large" color="#4A3B32" />
+      </View>
+    );
+  }
+
+  // Si no hay sesión, mostramos la pila de Autenticación
+  if (!user) {
+    return &lt;AuthStack /&gt;;
+  }
+
+  // Enrutamiento basado en roles
+  switch (user.role) {
+    case 'visitante':
+      return &lt;VisitanteNavigator /&gt;;
+    case 'expositor':
+      return &lt;ExpositorNavigator /&gt;;
+    case 'comprador':
+      return &lt;CompradorNavigator /&gt;;
+    case 'admin':
+      return &lt;AdminNavigator /&gt;;
+    case 'ceo':
+      return &lt;CeoNavigator /&gt;;
+    default:
+      return &lt;AuthStack /&gt;;
+  }
+};
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="App.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: App.tsx</div>
+        <div class="action modify">Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { RootNavigator } from './src/navigation/RootNavigator';
+import { AuthProvider } from './src/contexts/AuthContext';
+
+// Importación de i18n configurada en el Paso 1 (asumimos que existe)
+// import './src/i18n'; 
+
+export default function App() {
+  return (
+    &lt;AuthProvider&gt;
+      &lt;NavigationContainer&gt;
+        &lt;RootNavigator /&gt;
+      &lt;/NavigationContainer&gt;
+    &lt;/AuthProvider&gt;
+  );
+}
+</code></pre>
+    </article>
+
+</body>
+</html>

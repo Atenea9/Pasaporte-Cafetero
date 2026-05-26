@@ -61,7 +61,7 @@ const DEMO_USER: Usuario = {
 };
 
 const initialState: AppState = {
-  usuario: DEMO_USER,
+  usuario: null,
   transacciones: [],
   stands: STANDS,
   happyHour: false,

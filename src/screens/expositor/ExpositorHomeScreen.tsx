@@ -3,10 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-na
 import { useNavigation } from '@react-navigation/native';
 import type { ExpositorNavProp } from '../../navigation/types';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function ExpositorHomeScreen() {
   const navigation = useNavigation<ExpositorNavProp>();
   const { dispatch } = useApp();
+  const { logout } = useAuth();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -53,7 +55,7 @@ export default function ExpositorHomeScreen() {
 
       <TouchableOpacity
         style={styles.logoutBtn}
-        onPress={() => dispatch({ type: 'LOGOUT' } as any)}
+        onPress={() => logout()}
       >
         <Text style={styles.logoutText}>Cerrar sesión</Text>
       </TouchableOpacity>

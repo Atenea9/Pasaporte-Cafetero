@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } fr
 import { useNavigation } from '@react-navigation/native';
 import type { CeoNavProp } from '../../navigation/types';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const KPI_CARDS = [
   { icon: '💰', label: 'INGRESOS TOTALES', value: '$—', delta: '+—%' },
@@ -14,6 +15,7 @@ const KPI_CARDS = [
 export default function CeoDashboardScreen() {
   const navigation = useNavigation<CeoNavProp>();
   const { dispatch } = useApp();
+  const { logout } = useAuth();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -67,7 +69,7 @@ export default function CeoDashboardScreen() {
 
         <TouchableOpacity
           style={styles.logoutBtn}
-          onPress={() => dispatch({ type: 'LOGOUT' } as any)}
+          onPress={() => logout()}
         >
           <Text style={styles.logoutText}>Cerrar sesión</Text>
         </TouchableOpacity>

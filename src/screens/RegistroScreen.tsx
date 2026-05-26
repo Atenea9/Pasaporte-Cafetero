@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, TextInput,
   TouchableOpacity, SafeAreaView, StatusBar,
   Alert, KeyboardAvoidingView, Platform, Dimensions
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { VisitanteStackParamList } from '../navigation/types';
 import { useApp } from '../context/AppContext';
 import { MUNICIPIOS } from '../data/mockData';
 
@@ -17,13 +20,20 @@ const C = {
 const MUNICIPIOS_TOLIMA = MUNICIPIOS.map(m => m.nombre);
 
 export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => void }) {
-  const { dispatch } = useApp();
+  const { dispatch, state } = useApp();
+  const navigation = useNavigation<NativeStackNavigationProp<VisitanteStackParamList>>();
   const [cedula, setCedula] = useState('');
   const [nombre, setNombre] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [municipio, setMunicipio] = useState('');
   const [showMunicipios, setShowMunicipios] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (state.usuario) {
+      navigation.navigate('Inicio');
+    }
+  }, [state.usuario]);
 
   const simularEscaneo = () => {
     setCedula('1107' + Math.floor(Math.random() * 900000 + 100000));
@@ -65,7 +75,8 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
         },
       });
       setLoading(false);
-      onRegistrado();
+      onRegistrado?.();
+      navigation.navigate('Inicio');
     }, 1200);
   };
 
