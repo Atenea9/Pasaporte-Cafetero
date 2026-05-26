@@ -25,9 +25,7 @@
     },
     "plugins": [
       "expo-camera",
-      "expo-notifications",
-      "expo-sharing",
-      "expo-print"
+      "expo-notifications"
     ],
     "notification": {
       "icon": "./assets/icon.png",
