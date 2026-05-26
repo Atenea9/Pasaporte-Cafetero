@@ -1,0 +1,23 @@
+{
+  "project_info": {
+    "project_number": "PLACEHOLDER_SENDER_ID",
+    "project_id": "PLACEHOLDER_PROJECT_ID",
+    "storage_bucket": "PLACEHOLDER_PROJECT_ID.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:PLACEHOLDER:android:PLACEHOLDER",
+        "android_client_info": {
+          "package_name": "com.pasaportecafetero.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [{ "current_key": "PLACEHOLDER_API_KEY" }],
+      "services": {
+        "appinvite_service": { "other_platform_oauth_client": [] }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

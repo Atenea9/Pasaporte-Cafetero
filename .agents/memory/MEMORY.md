@@ -1,0 +1,3 @@
+- [NavContext shim pattern](navcont-shim.md) — NavContext replaced as React Navigation shim; old useNav() API preserved for existing screens.
+- [SDK52 install flags](sdk52-install.md) — All npm installs require --legacy-peer-deps; expo-* versions must match SDK 52 range.
+- [Architecture overview](architecture.md) — Multi-role navigator structure: role detected from usuario.rol, each role gets its own Stack navigator.

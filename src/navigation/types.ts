@@ -1,0 +1,49 @@
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+
+export type RootStackParamList = {
+  Visitante: undefined;
+  Expositor: undefined;
+  Comprador: undefined;
+  Admin: undefined;
+  Ceo: undefined;
+};
+
+export type VisitanteStackParamList = {
+  Inicio: undefined;
+  Pasaporte: undefined;
+  Ranking: undefined;
+  Vendedor: undefined;
+};
+
+export type ExpositorStackParamList = {
+  ExpositorHome: undefined;
+  Scanner: undefined;
+};
+
+export type CompradorStackParamList = {
+  CompradorHome: undefined;
+  Catalog: undefined;
+  Auctions: undefined;
+  MyOrders: undefined;
+};
+
+export type AdminStackParamList = {
+  AdminDashboard: undefined;
+  UsersManagement: undefined;
+  StandsManagement: undefined;
+  HappyHourControl: undefined;
+  SendNotification: undefined;
+};
+
+export type CeoStackParamList = {
+  CeoDashboard: undefined;
+  Reports: undefined;
+  Analytics: undefined;
+};
+
+export type VisitanteNavProp = NativeStackNavigationProp<VisitanteStackParamList>;
+export type ExpositorNavProp = NativeStackNavigationProp<ExpositorStackParamList>;
+export type CompradorNavProp = NativeStackNavigationProp<CompradorStackParamList>;
+export type AdminNavProp = NativeStackNavigationProp<AdminStackParamList>;
+export type CeoNavProp = NativeStackNavigationProp<CeoStackParamList>;

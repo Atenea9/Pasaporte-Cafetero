@@ -3,16 +3,26 @@
     "name": "PasaporteCafetero",
     "slug": "PasaporteCafetero",
     "version": "1.0.0",
+    "sdkVersion": "52.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0D0800"
+    },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
+      "bundleIdentifier": "com.pasaportecafetero.app",
+      "buildNumber": "1",
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
+      "package": "com.pasaportecafetero.app",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0D0800",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -25,12 +35,27 @@
     },
     "plugins": [
       "expo-camera",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La app necesita acceso a tus fotos para tu foto de perfil.",
+          "cameraPermission": "La app necesita acceso a la cámara para escanear QR y tomar fotos."
+        }
+      ],
+      [
+        "expo-localization"
+      ]
     ],
     "notification": {
       "icon": "./assets/icon.png",
       "color": "#C8860A",
       "androidMode": "default"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "PLACEHOLDER_EAS_PROJECT_ID"
+      }
     }
   }
 }

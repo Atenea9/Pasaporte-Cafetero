@@ -16,7 +16,7 @@ const C = {
 
 const MUNICIPIOS_TOLIMA = MUNICIPIOS.map(m => m.nombre);
 
-export default function RegistroScreen({ onRegistrado }: { onRegistrado: () => void }) {
+export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => void }) {
   const { dispatch } = useApp();
   const [cedula, setCedula] = useState('');
   const [nombre, setNombre] = useState('');
