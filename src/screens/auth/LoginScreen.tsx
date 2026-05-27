@@ -1,147 +1,340 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Animated, Easing, Dimensions } from 'react-native';
+import {
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
+  Animated, Easing, Dimensions, Modal, ScrollView,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Circle, Defs, RadialGradient, Stop, Path } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
-import { PremiumTheme } from '../../theme/PremiumTheme';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
+const G = {
+  bg:           '#0D0800',
+  bgDeep:       '#060400',
+  card:         '#1A0E00',
+  cardHover:    '#241500',
+  gold:         '#C8860A',
+  goldLight:    '#E8A830',
+  goldDim:      '#8B5E07',
+  goldGlow:     '#C8860A30',
+  cream:        '#F5EDD8',
+  muted:        '#7A6045',
+  border:       '#C8860A22',
+  borderBright: '#C8860A55',
+  separator:    '#3A2200',
+};
+
+const LANGUAGES: { code: string; label: string; native: string }[] = [
+  { code: 'es', label: 'Español',    native: 'ES' },
+  { code: 'en', label: 'English',    native: 'EN' },
+  { code: 'fr', label: 'Français',   native: 'FR' },
+  { code: 'de', label: 'Deutsch',    native: 'DE' },
+  { code: 'zh', label: '中文',        native: '中文' },
+  { code: 'pt', label: 'Português',  native: 'PT' },
+  { code: 'it', label: 'Italiano',   native: 'IT' },
+];
+
+const ROLES = [
+  { num: '01', key: 'visitor',   credential: 'visitor@demo.com',  color: '#C8860A' },
+  { num: '02', key: 'expositor', credential: 'expositor@demo.com', color: '#8B6914' },
+  { num: '03', key: 'buyer',     credential: 'buyer@demo.com',    color: '#6B5012' },
+];
+
+function CoffeeOrb() {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Svg width={width * 1.2} height={width * 1.2} style={{ position: 'absolute', top: -width * 0.3, left: -width * 0.1, opacity: 0.12 }}>
+        <Defs>
+          <RadialGradient id="orb1" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%"   stopColor="#E8A830" stopOpacity="1" />
+            <Stop offset="60%"  stopColor="#C8860A" stopOpacity="0.4" />
+            <Stop offset="100%" stopColor="#C8860A" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Circle cx={width * 0.6} cy={width * 0.6} r={width * 0.6} fill="url(#orb1)" />
+      </Svg>
+      <Svg width={200} height={200} style={{ position: 'absolute', bottom: height * 0.18, right: -40, opacity: 0.06 }}>
+        <Defs>
+          <RadialGradient id="orb2" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%"   stopColor="#C8860A" stopOpacity="1" />
+            <Stop offset="100%" stopColor="#C8860A" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Circle cx={100} cy={100} r={100} fill="url(#orb2)" />
+      </Svg>
+    </View>
+  );
+}
+
+function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const current = LANGUAGES.find(l => l.code === lang) ?? LANGUAGES[0];
+
+  return (
+    <View style={dd.wrap}>
+      <TouchableOpacity style={dd.trigger} onPress={() => setOpen(true)} activeOpacity={0.8}>
+        <Text style={dd.triggerNative}>{current.native}</Text>
+        <Text style={dd.chevron}>▾</Text>
+      </TouchableOpacity>
+
+      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        <TouchableOpacity style={dd.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
+          <View style={dd.menu}>
+            <LinearGradient colors={['#2C1A00', '#1A0E00']} style={dd.menuInner}>
+              <Text style={dd.menuTitle}>IDIOMA / LANGUAGE</Text>
+              {LANGUAGES.map((l) => {
+                const active = l.code === lang;
+                return (
+                  <TouchableOpacity
+                    key={l.code}
+                    style={[dd.option, active && dd.optionActive]}
+                    onPress={() => { onSelect(l.code); setOpen(false); }}
+                    activeOpacity={0.75}
+                  >
+                    <Text style={[dd.optionNative, active && dd.optionNativeActive]}>{l.native}</Text>
+                    <Text style={[dd.optionLabel, active && dd.optionLabelActive]}>{l.label}</Text>
+                    {active && <Text style={dd.check}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </LinearGradient>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+}
 
 export const LoginScreen = () => {
   const { t, i18n } = useTranslation();
   const { login } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading]   = useState(false);
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
+  const [showAdmin, setShowAdmin]   = useState(false);
 
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(50)).current;
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
+  const logoScale = useRef(new Animated.Value(0.88)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 800, easing: Easing.out(Easing.exp), useNativeDriver: true })
+      Animated.timing(fadeAnim,  { toValue: 1, duration: 900, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 750, easing: Easing.out(Easing.exp), useNativeDriver: true }),
+      Animated.spring(logoScale, { toValue: 1, friction: 7, useNativeDriver: true }),
     ]).start();
   }, []);
 
-  const handleQuickLogin = async (credential: string, roleName: string) => {
+  const handleLogin = async (credential: string, roleKey: string) => {
     setIsLoading(true);
-    setLoadingRole(roleName);
+    setLoadingRole(roleKey);
     try {
       const type = credential.includes('@') ? 'email' : 'phone';
       await login(credential, type);
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     } finally {
       setIsLoading(false);
       setLoadingRole(null);
     }
   };
 
-  const changeLanguage = (lng: string) => i18n.changeLanguage(lng);
-
-  const renderAccessCard = (number: string, title: string, desc: string, credential: string) => (
-    <TouchableOpacity
-      style={styles.accessCard}
-      onPress={() => handleQuickLogin(credential, title)}
-      activeOpacity={0.8}
-      disabled={isLoading}
-    >
-      <LinearGradient colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.02)']} style={styles.cardGradient}>
-        <View style={styles.cardLeft}>
-          <Text style={styles.cardNumber}>{number}</Text>
-        </View>
-        <View style={styles.cardBody}>
-          <Text style={styles.cardTitle}>{title}</Text>
-          <Text style={styles.cardDesc}>{desc}</Text>
-          <View style={styles.credentialBadge}>
-            <Text style={styles.credentialText}>ID: {credential}</Text>
-          </View>
-        </View>
-        <View style={styles.cardRight}>
-          {loadingRole === title ? (
-            <ActivityIndicator color={PremiumTheme.colors.goldPrimary} />
-          ) : (
-            <Text style={styles.arrow}>→</Text>
-          )}
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-  );
-
   return (
-    <LinearGradient colors={[PremiumTheme.colors.bgDark, '#000000']} style={styles.container}>
+    <View style={s.root}>
+      <LinearGradient colors={[G.bgDeep, G.bg, '#110700']} style={StyleSheet.absoluteFill} />
+      <CoffeeOrb />
 
-      <View style={styles.langContainer}>
-        {['es', 'en', 'zh'].map((lng) => (
-          <TouchableOpacity key={lng} onPress={() => changeLanguage(lng)}>
-            <Text style={[styles.langText, i18n.language === lng && styles.activeLang]}>
-              {lng === 'zh' ? '中文' : lng.toUpperCase()}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      {/* Top bar */}
+      <View style={s.topBar}>
+        <TouchableOpacity onLongPress={() => setShowAdmin(v => !v)} activeOpacity={1} style={s.topBarLeft}>
+          <View style={s.coffeeDot} />
+        </TouchableOpacity>
+        <LangDropdown lang={i18n.language} onSelect={lng => i18n.changeLanguage(lng)} />
       </View>
 
       <Animated.ScrollView
-        contentContainerStyle={styles.scrollContent}
-        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
+        contentContainerStyle={s.scroll}
         showsVerticalScrollIndicator={false}
+        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
       >
-        <View style={styles.header}>
-          <Text style={styles.editionText}>EDICIÓN 2026</Text>
-          <Text style={styles.title}>PASAPORTE</Text>
-          <Text style={styles.titleGold}>CAFETERO</Text>
-          <Text style={styles.subtitle}>Portal de Revisión Deluxe</Text>
+        {/* ── Logo / Hero ── */}
+        <Animated.View style={[s.hero, { transform: [{ scale: logoScale }] }]}>
+          <View style={s.badgeRow}>
+            <View style={s.editionBadge}>
+              <Text style={s.editionText}>✦ EDICIÓN 2026 ✦</Text>
+            </View>
+          </View>
+
+          <Text style={s.title}>PASAPORTE</Text>
+          <Text style={s.titleGold}>CAFETERO</Text>
+
+          <View style={s.dividerRow}>
+            <View style={s.dividerLine} />
+            <Text style={s.dividerIcon}>☕</Text>
+            <View style={s.dividerLine} />
+          </View>
+
+          <Text style={s.fairName}>{t('login.fair_name')}</Text>
+          <Text style={s.subtitle}>{t('login.portal_label')}</Text>
+        </Animated.View>
+
+        {/* ── Role Cards ── */}
+        <View style={s.cards}>
+          {ROLES.map((r) => {
+            const loading = loadingRole === r.key;
+            return (
+              <TouchableOpacity
+                key={r.key}
+                style={s.card}
+                onPress={() => handleLogin(r.credential, r.key)}
+                activeOpacity={0.78}
+                disabled={isLoading}
+              >
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0.02)']}
+                  style={s.cardGrad}
+                >
+                  {/* Left accent bar */}
+                  <View style={[s.cardAccent, { backgroundColor: r.color }]} />
+
+                  <View style={s.cardNumWrap}>
+                    <Text style={[s.cardNum, { color: r.color }]}>{r.num}</Text>
+                  </View>
+
+                  <View style={s.cardBody}>
+                    <Text style={s.cardTitle}>{t(`login.roles.${r.key}.title`)}</Text>
+                    <Text style={s.cardDesc}>{t(`login.roles.${r.key}.desc`)}</Text>
+                    <View style={s.credBadge}>
+                      <Text style={s.credText}>ID: {r.credential.split('@')[0]}</Text>
+                    </View>
+                  </View>
+
+                  <View style={s.cardArrow}>
+                    {loading
+                      ? <ActivityIndicator color={G.goldLight} size="small" />
+                      : <Text style={[s.arrow, { color: r.color }]}>›</Text>
+                    }
+                  </View>
+                </LinearGradient>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
-        <View style={styles.cardsContainer}>
-          {renderAccessCard('01', 'Visitante', 'Rutas, gamificación y pasaporte de sellos', 'visitante')}
-          {renderAccessCard('02', 'Expositor', 'Panel comercial y escáner de alta velocidad', 'expositor')}
-          {renderAccessCard('03', 'Comprador', 'Subasta internacional y análisis SCA CVA', 'comprador')}
+        {/* ── ADMIN access ── */}
+        {showAdmin ? (
+          <View style={s.adminRow}>
+            <TouchableOpacity
+              style={s.adminBtn}
+              onPress={() => handleLogin('admin@demo.com', 'admin')}
+              disabled={isLoading}
+              activeOpacity={0.75}
+            >
+              <LinearGradient colors={['#2C1A00', '#1A0E00']} style={s.adminGrad}>
+                {loadingRole === 'admin'
+                  ? <ActivityIndicator color={G.goldLight} size="small" />
+                  : <Text style={s.adminText}>ADMIN</Text>
+                }
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={s.adminBtn}
+              onPress={() => handleLogin('ceo@demo.com', 'ceo')}
+              disabled={isLoading}
+              activeOpacity={0.75}
+            >
+              <LinearGradient colors={['#2C1A00', '#1A0E00']} style={s.adminGrad}>
+                {loadingRole === 'ceo'
+                  ? <ActivityIndicator color={G.goldLight} size="small" />
+                  : <Text style={s.adminText}>CEO</Text>
+                }
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity style={s.adminTrigger} onPress={() => setShowAdmin(true)} activeOpacity={0.6}>
+            <Text style={s.adminTriggerText}>ADMIN</Text>
+          </TouchableOpacity>
+        )}
+
+        <View style={s.footer}>
+          <Text style={s.footerText}>© 2026 PasaporteCafetero · Chaparral, Tolima</Text>
         </View>
       </Animated.ScrollView>
-
-      <View style={styles.hiddenGate}>
-        <TouchableOpacity style={styles.ghostBtn} onPress={() => handleQuickLogin('admin', 'Admin')} disabled={isLoading}>
-          <Text style={styles.ghostText}>A</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.ghostBtn} onPress={() => handleQuickLogin('ceo', 'CEO')} disabled={isLoading}>
-          <Text style={styles.ghostText}>C</Text>
-        </TouchableOpacity>
-      </View>
-
-    </LinearGradient>
+    </View>
   );
 };
 
 export default LoginScreen;
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 25, justifyContent: 'center' },
-  langContainer: { flexDirection: 'row', justifyContent: 'flex-end', position: 'absolute', top: 50, right: 25, gap: 15, zIndex: 10 },
-  langText: { color: PremiumTheme.colors.textMuted, fontSize: 14, fontWeight: '600', letterSpacing: 1 },
-  activeLang: { color: PremiumTheme.colors.goldPrimary, fontWeight: 'bold' },
+// ── Dropdown styles ────────────────────────────────────────────────────────────
+const dd = StyleSheet.create({
+  wrap:             { position: 'relative' },
+  trigger:          { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: G.goldGlow, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: G.borderBright },
+  triggerNative:    { color: G.goldLight, fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  chevron:          { color: G.gold, fontSize: 10 },
+  backdrop:         { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-start', alignItems: 'flex-end', paddingTop: 80, paddingRight: 20 },
+  menu:             { width: 200, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: G.borderBright, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 12 },
+  menuInner:        { paddingVertical: 8 },
+  menuTitle:        { fontSize: 9, fontWeight: '900', color: G.muted, letterSpacing: 2.5, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: G.border },
+  option:           { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 11, gap: 10 },
+  optionActive:     { backgroundColor: G.goldGlow },
+  optionNative:     { fontSize: 13, fontWeight: '800', color: G.muted, width: 32 },
+  optionNativeActive: { color: G.goldLight },
+  optionLabel:      { flex: 1, fontSize: 13, color: G.muted, fontWeight: '500' },
+  optionLabelActive:{ color: G.cream },
+  check:            { color: G.gold, fontSize: 14, fontWeight: '900' },
+});
 
-  header: { marginBottom: 40, marginTop: 40 },
-  editionText: { color: PremiumTheme.colors.goldPrimary, fontSize: 12, letterSpacing: 5, marginBottom: 15 },
-  title: { fontSize: 42, fontWeight: '900', color: PremiumTheme.colors.textLight, letterSpacing: -1, lineHeight: 45 },
-  titleGold: { fontSize: 42, fontWeight: '900', color: PremiumTheme.colors.goldPrimary, letterSpacing: -1, lineHeight: 45 },
-  subtitle: { fontSize: 14, color: PremiumTheme.colors.textMuted, marginTop: 15, letterSpacing: 1 },
+// ── Screen styles ──────────────────────────────────────────────────────────────
+const s = StyleSheet.create({
+  root:         { flex: 1, backgroundColor: G.bg },
 
-  cardsContainer: { gap: 20 },
-  accessCard: { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, ...PremiumTheme.shadows.card },
-  cardGradient: { flexDirection: 'row', padding: 20, alignItems: 'center' },
-  cardLeft: { marginRight: 20 },
-  cardNumber: { fontSize: 32, fontWeight: '900', color: PremiumTheme.colors.goldDark },
-  cardBody: { flex: 1 },
-  cardTitle: { fontSize: 20, fontWeight: 'bold', color: PremiumTheme.colors.textLight, marginBottom: 4 },
-  cardDesc: { fontSize: 12, color: PremiumTheme.colors.textMuted, marginBottom: 10, lineHeight: 16 },
-  credentialBadge: { backgroundColor: 'rgba(212, 175, 55, 0.1)', alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder },
-  credentialText: { color: PremiumTheme.colors.goldPrimary, fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
-  cardRight: { paddingLeft: 10 },
-  arrow: { color: PremiumTheme.colors.goldPrimary, fontSize: 24, fontWeight: '300' },
+  topBar:       { position: 'absolute', top: 52, left: 20, right: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 20 },
+  topBarLeft:   { padding: 8 },
+  coffeeDot:    { width: 8, height: 8, borderRadius: 4, backgroundColor: G.gold, opacity: 0.4 },
 
-  hiddenGate: { position: 'absolute', bottom: 20, right: 20, flexDirection: 'row', gap: 10, zIndex: 100 },
-  ghostBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.02)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.1)' },
-  ghostText: { color: PremiumTheme.colors.goldPrimary, fontSize: 10, opacity: 0.3, fontWeight: 'bold' }
+  scroll:       { flexGrow: 1, paddingHorizontal: 22, paddingTop: 110, paddingBottom: 40 },
+
+  hero:         { alignItems: 'center', marginBottom: 40 },
+  badgeRow:     { marginBottom: 18 },
+  editionBadge: { backgroundColor: G.goldGlow, borderRadius: 30, paddingHorizontal: 18, paddingVertical: 6, borderWidth: 1, borderColor: G.borderBright },
+  editionText:  { color: G.gold, fontSize: 10, fontWeight: '900', letterSpacing: 3.5 },
+
+  title:        { fontSize: 46, fontWeight: '900', color: G.cream, letterSpacing: -1, lineHeight: 48, textAlign: 'center' },
+  titleGold:    { fontSize: 46, fontWeight: '900', color: G.gold, letterSpacing: -1, lineHeight: 50, textAlign: 'center', marginBottom: 18 },
+
+  dividerRow:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, width: '70%' },
+  dividerLine:  { flex: 1, height: 1, backgroundColor: G.borderBright },
+  dividerIcon:  { fontSize: 16 },
+
+  fairName:     { fontSize: 13, fontWeight: '700', color: G.goldLight, letterSpacing: 1, textAlign: 'center', marginBottom: 6 },
+  subtitle:     { fontSize: 11, color: G.muted, letterSpacing: 2, textAlign: 'center', textTransform: 'uppercase' },
+
+  cards:        { gap: 14, marginBottom: 28 },
+
+  card:         { borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: G.borderBright, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
+  cardGrad:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 20, paddingRight: 18 },
+  cardAccent:   { width: 3, alignSelf: 'stretch', marginRight: 16, borderRadius: 2, opacity: 0.8 },
+  cardNumWrap:  { marginRight: 14 },
+  cardNum:      { fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 34 },
+  cardBody:     { flex: 1 },
+  cardTitle:    { fontSize: 19, fontWeight: '800', color: G.cream, marginBottom: 3, letterSpacing: 0.2 },
+  cardDesc:     { fontSize: 11, color: G.muted, lineHeight: 16, marginBottom: 9 },
+  credBadge:    { alignSelf: 'flex-start', backgroundColor: 'rgba(200,134,10,0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: G.borderBright },
+  credText:     { color: G.gold, fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
+  cardArrow:    { paddingLeft: 8, width: 28, alignItems: 'center' },
+  arrow:        { fontSize: 28, fontWeight: '300', lineHeight: 32 },
+
+  adminRow:     { flexDirection: 'row', gap: 12, justifyContent: 'center', marginBottom: 24 },
+  adminBtn:     { borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: G.borderBright, flex: 1 },
+  adminGrad:    { paddingVertical: 13, alignItems: 'center' },
+  adminText:    { color: G.gold, fontSize: 11, fontWeight: '900', letterSpacing: 2.5 },
+
+  adminTrigger: { alignSelf: 'center', marginBottom: 24, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: G.borderBright, backgroundColor: 'rgba(200,134,10,0.06)' },
+  adminTriggerText: { color: G.goldDim, fontSize: 11, fontWeight: '900', letterSpacing: 2.5 },
+
+  footer:       { alignItems: 'center', marginTop: 8 },
+  footerText:   { fontSize: 10, color: G.muted, opacity: 0.6, letterSpacing: 0.5 },
 });

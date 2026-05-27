@@ -1,4 +1,13 @@
 {
+  "login": {
+    "fair_name": "Internationale Kaffeemesse - Chaparral",
+    "portal_label": "Deluxe-Überprüfungsportal",
+    "roles": {
+      "visitor":   { "title": "Besucher",    "desc": "Routen, Gamification und Stempelpass" },
+      "expositor": { "title": "Aussteller",  "desc": "Handelsfeld und Hochgeschwindigkeitsscanner" },
+      "buyer":     { "title": "Käufer",      "desc": "Internationale Auktion und SCA CVA Analyse" }
+    }
+  },
   "common": {
     "back": "‹ Zurück",
     "share": "Teilen",

@@ -2,6 +2,15 @@
   "welcome": "Feria Internacional del Café",
   "login_title": "Pasaporte Cafetero",
   "login_subtitle": "Acceso Exclusivo",
+  "login": {
+    "fair_name": "Feria Internacional de Café - Chaparral",
+    "portal_label": "Portal de Revisión Deluxe",
+    "roles": {
+      "visitor":   { "title": "Visitante",  "desc": "Rutas, gamificación y pasaporte de sellos" },
+      "expositor": { "title": "Expositor",  "desc": "Panel comercial y escáner de alta velocidad" },
+      "buyer":     { "title": "Comprador",  "desc": "Subasta internacional y análisis SCA CVA" }
+    }
+  },
   "placeholder": "Teléfono o Correo Electrónico",
   "enter": "Ingresar a la Experiencia",
   "simulated_roles": "Roles simulados: admin, ceo, expositor, comprador",

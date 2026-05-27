@@ -2,6 +2,15 @@
   "welcome": "国际咖啡展",
   "login_title": "咖啡护照",
   "login_subtitle": "独家访问",
+  "login": {
+    "fair_name": "国际咖啡博览会 - 查帕拉尔",
+    "portal_label": "豪华审核门户",
+    "roles": {
+      "visitor":   { "title": "访客",   "desc": "路线、游戏化和印章护照" },
+      "expositor": { "title": "展商",   "desc": "商业面板和高速扫描仪" },
+      "buyer":     { "title": "买家",   "desc": "国际拍卖和SCA CVA分析" }
+    }
+  },
   "placeholder": "电话或电子邮件",
   "enter": "进入体验",
   "simulated_roles": "模拟角色: admin, ceo, expositor, comprador",

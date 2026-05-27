@@ -1,4 +1,13 @@
 {
+  "login": {
+    "fair_name": "Feira Internacional de Café - Chaparral",
+    "portal_label": "Portal de Revisão Deluxe",
+    "roles": {
+      "visitor":   { "title": "Visitante",   "desc": "Rotas, gamificação e passaporte de selos" },
+      "expositor": { "title": "Expositor",   "desc": "Painel comercial e scanner de alta velocidade" },
+      "buyer":     { "title": "Comprador",   "desc": "Leilão internacional e análise SCA CVA" }
+    }
+  },
   "common": {
     "back": "‹ Voltar",
     "share": "Compartilhar",

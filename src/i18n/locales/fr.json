@@ -1,4 +1,13 @@
 {
+  "login": {
+    "fair_name": "Foire Internationale du Café - Chaparral",
+    "portal_label": "Portail de Révision Deluxe",
+    "roles": {
+      "visitor":   { "title": "Visiteur",    "desc": "Itinéraires, gamification et passeport de timbres" },
+      "expositor": { "title": "Exposant",    "desc": "Panneau commercial et scanner haute vitesse" },
+      "buyer":     { "title": "Acheteur",    "desc": "Enchères internationales et analyse SCA CVA" }
+    }
+  },
   "common": {
     "back": "‹ Retour",
     "share": "Partager",

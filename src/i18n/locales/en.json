@@ -2,6 +2,15 @@
   "welcome": "International Coffee Fair",
   "login_title": "Coffee Passport",
   "login_subtitle": "Exclusive Access",
+  "login": {
+    "fair_name": "International Coffee Fair - Chaparral",
+    "portal_label": "Deluxe Review Portal",
+    "roles": {
+      "visitor":   { "title": "Visitor",    "desc": "Routes, gamification and stamp passport" },
+      "expositor": { "title": "Exhibitor",  "desc": "Commercial panel and high-speed scanner" },
+      "buyer":     { "title": "Buyer",      "desc": "International auction and SCA CVA analysis" }
+    }
+  },
   "placeholder": "Phone or Email",
   "enter": "Enter Experience",
   "simulated_roles": "Simulated roles: admin, ceo, expositor, comprador",
