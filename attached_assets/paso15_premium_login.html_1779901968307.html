@@ -1,4 +1,23 @@
-import React, { useState, useEffect, useRef } from 'react';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Paso 15: Login Premium Multi-Perfil</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .file-block { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; }
+        .filepath { font-weight: bold; color: #d6336c; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Ejecución del Paso 15: Portal de Acceso Deluxe</h1>
+
+    <article class="file-block" data-filepath="src/screens/auth/LoginScreen.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/screens/auth/LoginScreen.tsx</div>
+        <div>Acción: MODIFICAR (Rediseño a Portal de Revisión Multi-Perfil)</div>
+<pre><code class="language-tsx">import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Animated, Easing, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -40,8 +59,8 @@ export const LoginScreen = () => {
   const changeLanguage = (lng: string) => i18n.changeLanguage(lng);
 
   const renderAccessCard = (number: string, title: string, desc: string, credential: string) => (
-    <TouchableOpacity
-      style={styles.accessCard}
+    <TouchableOpacity 
+      style={styles.accessCard} 
       onPress={() => handleQuickLogin(credential, title)}
       activeOpacity={0.8}
       disabled={isLoading}
@@ -70,7 +89,8 @@ export const LoginScreen = () => {
 
   return (
     <LinearGradient colors={[PremiumTheme.colors.bgDark, '#000000']} style={styles.container}>
-
+      
+      {/* Selector de Idiomas */}
       <View style={styles.langContainer}>
         {['es', 'en', 'zh'].map((lng) => (
           <TouchableOpacity key={lng} onPress={() => changeLanguage(lng)}>
@@ -81,7 +101,7 @@ export const LoginScreen = () => {
         ))}
       </View>
 
-      <Animated.ScrollView
+      <Animated.ScrollView 
         contentContainerStyle={styles.scrollContent}
         style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
         showsVerticalScrollIndicator={false}
@@ -100,6 +120,7 @@ export const LoginScreen = () => {
         </View>
       </Animated.ScrollView>
 
+      {/* Hidden Gate: Admin & CEO */}
       <View style={styles.hiddenGate}>
         <TouchableOpacity style={styles.ghostBtn} onPress={() => handleQuickLogin('admin', 'Admin')} disabled={isLoading}>
           <Text style={styles.ghostText}>A</Text>
@@ -113,15 +134,13 @@ export const LoginScreen = () => {
   );
 };
 
-export default LoginScreen;
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { flexGrow: 1, padding: 25, justifyContent: 'center' },
   langContainer: { flexDirection: 'row', justifyContent: 'flex-end', position: 'absolute', top: 50, right: 25, gap: 15, zIndex: 10 },
   langText: { color: PremiumTheme.colors.textMuted, fontSize: 14, fontWeight: '600', letterSpacing: 1 },
   activeLang: { color: PremiumTheme.colors.goldPrimary, fontWeight: 'bold' },
-
+  
   header: { marginBottom: 40, marginTop: 40 },
   editionText: { color: PremiumTheme.colors.goldPrimary, fontSize: 12, letterSpacing: 5, marginBottom: 15 },
   title: { fontSize: 42, fontWeight: '900', color: PremiumTheme.colors.textLight, letterSpacing: -1, lineHeight: 45 },
@@ -145,3 +164,8 @@ const styles = StyleSheet.create({
   ghostBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.02)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(212, 175, 55, 0.1)' },
   ghostText: { color: PremiumTheme.colors.goldPrimary, fontSize: 10, opacity: 0.3, fontWeight: 'bold' }
 });
+</code></pre>
+    </article>
+
+</body>
+</html>
