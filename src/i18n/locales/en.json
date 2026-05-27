@@ -1,4 +1,10 @@
 {
+  "welcome": "International Coffee Fair",
+  "login_title": "Coffee Passport",
+  "login_subtitle": "Exclusive Access",
+  "placeholder": "Phone or Email",
+  "enter": "Enter Experience",
+  "simulated_roles": "Simulated roles: admin, ceo, expositor, comprador",
   "common": {
     "back": "‹ Back",
     "share": "Share",
