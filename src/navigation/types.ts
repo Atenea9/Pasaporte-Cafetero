@@ -15,6 +15,9 @@ export type VisitanteStackParamList = {
   Pasaporte: undefined;
   Ranking: undefined;
   Vendedor: undefined;
+  Agenda: undefined;
+  MapaFeria: undefined;
+  Auspiciadores: undefined;
 };
 
 export type ExpositorStackParamList = {

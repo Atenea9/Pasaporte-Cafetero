@@ -1,0 +1,21 @@
+Necesito lo siguiente 
+1. Que cuando se cmabie de idioma me cambie el idioma a todas las paginas de todos los perfiles, y que cambie absolutamente todo de idioma en todos los lados y para todos los campos 
+2. cambia la premiación que me muestras y en cambio me muestres las siguientes (Café, Kits de Café, Cursos, Visitas Exclusivas) 
+3. Lo que te voy a poner en las siguiente actividades todo lo vas a desarrollar de manera profesional y con el arte que ya llevamos manejando y animaciones y vision perfecta
+4. ahora dentro de los perfiles de Visitante y Comprador internacional luego de registrarse y acceder vamos a organizar el home que van a ver en los siguientes perfiles: 
+- Visitante mostraras lo siguiente: 1. En el Home Mostraras un resumen del pasaporte con los sellos obtenidos, y los puntos obtenidos en el nivel que se encuentra entre los 4 niveles para así mismo saber la premiación los niveles (los puntos son asi por cada $1.000 es 1 punto) serán los siguientes: 1. Modo Cafetero      1 - 200 pts
+	    2. Cazador de Granos  201 - 400 pts
+	    3. Maestro del Grano  401 - 600 pts
+	    4. Gold Brew Society  mas de 601 pts
+2. Podra ver los sellos obtenidos mediante las compras de los stands los cuales serán 38 donde cada uno corresponde a los 38 municipios cafeteros donde cada uno tendrá un sello personalizado que posteriormente te lo daré. y podrá ver en este pasaporte como se pueden agrupar los 38 sellos en las distintas hojas del pasaporte, y ver cuales son los sellos y a que munciipio correspoden los que le hacen falta por obtener como gamificación de la feria 
+3. Podrá ver el estado actual de las compras y cuales son lso estands que mas venden como análisis en el home 
+4. Podra ver un mapa interactivo de la feria con los stands
+5. Podra ver la agenda del Evento 
+6. Resumen de los Auspiciadores del evento (Gobernación del Tolima, haciendo exaltacion de la gobernadora del Tolima Adriana Magali Matiz como una gobernadora que las que mas a impulsado el café en el departamento ; y el Comité De Cafeteros) 
+
+
+- Comprador: El comprador mostrara las mismas opciones del visitante pero con estas adiconales: Podra ver cuales son los cafes de la Subasta, Los Cuales mostrara todo el perfil del café, la historia de la finca, foto del caficultor en la finca, los resultados del SCA y podra participar en la subasta con un aplicativo que se realice en vivo las pujas en dolares
+
+- Admin: Quiero que admin vea todos los datos de la feria, analisis perfectos y en vivo de la marcha de la feria, economico y todo, ademas de poder descargar los datos de los resultado de la feria se puedan descargar en excel o pdf, pero no la base de datos de las personas que se registran 
+
+- CEO, tiene el poder absoluto y puede descargar hasta la base de datos de las personas registradas y analisis de la genete registrada 
