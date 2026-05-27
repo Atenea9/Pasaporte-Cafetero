@@ -21,6 +21,9 @@ export type ExpositorStackParamList = {
   Dashboard: undefined;
   Scanner: undefined;
   Sale: { visitorUid: string };
+  SubastaDashboard: undefined;
+  SubastaProfile: undefined;
+  ScaForm: undefined;
 };
 
 export type CompradorStackParamList = {

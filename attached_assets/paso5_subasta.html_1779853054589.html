@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Paso 5: Flujo de Subasta del Expositor</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .file-block { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; }
+        .filepath { font-weight: bold; color: #d6336c; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Ejecución del Paso 5: Expositor Subasta (Registro de Finca y SCA)</h1>
+
+    <article class="file-block" data-filepath="src/services/mockDb.service.ts" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/services/mockDb.service.ts</div>
+        <div>Acción: MODIFICAR (Reemplazar con el archivo completo actualizado)</div>
+<pre><code class="language-typescript">const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export interface VisitorStats {
+  points: number;
+  stamps: string[];
+  level: string;
+}
+
+export const mockDbService = {
+  // --- MÉTODOS DE VISITANTE ---
+  async getHomeStats() {
+    await delay(300);
+    return { visitorCount: 1420, activeStands: 45, happyHour: true };
+  },
+
+  async getLeaderboard() {
+    await delay(300);
+    return [
+      { id: '1', name: 'Carlos M.', points: 2500, municipality: 'Planadas' },
+      { id: '2', name: 'Laura G.', points: 2100, municipality: 'Chaparral' }
+    ];
+  },
+
+  async getUserStats(uid: string): Promise<VisitorStats> {
+    await delay(300);
+    return { points: 1250, stamps: ['Chaparral', 'Planadas'], level: 'Degustador' };
+  },
+
+  // --- MÉTODOS DE EXPOSITOR (STAND) ---
+  async getStandStats(expositorUid: string) {
+    await delay(300);
+    return { standName: 'Café Las Palmas', municipality: 'Planadas', todaySalesCOP: 245000, stampsIssued: 32 };
+  },
+
+  async registerSale(expositorUid: string, visitorUid: string, amountCOP: number) {
+    await delay(600);
+    return { success: true, pointsAwarded: Math.floor(amountCOP / 1000), message: 'Venta y puntos registrados.' };
+  },
+
+  // --- MÉTODOS DE EXPOSITOR (SUBASTA - PASO 5) ---
+  async getAuctionLotStatus(expositorUid: string) {
+    await delay(400);
+    // Estados posibles: 'no_registrado', 'borrador', 'pendiente_revision', 'aprobado'
+    return { status: 'borrador', scaScore: 0, farmName: 'Finca El Mirador' }; 
+  },
+
+  async saveAuctionProfile(expositorUid: string, profileData: any) {
+    await delay(600);
+    return { success: true, message: 'Perfil de finca guardado correctamente.' };
+  },
+
+  async submitScaAnalysis(expositorUid: string, scaData: any) {
+    await delay(800);
+    return { success: true, message: 'Análisis SCA enviado a la Universidad del Tolima para revisión.' };
+  }
+};
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/expositor/ExpositorDashboardScreen.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/screens/expositor/ExpositorDashboardScreen.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+import { useNavigation } from '@react-navigation/native';
+
+export const ExpositorDashboardScreen = () => {
+  const { user, logout } = useAuth();
+  const navigation = useNavigation<any>();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const data = await mockDbService.getStandStats(user!.uid);
+    setStats(data);
+    setLoading(false);
+  };
+
+  if (loading) return <ActivityIndicator style={styles.loader} color="#4A3B32" />;
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.standName}>{stats?.standName}</Text>
+        <Text style={styles.municipality}>{stats?.municipality} - Expositor</Text>
+        <Text onPress={logout} style={styles.logoutBtn}>Cerrar Sesión</Text>
+      </View>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Ventas Hoy (COP)</Text>
+          <Text style={styles.statValue}>${stats?.todaySalesCOP.toLocaleString()}</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Sellos Otorgados</Text>
+          <Text style={styles.statValue}>{stats?.stampsIssued}</Text>
+        </View>
+      </View>
+
+      <View style={styles.actionContainer}>
+        <TouchableOpacity style={styles.scanButton} onPress={() => navigation.navigate('Scanner')}>
+          <Text style={styles.scanButtonText}>📸 Escanear Pasaporte (QR)</Text>
+        </TouchableOpacity>
+        <Text style={styles.hint}>Registra ventas del Stand aquí.</Text>
+      </View>
+
+      {/* NUEVA SECCIÓN DE SUBASTA */}
+      <View style={styles.auctionContainer}>
+        <Text style={styles.sectionTitle}>Subasta Internacional</Text>
+        <Text style={styles.auctionDesc}>Registra tu lote de café especial para la subasta con compradores internacionales.</Text>
+        <TouchableOpacity style={styles.auctionButton} onPress={() => navigation.navigate('SubastaDashboard')}>
+          <Text style={styles.auctionButtonText}>🌾 Gestionar Lote de Subasta</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAF7F2' },
+  loader: { flex: 1, justifyContent: 'center' },
+  header: { padding: 20, backgroundColor: '#2E3B32', borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },
+  standName: { fontSize: 26, fontWeight: 'bold', color: '#FFF' },
+  municipality: { fontSize: 16, color: '#D4C4B7', marginTop: 5 },
+  logoutBtn: { color: '#E07A5F', marginTop: 15, fontWeight: 'bold' },
+  statsContainer: { padding: 20, flexDirection: 'row', gap: 15 },
+  statBox: { flex: 1, backgroundColor: '#FFF', padding: 20, borderRadius: 10, elevation: 2 },
+  statLabel: { fontSize: 12, color: '#7A6B62' },
+  statValue: { fontSize: 22, fontWeight: 'bold', color: '#2E3B32', marginTop: 5 },
+  actionContainer: { paddingHorizontal: 20, alignItems: 'center' },
+  scanButton: { backgroundColor: '#4A3B32', padding: 20, borderRadius: 15, width: '100%', alignItems: 'center', elevation: 3 },
+  scanButtonText: { color: '#FFF', fontSize: 16, fontWeight: 'bold' },
+  hint: { textAlign: 'center', color: '#7A6B62', marginTop: 10, fontSize: 12 },
+  auctionContainer: { margin: 20, padding: 20, backgroundColor: '#E3D5CA', borderRadius: 15 },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#4A3B32' },
+  auctionDesc: { fontSize: 13, color: '#7A6B62', marginTop: 5, marginBottom: 15 },
+  auctionButton: { backgroundColor: '#E07A5F', padding: 15, borderRadius: 10, alignItems: 'center' },
+  auctionButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 15 }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/expositor/SubastaDashboardScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/expositor/SubastaDashboardScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+
+export const SubastaDashboardScreen = () => {
+  const { user } = useAuth();
+  const navigation = useNavigation<any>();
+  const [lotStatus, setLotStatus] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadStatus();
+  }, []);
+
+  const loadStatus = async () => {
+    const status = await mockDbService.getAuctionLotStatus(user!.uid);
+    setLotStatus(status);
+    setLoading(false);
+  };
+
+  if (loading) return <ActivityIndicator style={styles.loader} color="#4A3B32" />;
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Mi Lote de Subasta</Text>
+      
+      <View style={styles.statusCard}>
+        <Text style={styles.label}>Estado Actual:</Text>
+        <Text style={styles.statusText}>{lotStatus.status.toUpperCase()}</Text>
+        {lotStatus.farmName ? <Text style={styles.farmText}>Finca: {lotStatus.farmName}</Text> : null}
+        <Text style={styles.scoreText}>Puntaje SCA: {lotStatus.scaScore > 0 ? lotStatus.scaScore : 'Pendiente'}</Text>
+      </View>
+
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SubastaProfile')}>
+        <Text style={styles.buttonText}>1. Información de la Finca y Lote</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.button, styles.buttonAlt]} onPress={() => navigation.navigate('ScaForm')}>
+        <Text style={styles.buttonText}>2. Ingresar Análisis SCA</Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.backText}>Volver al Stand</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAF7F2', padding: 20 },
+  loader: { flex: 1, justifyContent: 'center' },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#4A3B32', marginBottom: 20 },
+  statusCard: { backgroundColor: '#FFF', padding: 20, borderRadius: 10, elevation: 2, marginBottom: 30 },
+  label: { fontSize: 14, color: '#7A6B62' },
+  statusText: { fontSize: 22, fontWeight: 'bold', color: '#E07A5F', marginVertical: 5 },
+  farmText: { fontSize: 16, color: '#4A3B32', fontWeight: 'bold' },
+  scoreText: { fontSize: 14, color: '#4A3B32', marginTop: 10 },
+  button: { backgroundColor: '#4A3B32', padding: 15, borderRadius: 10, alignItems: 'center', marginBottom: 15 },
+  buttonAlt: { backgroundColor: '#2E3B32' },
+  buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  backButton: { marginTop: 20, alignItems: 'center' },
+  backText: { color: '#7A6B62', fontSize: 16, fontWeight: 'bold' }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/expositor/SubastaProfileForm.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/expositor/SubastaProfileForm.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { mockDbService } from '../../services/mockDb.service';
+import { useAuth } from '../../contexts/AuthContext';
+
+export const SubastaProfileForm = () => {
+  const navigation = useNavigation();
+  const { user } = useAuth();
+  
+  const [form, setForm] = useState({
+    farmName: '', owner: '', municipality: '', altitude: '', 
+    variety: '', process: '', lotSize: ''
+  });
+
+  const handleSave = async () => {
+    if (!form.farmName || !form.variety) {
+      Alert.alert('Error', 'Por favor llena los campos requeridos (Nombre y Variedad)');
+      return;
+    }
+    await mockDbService.saveAuctionProfile(user!.uid, form);
+    Alert.alert('Guardado', 'Perfil de finca guardado', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+  };
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Perfil de Finca</Text>
+      
+      <Text style={styles.label}>Nombre de la Finca *</Text>
+      <TextInput style={styles.input} value={form.farmName} onChangeText={(t) => setForm({...form, farmName: t})} />
+
+      <Text style={styles.label}>Municipio</Text>
+      <TextInput style={styles.input} value={form.municipality} onChangeText={(t) => setForm({...form, municipality: t})} />
+
+      <Text style={styles.label}>Altitud (msnm)</Text>
+      <TextInput style={styles.input} keyboardType="numeric" value={form.altitude} onChangeText={(t) => setForm({...form, altitude: t})} />
+
+      <Text style={styles.label}>Variedad de Café * (Ej. Geisha, Caturra)</Text>
+      <TextInput style={styles.input} value={form.variety} onChangeText={(t) => setForm({...form, variety: t})} />
+
+      <Text style={styles.label}>Proceso (Lavado, Natural, Honey)</Text>
+      <TextInput style={styles.input} value={form.process} onChangeText={(t) => setForm({...form, process: t})} />
+
+      <Text style={styles.label}>Tamaño del Lote Disponible (Kg)</Text>
+      <TextInput style={styles.input} keyboardType="numeric" value={form.lotSize} onChangeText={(t) => setForm({...form, lotSize: t})} />
+
+      <TouchableOpacity style={styles.button} onPress={handleSave}>
+        <Text style={styles.buttonText}>Guardar Perfil</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAF7F2', padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#4A3B32', marginBottom: 20 },
+  label: { fontSize: 14, color: '#4A3B32', fontWeight: 'bold', marginBottom: 5 },
+  input: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#DDD', padding: 12, borderRadius: 8, marginBottom: 15 },
+  button: { backgroundColor: '#E07A5F', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 10, marginBottom: 40 },
+  buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/expositor/ScaFormScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/expositor/ScaFormScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { mockDbService } from '../../services/mockDb.service';
+import { useAuth } from '../../contexts/AuthContext';
+
+export const ScaFormScreen = () => {
+  const navigation = useNavigation();
+  const { user } = useAuth();
+  
+  const [scores, setScores] = useState({
+    aroma: '0', flavor: '0', aftertaste: '0', acidity: '0', body: '0',
+    balance: '0', uniformity: '10', cleanCup: '10', sweetness: '10', overall: '0'
+  });
+
+  const calculateTotal = () => {
+    return Object.values(scores).reduce((acc, curr) => acc + (parseFloat(curr) || 0), 0).toFixed(2);
+  };
+
+  const handleSubmit = async () => {
+    await mockDbService.submitScaAnalysis(user!.uid, scores);
+    Alert.alert('Enviado', 'Análisis SCA enviado para revisión.', [{ text: 'OK', onPress: () => navigation.goBack() }]);
+  };
+
+  const renderInput = (label: string, key: keyof typeof scores) => (
+    <View style={styles.row}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput 
+        style={styles.input} keyboardType="numeric" maxLength={5}
+        value={scores[key]} onChangeText={(val) => setScores({...scores, [key]: val})}
+      />
+    </View>
+  );
+
+  return (
+    <ScrollView style={styles.container}>
+      <Text style={styles.title}>Evaluación SCA (Catación)</Text>
+      <Text style={styles.subtitle}>Escala estándar de 100 puntos</Text>
+
+      <View style={styles.formCard}>
+        {renderInput('Aroma', 'aroma')}
+        {renderInput('Sabor (Flavor)', 'flavor')}
+        {renderInput('Sabor Residual (Aftertaste)', 'aftertaste')}
+        {renderInput('Acidez', 'acidity')}
+        {renderInput('Cuerpo (Body)', 'body')}
+        {renderInput('Balance', 'balance')}
+        {renderInput('Uniformidad', 'uniformity')}
+        {renderInput('Taza Limpia (Clean Cup)', 'cleanCup')}
+        {renderInput('Dulzor (Sweetness)', 'sweetness')}
+        {renderInput('Puntaje Global (Overall)', 'overall')}
+        
+        <View style={styles.totalRow}>
+          <Text style={styles.totalLabel}>Puntaje Final SCA:</Text>
+          <Text style={styles.totalValue}>{calculateTotal()}</Text>
+        </View>
+      </View>
+
+      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Enviar a Revisión</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAF7F2', padding: 20 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#4A3B32' },
+  subtitle: { fontSize: 14, color: '#7A6B62', marginBottom: 20 },
+  formCard: { backgroundColor: '#FFF', padding: 15, borderRadius: 10, elevation: 2 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  label: { fontSize: 16, color: '#4A3B32', flex: 1 },
+  input: { width: 60, borderWidth: 1, borderColor: '#DDD', borderRadius: 5, padding: 8, textAlign: 'center', backgroundColor: '#F9F9F9' },
+  totalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#DDD' },
+  totalLabel: { fontSize: 18, fontWeight: 'bold', color: '#4A3B32' },
+  totalValue: { fontSize: 24, fontWeight: 'bold', color: '#E07A5F' },
+  button: { backgroundColor: '#4A3B32', padding: 15, borderRadius: 10, alignItems: 'center', marginVertical: 20 },
+  buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/navigation/ExpositorNavigator.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/navigation/ExpositorNavigator.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ExpositorDashboardScreen } from '../screens/expositor/ExpositorDashboardScreen';
+import { ScannerScreen } from '../screens/expositor/ScannerScreen';
+import { SaleScreen } from '../screens/expositor/SaleScreen';
+import { SubastaDashboardScreen } from '../screens/expositor/SubastaDashboardScreen';
+import { SubastaProfileForm } from '../screens/expositor/SubastaProfileForm';
+import { ScaFormScreen } from '../screens/expositor/ScaFormScreen';
+
+const Stack = createNativeStackNavigator();
+
+export const ExpositorNavigator = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* Flujo de Stand */}
+      <Stack.Screen name="Dashboard" component={ExpositorDashboardScreen} />
+      <Stack.Screen name="Scanner" component={ScannerScreen} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="Sale" component={SaleScreen} options={{ presentation: 'modal' }} />
+      
+      {/* Flujo de Subasta (Paso 5) */}
+      <Stack.Screen name="SubastaDashboard" component={SubastaDashboardScreen} />
+      <Stack.Screen name="SubastaProfile" component={SubastaProfileForm} />
+      <Stack.Screen name="ScaForm" component={ScaFormScreen} />
+    </Stack.Navigator>
+  );
+};
+</code></pre>
+    </article>
+
+</body>
+</html>
