@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView, Camera } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { PremiumTheme } from '../../theme/PremiumTheme';
 
 export const ScannerScreen = () => {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -18,70 +20,73 @@ export const ScannerScreen = () => {
 
   const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
     setScanned(true);
-    // Asumimos que el QR contiene el UID del visitante
     navigation.navigate('Sale', { visitorUid: data });
   };
 
   const simulateScan = () => {
-    // Para probar en la web de Replit sin cámara
     navigation.navigate('Sale', { visitorUid: 'mock-visitor-123' });
   };
 
-  if (hasPermission === null) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.permissionText}>Solicitando permiso de cámara...</Text>
-      </View>
-    );
-  }
-  if (hasPermission === false) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.permissionText}>Sin acceso a la cámara</Text>
-        <TouchableOpacity style={styles.simulateBtn} onPress={simulateScan}>
-          <Text style={styles.simulateText}>Simular Escaneo (Modo Web)</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
+  if (hasPermission === null) return (
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, '#000000']} style={[styles.container, styles.center]}>
+      <Text style={styles.text}>Solicitando permiso...</Text>
+    </LinearGradient>
+  );
+  if (hasPermission === false) return (
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, '#000000']} style={[styles.container, styles.center]}>
+      <Text style={styles.text}>Sin acceso a la cámara</Text>
+      <TouchableOpacity style={styles.simulateBtn} onPress={simulateScan}>
+        <Text style={styles.simulateText}>Simular Escaneo (Web)</Text>
+      </TouchableOpacity>
+    </LinearGradient>
+  );
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Escanea el QR del Visitante</Text>
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, '#000000']} style={styles.container}>
+      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+        <Text style={styles.backText}>Cancelar</Text>
+      </TouchableOpacity>
 
-      <View style={styles.cameraContainer}>
-        <CameraView
-          style={StyleSheet.absoluteFillObject}
-          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        />
+      <Text style={styles.title}>ESCANEAR PASAPORTE</Text>
+      <Text style={styles.subtitle}>Apunta la cámara al QR del visitante</Text>
+
+      <View style={styles.cameraFrame}>
+        <View style={styles.cameraContainer}>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+            barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          />
+        </View>
       </View>
 
       {scanned && (
-        <Button title="Toca para escanear de nuevo" onPress={() => setScanned(false)} />
+        <TouchableOpacity style={styles.rescanBtn} onPress={() => setScanned(false)}>
+          <Text style={styles.rescanText}>Volver a Escanear</Text>
+        </TouchableOpacity>
       )}
 
       <TouchableOpacity style={styles.simulateBtn} onPress={simulateScan}>
-        <Text style={styles.simulateText}>Simular Escaneo (Modo Web)</Text>
+        <Text style={styles.simulateText}>Simular Escaneo (Web)</Text>
       </TouchableOpacity>
-    </View>
+    </LinearGradient>
   );
 };
 
 export default ScannerScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  title: { color: '#FFF', fontSize: 18, marginBottom: 20, fontWeight: 'bold' },
-  permissionText: { color: '#FFF', fontSize: 16, marginBottom: 20 },
-  cameraContainer: {
-    width: 300,
-    height: 300,
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#FFF',
-  },
-  simulateBtn: { marginTop: 40, backgroundColor: '#E07A5F', padding: 15, borderRadius: 10 },
-  simulateText: { color: '#FFF', fontWeight: 'bold' },
+  container: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  text: { color: PremiumTheme.colors.textMuted },
+  backBtn: { position: 'absolute', top: 50, left: 20, zIndex: 10, padding: 10 },
+  backText: { color: PremiumTheme.colors.goldPrimary, fontWeight: 'bold' },
+  title: { color: PremiumTheme.colors.goldPrimary, fontSize: 18, fontWeight: 'bold', letterSpacing: 2, marginBottom: 10 },
+  subtitle: { color: PremiumTheme.colors.textMuted, fontSize: 14, marginBottom: 40 },
+  cameraFrame: { padding: 4, borderRadius: 24, backgroundColor: PremiumTheme.colors.goldPrimary, ...PremiumTheme.shadows.glow },
+  cameraContainer: { width: 280, height: 280, borderRadius: 20, overflow: 'hidden', backgroundColor: '#000' },
+  rescanBtn: { marginTop: 30, padding: 15, borderRadius: 10, borderWidth: 1, borderColor: PremiumTheme.colors.goldPrimary },
+  rescanText: { color: PremiumTheme.colors.goldPrimary, fontWeight: 'bold' },
+  simulateBtn: { marginTop: 40, backgroundColor: PremiumTheme.colors.glassBg, padding: 15, borderRadius: 10, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder },
+  simulateText: { color: PremiumTheme.colors.textLight, fontWeight: 'bold' }
 });
