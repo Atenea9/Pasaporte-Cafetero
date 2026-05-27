@@ -3,9 +3,9 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { VisitanteStackParamList } from './types';
 
 import RegistroScreen from '../screens/RegistroScreen';
-import HomeScreen from '../screens/HomeScreen';
-import PasaporteScreen from '../screens/PasaporteScreen';
-import RankingScreen from '../screens/RankingScreen';
+import HomeScreen from '../screens/visitante/HomeScreen';
+import PasaporteScreen from '../screens/visitante/PasaporteScreen';
+import RankingScreen from '../screens/visitante/RankingScreen';
 import VendedorScreen from '../screens/VendedorScreen';
 
 const Stack = createNativeStackNavigator<VisitanteStackParamList>();

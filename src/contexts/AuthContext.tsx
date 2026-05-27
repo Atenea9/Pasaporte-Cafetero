@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadSession = async () => {
     try {
-      // FIX: Agregamos un Timeout de 2 segundos. Si AsyncStorage se congela, esto fuerza el desbloqueo.
+      // Timeout de 2 segundos para evitar que Expo Go se congele al inicio
       const sessionUser = await Promise.race([
         mockAuthService.checkSession(),
         new Promise<null>((_, reject) =>
@@ -50,8 +50,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await mockAuthService.logout();
-    setUser(null);
+    setIsLoading(true);
+    try {
+      await mockAuthService.logout();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
