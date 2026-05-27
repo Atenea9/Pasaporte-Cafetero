@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockDbService } from '../../services/mockDb.service';
+import { PremiumTheme } from '../../theme/PremiumTheme';
 
 export const HomeScreen = () => {
   const { t } = useTranslation();
@@ -11,76 +13,65 @@ export const HomeScreen = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
+    mockDbService.getHomeStats().then(data => {
+      setStats(data);
+      setLoading(false);
+    });
   }, []);
 
-  const loadData = async () => {
-    const data = await mockDbService.getHomeStats();
-    setStats(data);
-    setLoading(false);
-  };
-
-  if (loading) return <ActivityIndicator style={styles.loader} color="#4A3B32" />;
+  if (loading) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.welcome}>{t('welcome', 'Bienvenido')}, {user?.name || 'Visitante'}</Text>
-        <Text style={styles.subtitle}>Feria Internacional del Café 2026</Text>
-        <Text onPress={logout} style={styles.logoutBtn}>Cerrar Sesión</Text>
-      </View>
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, PremiumTheme.colors.bgMedium]} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scroll}>
 
-      {stats.happyHour && (
-        <View style={styles.happyHourBanner}>
-          <Text style={styles.happyHourText}>🔥 ¡HAPPY HOUR ACTIVO! Puntos Dobles 🔥</Text>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.welcome}>{t('welcome', 'Bienvenido')},</Text>
+            <Text style={styles.userName}>{user?.name || 'Visitante VIP'}</Text>
+          </View>
+          <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
+            <Text style={styles.logoutText}>Salir</Text>
+          </TouchableOpacity>
         </View>
-      )}
 
-      <View style={styles.statsContainer}>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>{stats.visitorCount}</Text>
-          <Text style={styles.statLabel}>Visitantes</Text>
+        {stats.happyHour && (
+          <LinearGradient colors={[PremiumTheme.colors.goldDark, PremiumTheme.colors.goldPrimary]} style={styles.happyHourBanner}>
+            <Text style={styles.happyHourText}>✨ HAPPY HOUR ACTIVO: PUNTOS DOBLES ✨</Text>
+          </LinearGradient>
+        )}
+
+        <View style={styles.statsContainer}>
+          <View style={styles.glassCard}>
+            <Text style={styles.statValue}>{stats.visitorCount}</Text>
+            <Text style={styles.statLabel}>Asistentes</Text>
+          </View>
+          <View style={styles.glassCard}>
+            <Text style={styles.statValue}>{stats.activeStands}</Text>
+            <Text style={styles.statLabel}>Stands Activos</Text>
+          </View>
         </View>
-        <View style={styles.statBox}>
-          <Text style={styles.statValue}>{stats.activeStands}</Text>
-          <Text style={styles.statLabel}>Stands Activos</Text>
-        </View>
-      </View>
-    </ScrollView>
+
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF7F2' },
-  loader: { flex: 1, justifyContent: 'center' },
-  header: {
-    padding: 20,
-    backgroundColor: '#4A3B32',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  welcome: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
-  subtitle: { fontSize: 14, color: '#D4C4B7', marginTop: 5 },
-  logoutBtn: { color: '#E07A5F', marginTop: 10, fontWeight: 'bold' },
-  happyHourBanner: {
-    backgroundColor: '#E07A5F',
-    padding: 15,
-    margin: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  happyHourText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
-  statsContainer: { flexDirection: 'row', justifyContent: 'space-around', padding: 20 },
-  statBox: {
-    backgroundColor: '#FFF',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    width: '45%',
-    elevation: 2,
-  },
-  statValue: { fontSize: 28, fontWeight: 'bold', color: '#4A3B32' },
-  statLabel: { fontSize: 14, color: '#7A6B62', marginTop: 5 },
-});
-
 export default HomeScreen;
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  scroll: { padding: 25, paddingTop: 60 },
+  loader: { flex: 1, justifyContent: 'center', backgroundColor: PremiumTheme.colors.bgDark },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 },
+  welcome: { fontSize: 16, color: PremiumTheme.colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' },
+  userName: { fontSize: 28, fontWeight: 'bold', color: PremiumTheme.colors.textLight },
+  logoutBtn: { backgroundColor: PremiumTheme.colors.glassBg, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder },
+  logoutText: { color: PremiumTheme.colors.danger, fontWeight: 'bold', fontSize: 12 },
+  happyHourBanner: { padding: 15, borderRadius: 12, alignItems: 'center', marginBottom: 30, ...PremiumTheme.shadows.glow },
+  happyHourText: { color: PremiumTheme.colors.bgDark, fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 15 },
+  glassCard: { flex: 1, backgroundColor: PremiumTheme.colors.glassBg, padding: 25, borderRadius: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, alignItems: 'center', ...PremiumTheme.shadows.card },
+  statValue: { fontSize: 32, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary, marginBottom: 5 },
+  statLabel: { fontSize: 12, color: PremiumTheme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 }
+});

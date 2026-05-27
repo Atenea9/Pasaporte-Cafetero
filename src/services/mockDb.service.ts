@@ -1,5 +1,11 @@
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+export interface VisitorStats {
+  points: number;
+  stamps: string[];
+  level: string;
+}
+
 export const mockDbService = {
   // --- ESTADO GLOBAL (SIMULANDO CONFIG DE FIREBASE) ---
   globalConfig: { happyHourActive: false },
