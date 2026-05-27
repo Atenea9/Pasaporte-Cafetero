@@ -8,8 +8,11 @@ export interface Usuario {
   cedula: string;
   nombre: string;
   whatsapp: string;
-  municipio: string;
-  departamento: string;
+  pais: string;
+  estado: string;
+  ciudad: string;
+  municipio?: string;
+  departamento?: string;
   puntos: number;
   nivel: string;
   sellos: string[];

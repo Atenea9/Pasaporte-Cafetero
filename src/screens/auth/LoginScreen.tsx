@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import * as Haptics from 'expo-haptics';
 
 const { width, height } = Dimensions.get('window');
 
@@ -116,6 +117,7 @@ function AnimatedCard({ role, loading, disabled, label, onPress }: {
   const glow  = useRef(new Animated.Value(0)).current;
 
   const onPressIn = () => {
+    try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (_) {}
     Animated.parallel([
       Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, friction: 8 }),
       Animated.timing(glow,  { toValue: 1, duration: 150, useNativeDriver: false }),
