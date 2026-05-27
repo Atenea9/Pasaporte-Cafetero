@@ -195,15 +195,8 @@ export const LoginScreen = () => {
                   colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0.02)']}
                   style={s.cardGrad}
                 >
-                  {/* Left accent bar */}
-                  <View style={[s.cardAccent, { backgroundColor: r.color }]} />
-
-                  <View style={s.cardNumWrap}>
-                    <Text style={[s.cardNum, { color: r.color }]}>{r.num}</Text>
-                  </View>
-
                   <View style={s.cardBody}>
-                    <Text style={s.cardTitle}>{t(`login.roles.${r.key}.title`)}</Text>
+                    <Text style={[s.cardTitle, { color: r.color }]}>{t(`login.roles.${r.key}.title`)}</Text>
                   </View>
 
                   <View style={s.cardArrow}>
@@ -310,13 +303,13 @@ const s = StyleSheet.create({
 
   cards:        { gap: 14, marginBottom: 28 },
 
-  card:         { borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: G.borderBright, shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 12, elevation: 8 },
-  cardGrad:     { flexDirection: 'row', alignItems: 'center', paddingVertical: 20, paddingRight: 18 },
+  card:         { borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: G.borderBright, shadowColor: '#C8860A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 14, elevation: 8 },
+  cardGrad:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 22, paddingHorizontal: 20 },
   cardAccent:   { width: 3, alignSelf: 'stretch', marginRight: 16, borderRadius: 2, opacity: 0.8 },
   cardNumWrap:  { marginRight: 14 },
   cardNum:      { fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 34 },
-  cardBody:     { flex: 1 },
-  cardTitle:    { fontSize: 19, fontWeight: '800', color: G.cream, marginBottom: 3, letterSpacing: 0.2 },
+  cardBody:     { flex: 1, alignItems: 'center' },
+  cardTitle:    { fontSize: 24, fontWeight: '900', letterSpacing: 2, textAlign: 'center', textTransform: 'uppercase' },
   cardDesc:     { fontSize: 11, color: G.muted, lineHeight: 16, marginBottom: 9 },
   credBadge:    { alignSelf: 'flex-start', backgroundColor: 'rgba(200,134,10,0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: G.borderBright },
   credText:     { color: G.gold, fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
