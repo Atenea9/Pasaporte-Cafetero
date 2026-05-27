@@ -107,6 +107,70 @@ function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) 
   );
 }
 
+type RoleItem = { key: string; credential: string; color: string; num: string };
+
+function AnimatedCard({ role, loading, disabled, label, onPress }: {
+  role: RoleItem; loading: boolean; disabled: boolean; label: string; onPress: () => void;
+}) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const glow  = useRef(new Animated.Value(0)).current;
+
+  const onPressIn = () => {
+    Animated.parallel([
+      Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, friction: 8 }),
+      Animated.timing(glow,  { toValue: 1, duration: 150, useNativeDriver: false }),
+    ]).start();
+  };
+
+  const onPressOut = () => {
+    Animated.parallel([
+      Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 6 }),
+      Animated.timing(glow,  { toValue: 0, duration: 300, useNativeDriver: false }),
+    ]).start();
+  };
+
+  const borderColor = glow.interpolate({
+    inputRange: [0, 1],
+    outputRange: [G.borderBright, role.color],
+  });
+
+  const shadowOpacity = glow.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.2, 0.55],
+  });
+
+  return (
+    <Animated.View style={[
+      s.card,
+      { transform: [{ scale }], borderColor, shadowColor: role.color, shadowOpacity },
+    ]}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
+        activeOpacity={1}
+        disabled={disabled}
+        style={{ flex: 1 }}
+      >
+        <LinearGradient
+          colors={['rgba(255,255,255,0.07)', 'rgba(255,255,255,0.02)']}
+          style={s.cardGrad}
+        >
+          <View style={s.cardBody}>
+            <Text style={[s.cardTitle, { color: role.color }]}>{label}</Text>
+          </View>
+          <View style={s.cardArrow}>
+            {loading
+              ? <ActivityIndicator color={G.goldLight} size="small" />
+              : <Text style={[s.arrow, { color: role.color }]}>›</Text>
+            }
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
 export const LoginScreen = () => {
   const { t, i18n } = useTranslation();
   const { login } = useAuth();
@@ -176,39 +240,20 @@ export const LoginScreen = () => {
           </View>
 
           <Text style={s.fairName}>{t('login.fair_name')}</Text>
-          <Text style={s.subtitle}>{t('login.portal_label')}</Text>
         </Animated.View>
 
         {/* ── Role Cards ── */}
         <View style={s.cards}>
-          {ROLES.map((r) => {
-            const loading = loadingRole === r.key;
-            return (
-              <TouchableOpacity
-                key={r.key}
-                style={s.card}
-                onPress={() => handleLogin(r.credential, r.key)}
-                activeOpacity={0.78}
-                disabled={isLoading}
-              >
-                <LinearGradient
-                  colors={['rgba(255,255,255,0.06)', 'rgba(255,255,255,0.02)']}
-                  style={s.cardGrad}
-                >
-                  <View style={s.cardBody}>
-                    <Text style={[s.cardTitle, { color: r.color }]}>{t(`login.roles.${r.key}.title`)}</Text>
-                  </View>
-
-                  <View style={s.cardArrow}>
-                    {loading
-                      ? <ActivityIndicator color={G.goldLight} size="small" />
-                      : <Text style={[s.arrow, { color: r.color }]}>›</Text>
-                    }
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
-            );
-          })}
+          {ROLES.map((r) => (
+            <AnimatedCard
+              key={r.key}
+              role={r}
+              loading={loadingRole === r.key}
+              disabled={isLoading}
+              label={t(`login.roles.${r.key}.title`)}
+              onPress={() => handleLogin(r.credential, r.key)}
+            />
+          ))}
         </View>
 
         {/* ── ADMIN access ── */}
@@ -248,7 +293,7 @@ export const LoginScreen = () => {
         )}
 
         <View style={s.footer}>
-          <Text style={s.footerText}>© 2026 PasaporteCafetero · Chaparral, Tolima</Text>
+          <Text style={s.footerText}>© 2026 Gobernación del Tolima</Text>
         </View>
       </Animated.ScrollView>
     </View>
