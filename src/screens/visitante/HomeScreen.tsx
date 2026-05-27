@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockDbService } from '../../services/mockDb.service';
 import { PremiumTheme } from '../../theme/PremiumTheme';
@@ -12,27 +13,27 @@ export const HomeScreen = () => {
   const [stats, setStats] = useState({ visitorCount: 0, activeStands: 0, happyHour: false });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    mockDbService.getHomeStats().then(data => {
-      setStats(data);
-      setLoading(false);
-    });
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      mockDbService.getHomeStats().then(data => {
+        if (isActive) { setStats(data); setLoading(false); }
+      });
+      return () => { isActive = false; };
+    }, [])
+  );
 
   if (loading) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
 
   return (
     <LinearGradient colors={[PremiumTheme.colors.bgDark, PremiumTheme.colors.bgMedium]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-
         <View style={styles.header}>
           <View>
             <Text style={styles.welcome}>{t('welcome', 'Bienvenido')},</Text>
             <Text style={styles.userName}>{user?.name || 'Visitante VIP'}</Text>
           </View>
-          <TouchableOpacity onPress={logout} style={styles.logoutBtn}>
-            <Text style={styles.logoutText}>Salir</Text>
-          </TouchableOpacity>
+          <TouchableOpacity onPress={logout} style={styles.logoutBtn}><Text style={styles.logoutText}>Salir</Text></TouchableOpacity>
         </View>
 
         {stats.happyHour && (
@@ -51,7 +52,6 @@ export const HomeScreen = () => {
             <Text style={styles.statLabel}>Stands Activos</Text>
           </View>
         </View>
-
       </ScrollView>
     </LinearGradient>
   );

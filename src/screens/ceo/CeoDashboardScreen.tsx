@@ -1,129 +1,67 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity,
-  ActivityIndicator, ScrollView, Alert,
-} from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockDbService } from '../../services/mockDb.service';
+import { PremiumTheme } from '../../theme/PremiumTheme';
 
 export const CeoDashboardScreen = () => {
   const { logout } = useAuth();
   const [metrics, setMetrics] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => { loadData(); }, []);
-
-  const loadData = async () => {
-    const data = await mockDbService.getCeoMetrics();
-    setMetrics(data);
-    setLoading(false);
-  };
+  useFocusEffect(useCallback(() => { mockDbService.getCeoMetrics().then(setMetrics); }, []));
 
   const handleExport = async () => {
     setExporting(true);
-    try {
-      const result = await mockDbService.generateDatabaseExport();
-      Alert.alert(
-        '📊 Exportación Completa',
-        `Base de datos generada exitosamente.\n\nArchivo: pasaporte_export.xlsx\nRuta: ${result.url}`
-      );
-    } catch {
-      Alert.alert('Error', 'No se pudo generar la exportación');
-    } finally {
-      setExporting(false);
-    }
+    await mockDbService.generateDatabaseExport();
+    setExporting(false);
+    Alert.alert('Exportación Exitosa', 'Archivo generado en servidor mock.');
   };
 
-  if (loading) return <ActivityIndicator style={styles.loader} color="#C8860A" />;
-
-  const isOperational = metrics.sysStatus === 'Operativo';
+  if (!metrics) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
 
   return (
-    <ScrollView style={styles.container}>
+    <LinearGradient colors={['#000', PremiumTheme.colors.bgMedium]} style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.badge}>👔 CEO</Text>
-        <Text style={styles.title}>Dashboard Ejecutivo</Text>
-        <Text onPress={logout} style={styles.logout}>Cerrar Sesión</Text>
+        <Text style={styles.title}>DIRECTORIO EJECUTIVO</Text>
+        <Text style={styles.subtitle}>Visión Global del Sistema</Text>
+        <TouchableOpacity onPress={logout} style={styles.logoutBtn}><Text style={styles.logoutText}>Cerrar Sesión</Text></TouchableOpacity>
       </View>
 
-      <View style={styles.kpiGrid}>
-        <View style={styles.kpiCard}>
-          <Text style={styles.kpiIcon}>👥</Text>
-          <Text style={styles.kpiValue}>{metrics.totalUsers.toLocaleString()}</Text>
-          <Text style={styles.kpiLabel}>TOTAL USUARIOS</Text>
-        </View>
-        <View style={styles.kpiCard}>
-          <Text style={styles.kpiIcon}>🏷️</Text>
-          <Text style={styles.kpiValue}>{metrics.activeBuyers}</Text>
-          <Text style={styles.kpiLabel}>COMPRADORES</Text>
-        </View>
-        <View style={styles.kpiCard}>
-          <Text style={styles.kpiIcon}>💵</Text>
-          <Text style={styles.kpiValue}>${metrics.totalAuctionValueUSD.toLocaleString()}</Text>
-          <Text style={styles.kpiLabel}>VALOR SUBASTA (USD)</Text>
-        </View>
-        <View style={styles.kpiCard}>
-          <Text style={styles.kpiIcon}>{isOperational ? '🟢' : '🔴'}</Text>
-          <Text style={[styles.kpiValue, isOperational ? styles.sysOk : styles.sysErr]}>
-            {metrics.sysStatus}
-          </Text>
-          <Text style={styles.kpiLabel}>SISTEMA</Text>
-        </View>
+      <View style={styles.glassCard}>
+        <Text style={styles.label}>Usuarios Activos Totales</Text>
+        <Text style={styles.val}>{metrics.totalUsers}</Text>
+        <View style={styles.divider} />
+        <Text style={styles.label}>Valor Transado Subasta (USD)</Text>
+        <Text style={styles.valGold}>${metrics.totalAuctionValueUSD.toLocaleString()}</Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Exportación de Datos</Text>
-        <Text style={styles.sectionDesc}>
-          Genera un archivo XLSX con toda la información de visitantes, expositors, pujas y transacciones de la feria.
-        </Text>
-        <TouchableOpacity
-          style={[styles.exportButton, exporting && styles.exportDisabled]}
-          onPress={handleExport}
-          disabled={exporting}
-        >
-          {exporting
-            ? (
-              <View style={styles.exportRow}>
-                <ActivityIndicator color="#FFF" style={{ marginRight: 10 }} />
-                <Text style={styles.exportText}>Generando XLSX...</Text>
-              </View>
-            )
-            : <Text style={styles.exportText}>📊 Exportar Base de Datos (XLSX)</Text>}
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      <TouchableOpacity onPress={handleExport} disabled={exporting} activeOpacity={0.8}>
+        <LinearGradient colors={['#4DA8DA', '#00509E']} style={styles.btnGradient}>
+          {exporting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>EXPORTAR DATABASE (XLSX)</Text>}
+        </LinearGradient>
+      </TouchableOpacity>
+    </LinearGradient>
   );
 };
 
 export default CeoDashboardScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0D0800' },
-  loader: { flex: 1, justifyContent: 'center', backgroundColor: '#0D0800' },
-  header: { padding: 30, alignItems: 'center', backgroundColor: '#1A1200' },
-  badge: {
-    fontSize: 11, color: '#C8860A', letterSpacing: 2,
-    backgroundColor: '#C8860A22', paddingHorizontal: 12, paddingVertical: 4,
-    borderRadius: 20, marginBottom: 10, overflow: 'hidden',
-  },
-  title: { fontSize: 20, fontWeight: '900', color: '#C8860A', letterSpacing: 2 },
-  logout: { color: '#E07A5F', marginTop: 12, fontSize: 14 },
-  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 16, gap: 10 },
-  kpiCard: {
-    width: '47%', backgroundColor: '#1A1200', borderRadius: 14,
-    padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#C8860A33',
-  },
-  kpiIcon: { fontSize: 26, marginBottom: 6 },
-  kpiValue: { fontSize: 22, fontWeight: '900', color: '#C8860A' },
-  kpiLabel: { fontSize: 9, color: '#888', marginTop: 4, letterSpacing: 1, textAlign: 'center' },
-  sysOk: { color: '#4CAF50' },
-  sysErr: { color: '#E07A5F' },
-  section: { margin: 16, padding: 20, backgroundColor: '#1A1200', borderRadius: 16, borderWidth: 1, borderColor: '#C8860A33' },
-  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#F5E6C8', marginBottom: 8 },
-  sectionDesc: { fontSize: 13, color: '#888', marginBottom: 16, lineHeight: 20 },
-  exportButton: { backgroundColor: '#C8860A', padding: 18, borderRadius: 12, alignItems: 'center' },
-  exportDisabled: { opacity: 0.6 },
-  exportRow: { flexDirection: 'row', alignItems: 'center' },
-  exportText: { color: '#FFF', fontWeight: 'bold', fontSize: 15 },
+  container: { flex: 1 },
+  loader: { flex: 1, justifyContent: 'center', backgroundColor: '#000' },
+  header: { padding: 25, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: PremiumTheme.colors.glassBorder, marginBottom: 20 },
+  title: { fontSize: 20, fontWeight: 'bold', color: PremiumTheme.colors.textLight, letterSpacing: 2 },
+  subtitle: { fontSize: 12, color: PremiumTheme.colors.textMuted, marginTop: 5 },
+  logoutBtn: { position: 'absolute', top: 60, right: 25 },
+  logoutText: { color: PremiumTheme.colors.danger, fontWeight: 'bold' },
+  glassCard: { backgroundColor: PremiumTheme.colors.glassBg, margin: 20, padding: 25, borderRadius: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, ...PremiumTheme.shadows.card },
+  label: { fontSize: 12, color: PremiumTheme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 },
+  val: { fontSize: 32, fontWeight: 'bold', color: PremiumTheme.colors.textLight },
+  valGold: { fontSize: 36, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary },
+  divider: { height: 1, backgroundColor: PremiumTheme.colors.glassBorder, marginVertical: 20 },
+  btnGradient: { margin: 20, padding: 20, borderRadius: 15, alignItems: 'center', ...PremiumTheme.shadows.card },
+  btnText: { color: '#FFF', fontWeight: 'bold', letterSpacing: 1 }
 });

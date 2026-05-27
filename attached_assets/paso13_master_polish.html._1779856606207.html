@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Paso 13: Master Polish (UI Premium + Fix Reactividad)</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .file-block { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; }
+        .filepath { font-weight: bold; color: #d6336c; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Paso 13: Reactividad y Premium UI Global</h1>
+
+    <article class="file-block" data-filepath="src/screens/visitante/HomeScreen.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/screens/visitante/HomeScreen.tsx</div>
+        <div>Acción: MODIFICAR (Cambio a useFocusEffect)</div>
+<pre><code class="language-tsx">import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+import { PremiumTheme } from '../../theme/PremiumTheme';
+
+export const HomeScreen = () => {
+  const { t } = useTranslation();
+  const { user, logout } = useAuth();
+  const [stats, setStats] = useState({ visitorCount: 0, activeStands: 0, happyHour: false });
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      mockDbService.getHomeStats().then(data => {
+        if (isActive) { setStats(data); setLoading(false); }
+      });
+      return () => { isActive = false; };
+    }, [])
+  );
+
+  if (loading) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
+
+  return (
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, PremiumTheme.colors.bgMedium]} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.welcome}>{t('welcome', 'Bienvenido')},</Text>
+            <Text style={styles.userName}>{user?.name || 'Visitante VIP'}</Text>
+          </View>
+          <TouchableOpacity onPress={logout} style={styles.logoutBtn}><Text style={styles.logoutText}>Salir</Text></TouchableOpacity>
+        </View>
+
+        {stats.happyHour && (
+          <LinearGradient colors={[PremiumTheme.colors.goldDark, PremiumTheme.colors.goldPrimary]} style={styles.happyHourBanner}>
+            <Text style={styles.happyHourText}>✨ HAPPY HOUR ACTIVO: PUNTOS DOBLES ✨</Text>
+          </LinearGradient>
+        )}
+
+        <View style={styles.statsContainer}>
+          <View style={styles.glassCard}>
+            <Text style={styles.statValue}>{stats.visitorCount}</Text>
+            <Text style={styles.statLabel}>Asistentes</Text>
+          </View>
+          <View style={styles.glassCard}>
+            <Text style={styles.statValue}>{stats.activeStands}</Text>
+            <Text style={styles.statLabel}>Stands Activos</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </LinearGradient>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1 }, scroll: { padding: 25, paddingTop: 60 },
+  loader: { flex: 1, justifyContent: 'center', backgroundColor: PremiumTheme.colors.bgDark },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 40 },
+  welcome: { fontSize: 16, color: PremiumTheme.colors.textMuted, letterSpacing: 1, textTransform: 'uppercase' },
+  userName: { fontSize: 28, fontWeight: 'bold', color: PremiumTheme.colors.textLight },
+  logoutBtn: { backgroundColor: PremiumTheme.colors.glassBg, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder },
+  logoutText: { color: PremiumTheme.colors.danger, fontWeight: 'bold', fontSize: 12 },
+  happyHourBanner: { padding: 15, borderRadius: 12, alignItems: 'center', marginBottom: 30, ...PremiumTheme.shadows.glow },
+  happyHourText: { color: PremiumTheme.colors.bgDark, fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 15 },
+  glassCard: { flex: 1, backgroundColor: PremiumTheme.colors.glassBg, padding: 25, borderRadius: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, alignItems: 'center', ...PremiumTheme.shadows.card },
+  statValue: { fontSize: 32, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary, marginBottom: 5 },
+  statLabel: { fontSize: 12, color: PremiumTheme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 1 }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/visitante/PasaporteScreen.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/screens/visitante/PasaporteScreen.tsx</div>
+        <div>Acción: MODIFICAR (Cambio a useFocusEffect)</div>
+<pre><code class="language-tsx">import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService, VisitorStats } from '../../services/mockDb.service';
+import { PremiumTheme } from '../../theme/PremiumTheme';
+
+export const PasaporteScreen = () => {
+  const { user } = useAuth();
+  const [stats, setStats] = useState<VisitorStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      if (user) {
+        mockDbService.getUserStats(user.uid).then(data => {
+          if (isActive) { setStats(data); setLoading(false); }
+        });
+      }
+      return () => { isActive = false; };
+    }, [user])
+  );
+
+  if (loading) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
+
+  return (
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, PremiumTheme.colors.bgMedium]} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <LinearGradient colors={['#3A2618', '#1A110A']} style={styles.membershipCard}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>PASAPORTE CAFETERO</Text>
+            <Text style={styles.levelBadge}>{stats?.level.toUpperCase()}</Text>
+          </View>
+          <View style={styles.qrPlaceholder}><Text style={styles.qrText}>[ QR EXCLUSIVO ]</Text></View>
+          <Text style={styles.uidText}>ID: {user?.uid.split('-')[2] || user?.uid}</Text>
+        </LinearGradient>
+
+        <View style={styles.glassContainer}>
+          <Text style={styles.pointsLabel}>Balance de Puntos</Text>
+          <Text style={styles.pointsValue}>{stats?.points} <Text style={styles.pts}>PTS</Text></Text>
+          <View style={styles.divider} />
+          <Text style={styles.stampsTitle}>Sellos de Origen ({stats?.stamps.length})</Text>
+          <View style={styles.stampsGrid}>
+            {stats?.stamps.map((stamp, index) => (
+              <View key={index} style={styles.stampBadge}><Text style={styles.stampText}>{stamp}</Text></View>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+    </LinearGradient>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1 }, scroll: { padding: 25, paddingTop: 50 },
+  loader: { flex: 1, justifyContent: 'center', backgroundColor: PremiumTheme.colors.bgDark },
+  membershipCard: { padding: 25, borderRadius: 20, borderWidth: 1, borderColor: PremiumTheme.colors.goldPrimary, marginBottom: 30, ...PremiumTheme.shadows.glow },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 30 },
+  cardTitle: { color: PremiumTheme.colors.goldPrimary, fontWeight: 'bold', letterSpacing: 2, fontSize: 12 },
+  levelBadge: { backgroundColor: PremiumTheme.colors.goldPrimary, color: PremiumTheme.colors.bgDark, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, fontSize: 10, fontWeight: 'bold', overflow: 'hidden' },
+  qrPlaceholder: { height: 180, backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginBottom: 20 },
+  qrText: { color: PremiumTheme.colors.bgDark, fontWeight: '900', letterSpacing: 2 },
+  uidText: { color: PremiumTheme.colors.textMuted, fontSize: 10, textAlign: 'center', letterSpacing: 2 },
+  glassContainer: { backgroundColor: PremiumTheme.colors.glassBg, padding: 25, borderRadius: 20, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, ...PremiumTheme.shadows.card },
+  pointsLabel: { color: PremiumTheme.colors.textMuted, fontSize: 14, textTransform: 'uppercase', letterSpacing: 1 },
+  pointsValue: { color: PremiumTheme.colors.textLight, fontSize: 40, fontWeight: 'bold', marginVertical: 5 },
+  pts: { fontSize: 18, color: PremiumTheme.colors.goldPrimary },
+  divider: { height: 1, backgroundColor: PremiumTheme.colors.glassBorder, marginVertical: 20 },
+  stampsTitle: { color: PremiumTheme.colors.textLight, fontSize: 16, fontWeight: 'bold', marginBottom: 15 },
+  stampsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  stampBadge: { backgroundColor: 'transparent', borderWidth: 1, borderColor: PremiumTheme.colors.goldPrimary, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20 },
+  stampText: { color: PremiumTheme.colors.goldLight, fontWeight: '600', fontSize: 12, letterSpacing: 1 }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/comprador/CompradorDashboardScreen.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/screens/comprador/CompradorDashboardScreen.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+import { PremiumTheme } from '../../theme/PremiumTheme';
+
+export const CompradorDashboardScreen = () => {
+  const { logout } = useAuth();
+  const navigation = useNavigation<any>();
+  const [lots, setLots] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      mockDbService.getAuctionLots().then(data => { if (isActive) { setLots(data); setLoading(false); } });
+      return () => { isActive = false; };
+    }, [])
+  );
+
+  if (loading) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
+
+  return (
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, PremiumTheme.colors.bgMedium]} style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>SUBASTA INTERNACIONAL</Text>
+        <Text style={styles.subtitle}>Catálogo de Lotes Especiales</Text>
+        <View style={styles.row}>
+          <TouchableOpacity onPress={() => navigation.navigate('CompradorPasaporte')}><Text style={styles.link}>Mi Perfil</Text></TouchableOpacity>
+          <TouchableOpacity onPress={logout}><Text style={styles.logout}>Salir</Text></TouchableOpacity>
+        </View>
+      </View>
+      
+      <FlatList
+        data={lots} keyExtractor={(item) => item.id} contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.glassCard} onPress={() => navigation.navigate('LotDetail', { lotId: item.id })} activeOpacity={0.8}>
+            <View style={styles.cardHeader}>
+              <Text style={styles.farmName}>{item.farmName}</Text>
+              <View style={styles.scoreBadge}><Text style={styles.scoreText}>SCA {item.scaScore}</Text></View>
+            </View>
+            <Text style={styles.detailText}>{item.variety} • {item.lotSizeKg} Kg</Text>
+            <View style={styles.bidRow}>
+              <Text style={styles.bidLabel}>Puja Actual:</Text>
+              <Text style={styles.bidValue}>${item.currentBidUSD.toFixed(2)} USD</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
+    </LinearGradient>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1 }, loader: { flex: 1, justifyContent: 'center', backgroundColor: PremiumTheme.colors.bgDark },
+  header: { padding: 25, paddingTop: 60, backgroundColor: 'rgba(0,0,0,0.5)', borderBottomWidth: 1, borderBottomColor: PremiumTheme.colors.glassBorder },
+  title: { fontSize: 20, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary, letterSpacing: 2 },
+  subtitle: { fontSize: 12, color: PremiumTheme.colors.textMuted, marginTop: 5, letterSpacing: 1 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 },
+  link: { color: PremiumTheme.colors.goldLight, fontWeight: 'bold', letterSpacing: 1 }, 
+  logout: { color: PremiumTheme.colors.danger, fontWeight: 'bold', letterSpacing: 1 },
+  list: { padding: 20 }, 
+  glassCard: { backgroundColor: PremiumTheme.colors.glassBg, padding: 20, borderRadius: 15, marginBottom: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, ...PremiumTheme.shadows.card },
+  cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  farmName: { fontSize: 18, fontWeight: 'bold', color: PremiumTheme.colors.textLight, flex: 1 },
+  scoreBadge: { backgroundColor: PremiumTheme.colors.goldPrimary, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
+  scoreText: { color: PremiumTheme.colors.bgDark, fontWeight: 'bold', fontSize: 12 },
+  detailText: { fontSize: 14, color: PremiumTheme.colors.textMuted, marginBottom: 10 },
+  bidRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: PremiumTheme.colors.glassBorder },
+  bidLabel: { fontSize: 14, color: PremiumTheme.colors.textMuted },
+  bidValue: { fontSize: 16, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/admin/AdminDashboardScreen.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/screens/admin/AdminDashboardScreen.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+import { PremiumTheme } from '../../theme/PremiumTheme';
+
+export const AdminDashboardScreen = () => {
+  const { logout } = useAuth();
+  const [kpis, setKpis] = useState<any>(null);
+
+  const loadData = async () => setKpis(await mockDbService.getAdminKPIs());
+  
+  useFocusEffect(useCallback(() => { loadData(); }, []));
+
+  const handleHappyHour = async () => {
+    await mockDbService.toggleHappyHour();
+    loadData();
+  };
+
+  if (!kpis) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
+
+  return (
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, '#000']} style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>PANEL DE CONTROL</Text>
+        <Text style={styles.subtitle}>Administración del Evento</Text>
+        <TouchableOpacity onPress={logout} style={styles.logoutBtn}><Text style={styles.logoutText}>Cerrar Sesión</Text></TouchableOpacity>
+      </View>
+      
+      <View style={styles.grid}>
+        <View style={styles.glassCard}><Text style={styles.val}>{kpis.totalVisitors}</Text><Text style={styles.label}>Visitantes</Text></View>
+        <View style={styles.glassCard}><Text style={styles.val}>{kpis.activeStands}</Text><Text style={styles.label}>Stands</Text></View>
+      </View>
+      
+      <TouchableOpacity onPress={handleHappyHour} activeOpacity={0.8}>
+        <LinearGradient colors={kpis.happyHour ? [PremiumTheme.colors.danger, '#8B2635'] : [PremiumTheme.colors.goldPrimary, PremiumTheme.colors.goldDark]} style={styles.btnGradient}>
+          <Text style={styles.btnText}>{kpis.happyHour ? 'DESACTIVAR HAPPY HOUR' : 'ACTIVAR HAPPY HOUR'}</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+    </LinearGradient>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1 }, loader: { flex: 1, justifyContent: 'center', backgroundColor: PremiumTheme.colors.bgDark },
+  header: { padding: 25, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: PremiumTheme.colors.glassBorder, marginBottom: 20 },
+  title: { fontSize: 20, fontWeight: 'bold', color: PremiumTheme.colors.textLight, letterSpacing: 2 },
+  subtitle: { fontSize: 12, color: PremiumTheme.colors.textMuted, marginTop: 5 },
+  logoutBtn: { position: 'absolute', top: 60, right: 25 }, logoutText: { color: PremiumTheme.colors.danger, fontWeight: 'bold' },
+  grid: { flexDirection: 'row', padding: 20, justifyContent: 'space-between' },
+  glassCard: { backgroundColor: PremiumTheme.colors.glassBg, padding: 20, borderRadius: 15, width: '48%', alignItems: 'center', borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, ...PremiumTheme.shadows.card },
+  val: { fontSize: 28, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary }, label: { color: PremiumTheme.colors.textMuted, fontSize: 12, textTransform: 'uppercase', marginTop: 5 },
+  btnGradient: { margin: 20, padding: 20, borderRadius: 15, alignItems: 'center', ...PremiumTheme.shadows.glow }, btnText: { color: PremiumTheme.colors.bgDark, fontWeight: 'bold', letterSpacing: 1 }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/ceo/CeoDashboardScreen.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/screens/ceo/CeoDashboardScreen.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+import { PremiumTheme } from '../../theme/PremiumTheme';
+
+export const CeoDashboardScreen = () => {
+  const { logout } = useAuth();
+  const [metrics, setMetrics] = useState<any>(null);
+  const [exporting, setExporting] = useState(false);
+
+  useFocusEffect(useCallback(() => { mockDbService.getCeoMetrics().then(setMetrics); }, []));
+
+  const handleExport = async () => {
+    setExporting(true);
+    const result = await mockDbService.generateDatabaseExport();
+    setExporting(false);
+    Alert.alert('Exportación Exitosa', `Archivo generado en servidor mock.`);
+  };
+
+  if (!metrics) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
+
+  return (
+    <LinearGradient colors={['#000', PremiumTheme.colors.bgMedium]} style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>DIRECTORIO EJECUTIVO</Text>
+        <Text style={styles.subtitle}>Visión Global del Sistema</Text>
+        <TouchableOpacity onPress={logout} style={styles.logoutBtn}><Text style={styles.logoutText}>Cerrar Sesión</Text></TouchableOpacity>
+      </View>
+      
+      <View style={styles.glassCard}>
+        <Text style={styles.label}>Usuarios Activos Totales</Text>
+        <Text style={styles.val}>{metrics.totalUsers}</Text>
+        <View style={styles.divider} />
+        <Text style={styles.label}>Valor Transado Subasta (USD)</Text>
+        <Text style={styles.valGold}>${metrics.totalAuctionValueUSD.toLocaleString()}</Text>
+      </View>
+      
+      <TouchableOpacity onPress={handleExport} disabled={exporting} activeOpacity={0.8}>
+        <LinearGradient colors={['#4DA8DA', '#00509E']} style={styles.btnGradient}>
+          {exporting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>EXPORTAR DATABASE (XLSX)</Text>}
+        </LinearGradient>
+      </TouchableOpacity>
+    </LinearGradient>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1 }, loader: { flex: 1, justifyContent: 'center', backgroundColor: '#000' },
+  header: { padding: 25, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: PremiumTheme.colors.glassBorder, marginBottom: 20 },
+  title: { fontSize: 20, fontWeight: 'bold', color: PremiumTheme.colors.textLight, letterSpacing: 2 },
+  subtitle: { fontSize: 12, color: PremiumTheme.colors.textMuted, marginTop: 5 },
+  logoutBtn: { position: 'absolute', top: 60, right: 25 }, logoutText: { color: PremiumTheme.colors.danger, fontWeight: 'bold' },
+  glassCard: { backgroundColor: PremiumTheme.colors.glassBg, margin: 20, padding: 25, borderRadius: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, ...PremiumTheme.shadows.card },
+  label: { fontSize: 12, color: PremiumTheme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 },
+  val: { fontSize: 32, fontWeight: 'bold', color: PremiumTheme.colors.textLight },
+  valGold: { fontSize: 36, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary },
+  divider: { height: 1, backgroundColor: PremiumTheme.colors.glassBorder, marginVertical: 20 },
+  btnGradient: { margin: 20, padding: 20, borderRadius: 15, alignItems: 'center', ...PremiumTheme.shadows.card }, btnText: { color: '#FFF', fontWeight: 'bold', letterSpacing: 1 }
+});
+</code></pre>
+    </article>
+
+</body>
+</html>

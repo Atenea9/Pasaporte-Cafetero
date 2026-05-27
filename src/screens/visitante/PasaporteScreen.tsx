@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockDbService, VisitorStats } from '../../services/mockDb.service';
 import { PremiumTheme } from '../../theme/PremiumTheme';
@@ -10,45 +11,43 @@ export const PasaporteScreen = () => {
   const [stats, setStats] = useState<VisitorStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) mockDbService.getUserStats(user.uid).then(data => { setStats(data); setLoading(false); });
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      if (user) {
+        mockDbService.getUserStats(user.uid).then(data => {
+          if (isActive) { setStats(data); setLoading(false); }
+        });
+      }
+      return () => { isActive = false; };
+    }, [user])
+  );
 
   if (loading) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
 
   return (
     <LinearGradient colors={[PremiumTheme.colors.bgDark, PremiumTheme.colors.bgMedium]} style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll}>
-
         <LinearGradient colors={['#3A2618', '#1A110A']} style={styles.membershipCard}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>PASAPORTE CAFETERO</Text>
             <Text style={styles.levelBadge}>{stats?.level.toUpperCase()}</Text>
           </View>
-
-          <View style={styles.qrPlaceholder}>
-            <Text style={styles.qrText}>[ QR EXCLUSIVO ]</Text>
-          </View>
-
+          <View style={styles.qrPlaceholder}><Text style={styles.qrText}>[ QR EXCLUSIVO ]</Text></View>
           <Text style={styles.uidText}>ID: {user?.uid.split('-')[2] || user?.uid}</Text>
         </LinearGradient>
 
         <View style={styles.glassContainer}>
           <Text style={styles.pointsLabel}>Balance de Puntos</Text>
           <Text style={styles.pointsValue}>{stats?.points} <Text style={styles.pts}>PTS</Text></Text>
-
           <View style={styles.divider} />
-
           <Text style={styles.stampsTitle}>Sellos de Origen ({stats?.stamps.length})</Text>
           <View style={styles.stampsGrid}>
             {stats?.stamps.map((stamp, index) => (
-              <View key={index} style={styles.stampBadge}>
-                <Text style={styles.stampText}>{stamp}</Text>
-              </View>
+              <View key={index} style={styles.stampBadge}><Text style={styles.stampText}>{stamp}</Text></View>
             ))}
           </View>
         </View>
-
       </ScrollView>
     </LinearGradient>
   );
