@@ -14,20 +14,38 @@ export interface UserProfile {
 
 const SESSION_KEY = '@mock_auth_session';
 
+const DEMO_ACCOUNTS: Record<string, { role: UserRole; name: string }> = {
+  'visitor@demo.com':    { role: 'visitante',  name: 'Carlos Andrés Rojas'    },
+  'buyer@demo.com':      { role: 'comprador',  name: 'James Whitfield'         },
+  'expositor@demo.com':  { role: 'expositor',  name: 'María Castaño'           },
+  'admin@demo.com':      { role: 'admin',      name: 'Administrador Feria'     },
+  'ceo@demo.com':        { role: 'ceo',        name: 'Director General'        },
+  'stevenpolania23@outlook.com': { role: 'ceo', name: 'Steven Polania'         },
+};
+
 export const mockAuthService = {
   async login(identifier: string, type: 'phone' | 'email'): Promise<UserProfile> {
     await delay(800);
 
+    const normalizedId = identifier.toLowerCase().trim();
     let role: UserRole = 'visitante';
-    if (identifier.includes('admin'))     role = 'admin';
-    if (identifier.includes('ceo'))       role = 'ceo';
-    if (identifier.includes('expositor')) role = 'expositor';
-    if (identifier.includes('comprador')) role = 'comprador';
+    let name: string | undefined;
+
+    if (DEMO_ACCOUNTS[normalizedId]) {
+      role = DEMO_ACCOUNTS[normalizedId].role;
+      name = DEMO_ACCOUNTS[normalizedId].name;
+    } else {
+      if (normalizedId.includes('admin'))     role = 'admin';
+      if (normalizedId.includes('ceo'))       role = 'ceo';
+      if (normalizedId.includes('expositor')) role = 'expositor';
+      if (normalizedId.includes('comprador')) role = 'comprador';
+      name = `Usuario ${role}`;
+    }
 
     const mockUser: UserProfile = {
       uid: `mock-uid-${Date.now()}`,
       role,
-      name: `Usuario ${role}`,
+      name,
       ...(type === 'phone' ? { phone: identifier } : { email: identifier }),
     };
 

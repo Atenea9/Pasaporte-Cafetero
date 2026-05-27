@@ -1,0 +1,97 @@
+SYSTEM / AGENT PROMPT
+You are a senior full-stack developer and UI/UX expert. You will receive a codebase for an event management application called "Pasaporte Cafetero – Feria Internacional del Café, Tolima 2026". Apply all of the following changes deeply and completely — fully functional, no stubs.
+
+TASK 1 — LOGIN SCREEN: ROLE-BASED PROFILE SELECTOR
+Redesign the login/entry screen to display profile cards the user taps to select. Show exactly:
+
+Visitor (Visitante)
+International Buyer (Comprador Internacional)
+Exhibitor (Expositor)
+Admin → completely hidden from UI — only accessible via triple-click on the logo or navigating to /admin-login
+
+Each card: icon + role label + one-line description.
+
+TASK 2 — TEMPORARY DEMO CREDENTIALS
+Auto-fill working credentials per role (one-click login):
+ProfileEmailPasswordVisitorvisitor@demo.comVisitor2024!International Buyerbuyer@demo.comBuyer2024!Exhibitorexhibitor@demo.comExhibitor2024!Adminadmin@demo.comAdmin2024!
+Seed these accounts in auth/mock data so they actually work.
+
+TASK 3 — PASSPORT REGISTRATION FLOW (Visitor & International Buyer ONLY)
+
+This is the core onboarding flow for Visitor and International Buyer profiles.
+When either of these roles is selected, before accessing the app, the user must complete the Pasaporte Cafetero registration — exactly as shown in the uploaded screens.
+
+3A — Entry screen ("Crea tu Pasaporte Cafetero")
+
+Header: leaf logo + "PASAPORTE CAFETERO" + subtitle "Feria Internacional del Café · Tolima 2026"
+ID card icon centered
+Title: "CREA TU PASAPORTE CAFETERO"
+Subtitle: "Regístrate en menos de 60 segundos y empieza a coleccionar sellos, sumar puntos y ganar premios."
+Step progress indicator: ① Cédula → ② WhatsApp → ③ Municipio → ④ ¡Listo!
+Bottom sticky CTA button (gold/green): "SIMULAR ESCANEO DE CÉDULA" with camera icon and subtext "Auto-rellena los datos para la demo"
+
+3B — Registration form (Step 1: Cédula)
+Fields to collect, in this exact order:
+
+Número de Cédula — text input, placeholder: Ej: 1107654321
+Nombre Completo — text input, placeholder: Ej: Carlos Andrés Rojas
+Número de WhatsApp — phone input with 🇨🇴 +57 country prefix, placeholder: 3156789012, helper text: "Recibirás notificaciones y soporte por WhatsApp"
+Municipio de Residencia — dropdown selector: "Selecciona tu municipio del Tolima" (include all Tolima municipalities)
+Departamento — auto-filled, read-only: 📍 Tolima, Colombia
+
+
+Primary CTA button (gold, rounded, full-width): "🎉 CREAR MI PASAPORTE CAFETERO"
+
+3C — ID Scan simulation
+When the user taps "SIMULAR ESCANEO DE CÉDULA":
+
+Auto-populate all fields with realistic Colombian demo data
+Animate a brief "scanning" effect before filling
+
+3D — Passport behavior
+
+After completing registration, the user receives their digital passport
+The passport displays: name, cedula, municipality, QR code, stamp collection grid, and points counter
+This passport feature is ONLY available to Visitor and International Buyer — hide it completely (not disabled, fully absent) for Exhibitor and Admin
+
+
+TASK 4 — PREMIUM EVENT ANALYTICS (ALL PROFILES)
+Every profile (including Visitor and Buyer, after completing passport registration) must access a Premium Analytics Dashboard:
+
+Attendance numbers & trends (line chart)
+Top sessions/exhibitors by engagement (bar chart)
+Geographic breakdown of attendees (pie or map)
+Lead capture stats
+Revenue / ticket sales overview
+Use Recharts or Chart.js — no static images
+
+
+TASK 5 — CEO ACCOUNT
+Seed a permanent CEO super-admin account:
+
+Email: Stevenpolania23@outlook.com
+Password: Ballenas23
+Role: CEO — full access to everything (analytics, all profiles, admin panel, passport viewer)
+Show a 👑 CEO badge in the UI when logged in
+CEO bypasses the passport registration flow
+
+
+TASK 6 — FULL VISUAL REDESIGN (ALL PAGES)
+Match and extend the visual identity shown in the uploaded screens:
+
+Color palette: deep dark brown #1a0f00 backgrounds, gold #c8860a / amber #f5a623 accents, cream white text
+Typography: bold uppercase headers, clean sans-serif body
+Components: rounded cards, pill buttons, gold borders, warm gradient overlays
+Consistent across: login, passport flow, dashboard, analytics, admin panel
+Mobile-first, fully responsive
+Add smooth transitions between steps
+The feel: premium Colombian coffee cultural event — rustic warmth meets modern expo
+
+
+DELIVERY REQUIREMENTS
+
+Edit actual source files — no summaries or instructions
+Include seed script for all demo + CEO accounts
+Update all navigation and routing references
+Every role must be fully navigable end-to-end with zero broken states
+Passport flow is mandatory gate for Visitor and International Buyer before any other screen

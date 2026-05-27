@@ -7,10 +7,8 @@ export interface VisitorStats {
 }
 
 export const mockDbService = {
-  // --- ESTADO GLOBAL (SIMULANDO CONFIG DE FIREBASE) ---
   globalConfig: { happyHourActive: false },
 
-  // --- VISITANTE & EXPOSITOR (PASOS 1-5) ---
   async getHomeStats() {
     await delay(300);
     return { visitorCount: 1420, activeStands: 45, happyHour: this.globalConfig.happyHourActive };
@@ -31,12 +29,11 @@ export const mockDbService = {
     return { standName: 'Café Las Palmas', municipality: 'Planadas', todaySalesCOP: 245000, stampsIssued: 32 };
   },
 
-  // (Paso 9) Backend Logic: Server-side validation para ventas
   async registerSale(expositorUid: string, visitorUid: string, amountCOP: number) {
     await delay(600);
     if (amountCOP <= 0) throw new Error('Monto inválido');
     let points = Math.floor(amountCOP / 1000);
-    if (this.globalConfig.happyHourActive) points *= 2; // Cloud Function Logic
+    if (this.globalConfig.happyHourActive) points *= 2;
     return { success: true, pointsAwarded: points, message: `Venta registrada. Puntos: ${points}` };
   },
 
@@ -47,7 +44,6 @@ export const mockDbService = {
   async saveAuctionProfile(uid: string, data: any) { await delay(600); return { success: true }; },
   async submitScaAnalysis(uid: string, data: any) { await delay(800); return { success: true }; },
 
-  // --- COMPRADOR (PASO 6) ---
   async getAuctionLots() {
     await delay(500);
     return [
@@ -75,7 +71,6 @@ export const mockDbService = {
       },
     };
   },
-  // (Paso 9) Backend Logic: Server-side validation para pujas
   async placeBid(lotId: string, buyerUid: string, bidAmountUSD: number) {
     await delay(700);
     const currentLot = await this.getLotDetails(lotId);
@@ -87,7 +82,6 @@ export const mockDbService = {
     return { activeBids: 2, lotsWon: 0, stamps: ['Subasta VIP'] };
   },
 
-  // --- ADMIN (PASO 7) ---
   async getAdminKPIs() {
     await delay(400);
     return {
@@ -103,7 +97,6 @@ export const mockDbService = {
     return this.globalConfig.happyHourActive;
   },
 
-  // --- CEO (PASOS 8 y 9) ---
   async getCeoMetrics() {
     await delay(500);
     return {
@@ -113,9 +106,48 @@ export const mockDbService = {
       sysStatus: 'Operativo',
     };
   },
-  // (Paso 9) Backend Logic: Data Export Simulation
   async generateDatabaseExport() {
-    await delay(1500); // Simulamos generación de XLSX
+    await delay(1500);
     return { success: true, url: 'file://simulated/path/pasaporte_export.xlsx' };
+  },
+
+  async getAnalyticsData() {
+    await delay(400);
+    return {
+      kpis: {
+        totalAttendees: 1420,
+        totalRevenueCOP: 24500000,
+        avgRating: 4.7,
+        activeLots: 12,
+      },
+      attendanceTrend: [
+        { day: 'Lun', count: 180, max: 420 },
+        { day: 'Mar', count: 245, max: 420 },
+        { day: 'Mié', count: 310, max: 420 },
+        { day: 'Jue', count: 290, max: 420 },
+        { day: 'Vie', count: 420, max: 420 },
+        { day: 'Sáb', count: 385, max: 420 },
+        { day: 'Dom', count: 200, max: 420 },
+      ],
+      topStands: [
+        { name: 'Café Las Palmas', visits: 245, municipality: 'Planadas' },
+        { name: 'Hacienda El Roble', visits: 198, municipality: 'Chaparral' },
+        { name: 'Finca El Mirador', visits: 176, municipality: 'Ibagué' },
+        { name: 'La Reserva Cafetera', visits: 154, municipality: 'Líbano' },
+        { name: 'Café de Altura', visits: 132, municipality: 'Murillo' },
+      ],
+      geographic: [
+        { region: 'Centro (Ibagué)', count: 520, pct: 37 },
+        { region: 'Norte (Líbano)', count: 340, pct: 24 },
+        { region: 'Sur (Chaparral)', count: 280, pct: 20 },
+        { region: 'Oriente', count: 168, pct: 12 },
+        { region: 'Otros', count: 112, pct: 7 },
+      ],
+      revenueByCategory: [
+        { label: 'Ventas Stands', amount: 18500000, pct: 76 },
+        { label: 'Subasta Café', amount: 4200000, pct: 17 },
+        { label: 'Entradas VIP', amount: 1800000, pct: 7 },
+      ],
+    };
   },
 };

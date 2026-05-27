@@ -27,6 +27,7 @@ export type ExpositorStackParamList = {
 };
 
 export type CompradorStackParamList = {
+  Registro: undefined;
   Dashboard: undefined;
   LotDetail: { lotId: string };
   CompradorPasaporte: undefined;
