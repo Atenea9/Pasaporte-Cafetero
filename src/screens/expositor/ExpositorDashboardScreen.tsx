@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockDbService } from '../../services/mockDb.service';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { PremiumTheme } from '../../theme/PremiumTheme';
 
 export const ExpositorDashboardScreen = () => {
@@ -12,12 +12,15 @@ export const ExpositorDashboardScreen = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    mockDbService.getStandStats(user!.uid).then(data => {
-      setStats(data);
-      setLoading(false);
-    });
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      mockDbService.getStandStats(user!.uid).then(data => {
+        if (isActive) { setStats(data); setLoading(false); }
+      });
+      return () => { isActive = false; };
+    }, [user])
+  );
 
   if (loading) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
 

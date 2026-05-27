@@ -1,67 +1,86 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockDbService } from '../../services/mockDb.service';
+import { PremiumTheme } from '../../theme/PremiumTheme';
 
 export const CompradorPasaporteScreen = () => {
-  const navigation = useNavigation<any>();
   const { user } = useAuth();
+  const navigation = useNavigation();
   const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    mockDbService.getCompradorStats(user!.uid).then(setStats);
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+      mockDbService.getCompradorStats(user!.uid).then(data => {
+        if (isActive) { setStats(data); setLoading(false); }
+      });
+      return () => { isActive = false; };
+    }, [user])
+  );
 
-  if (!stats) return <ActivityIndicator style={{ flex: 1 }} color="#1A2530" />;
+  if (loading || !stats) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Pasaporte Comprador</Text>
-      <Text style={styles.sub}>ID: {user?.uid}</Text>
+    <LinearGradient colors={[PremiumTheme.colors.bgDark, PremiumTheme.colors.bgMedium]} style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scroll}>
 
-      <View style={styles.card}>
-        <Text style={styles.statLabel}>Pujas Activas</Text>
-        <Text style={styles.statVal}>{stats.activeBids}</Text>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.statLabel}>Lotes Ganados</Text>
-        <Text style={styles.statVal}>{stats.lotsWon}</Text>
-      </View>
+        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+          <Text style={styles.backText}>← Volver al Catálogo</Text>
+        </TouchableOpacity>
 
-      <View style={styles.stampsContainer}>
-        <Text style={styles.stampsTitle}>Insignias</Text>
-        {stats.stamps.map((s: string) => (
-          <Text key={s} style={styles.stamp}>🏆 {s}</Text>
-        ))}
-      </View>
+        <Text style={styles.title}>PASAPORTE COMPRADOR</Text>
+        <Text style={styles.uid}>ID: {user?.uid.split('-')[2] || user?.uid}</Text>
 
-      <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>← Volver al Catálogo</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.glassCard}>
+            <Text style={styles.statValue}>{stats.activeBids}</Text>
+            <Text style={styles.statLabel}>Pujas Activas</Text>
+          </View>
+          <View style={styles.glassCard}>
+            <Text style={styles.statValue}>{stats.lotsWon}</Text>
+            <Text style={styles.statLabel}>Lotes Ganados</Text>
+          </View>
+        </View>
+
+        <View style={styles.stampsContainer}>
+          <Text style={styles.stampsTitle}>INSIGNIAS DE SUBASTA</Text>
+          <View style={styles.divider} />
+          <View style={styles.stampsGrid}>
+            {stats.stamps.map((stamp: string, index: number) => (
+              <View key={index} style={styles.stampBadge}>
+                <Text style={styles.stampText}>{stamp}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+      </ScrollView>
+    </LinearGradient>
   );
 };
 
 export default CompradorPasaporteScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF7F2', padding: 20, justifyContent: 'center' },
-  title: { fontSize: 26, fontWeight: 'bold', color: '#1A2530', textAlign: 'center' },
-  sub: { fontSize: 13, color: '#7A6B62', textAlign: 'center', marginBottom: 30 },
-  card: {
-    backgroundColor: '#FFF',
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 14,
-    alignItems: 'center',
-    elevation: 2,
-  },
-  statLabel: { fontSize: 13, color: '#7A6B62', letterSpacing: 1 },
-  statVal: { fontSize: 36, fontWeight: '900', color: '#1A2530', marginTop: 4 },
-  stampsContainer: { backgroundColor: '#E8F4FF', padding: 16, borderRadius: 12, marginBottom: 30 },
-  stampsTitle: { fontSize: 14, fontWeight: 'bold', color: '#1A2530', marginBottom: 10 },
-  stamp: { fontSize: 15, color: '#4DA8DA', marginBottom: 6 },
-  backBtn: { alignItems: 'center' },
-  backText: { color: '#4DA8DA', fontSize: 16, fontWeight: 'bold' },
+  container: { flex: 1 },
+  scroll: { padding: 25, paddingTop: 50 },
+  loader: { flex: 1, justifyContent: 'center', backgroundColor: PremiumTheme.colors.bgDark },
+  backBtn: { marginBottom: 25 },
+  backText: { color: PremiumTheme.colors.goldPrimary, fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
+  title: { fontSize: 22, fontWeight: 'bold', color: PremiumTheme.colors.textLight, letterSpacing: 2 },
+  uid: { fontSize: 10, color: PremiumTheme.colors.textMuted, marginBottom: 40, letterSpacing: 2 },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 15, marginBottom: 30 },
+  glassCard: { flex: 1, backgroundColor: PremiumTheme.colors.glassBg, padding: 25, borderRadius: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, alignItems: 'center', ...PremiumTheme.shadows.card },
+  statValue: { fontSize: 36, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary, marginBottom: 5 },
+  statLabel: { fontSize: 12, color: PremiumTheme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' },
+  stampsContainer: { backgroundColor: PremiumTheme.colors.glassBg, padding: 25, borderRadius: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, ...PremiumTheme.shadows.card },
+  stampsTitle: { fontSize: 14, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary, letterSpacing: 1 },
+  divider: { height: 1, backgroundColor: PremiumTheme.colors.glassBorder, marginVertical: 15 },
+  stampsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  stampBadge: { backgroundColor: 'transparent', borderWidth: 1, borderColor: PremiumTheme.colors.goldPrimary, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20 },
+  stampText: { color: PremiumTheme.colors.goldLight, fontWeight: '600', fontSize: 12, letterSpacing: 1 }
 });
