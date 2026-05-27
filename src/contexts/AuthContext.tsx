@@ -20,10 +20,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadSession = async () => {
     try {
-      const sessionUser = await mockAuthService.checkSession();
-      setUser(sessionUser);
+      // FIX: Agregamos un Timeout de 2 segundos. Si AsyncStorage se congela, esto fuerza el desbloqueo.
+      const sessionUser = await Promise.race([
+        mockAuthService.checkSession(),
+        new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout loading session')), 2000)
+        ),
+      ]);
+      setUser(sessionUser as UserProfile | null);
     } catch (error) {
-      console.error('Error loading session:', error);
+      console.warn('Session load aborted or failed:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -43,13 +50,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    setIsLoading(true);
-    try {
-      await mockAuthService.logout();
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+    await mockAuthService.logout();
+    setUser(null);
   };
 
   return (

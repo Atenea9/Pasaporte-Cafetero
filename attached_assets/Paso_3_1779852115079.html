@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Paso 3 y Fix de Carga Infinita</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .file-block { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; }
+        .filepath { font-weight: bold; color: #d6336c; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Fix de Carga Infinita + Paso 3</h1>
+
+    <article class="file-block" data-filepath="src/services/mockAuth.service.ts" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/services/mockAuth.service.ts</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-typescript">import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export type UserRole = 'visitante' | 'expositor' | 'comprador' | 'admin' | 'ceo';
+
+export interface UserProfile {
+  uid: string;
+  role: UserRole;
+  name?: string;
+  phone?: string;
+  email?: string;
+}
+
+const SESSION_KEY = '@mock_auth_session';
+
+export const mockAuthService = {
+  async login(identifier: string, type: 'phone' | 'email'): Promise<UserProfile> {
+    await delay(800); // Mantenemos el delay solo para el botón de login
+    
+    let role: UserRole = 'visitante';
+    if (identifier.includes('admin')) role = 'admin';
+    if (identifier.includes('ceo')) role = 'ceo';
+    if (identifier.includes('expositor')) role = 'expositor';
+    if (identifier.includes('comprador')) role = 'comprador';
+
+    const mockUser: UserProfile = {
+      uid: `mock-uid-${Date.now()}`,
+      role,
+      name: `Usuario ${role}`,
+      [type]: identifier,
+    };
+
+    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(mockUser));
+    return mockUser;
+  },
+
+  async checkSession(): Promise<UserProfile | null> {
+    // FIX: Eliminamos el delay() aquí para evitar que Expo Go se congele al inicio
+    const session = await AsyncStorage.getItem(SESSION_KEY);
+    return session ? JSON.parse(session) : null;
+  },
+
+  async logout(): Promise<void> {
+    await AsyncStorage.removeItem(SESSION_KEY);
+  }
+};
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/contexts/AuthContext.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/contexts/AuthContext.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React, { createContext, useContext, useState, useEffect } from 'react';
+import { mockAuthService, UserProfile } from '../services/mockAuth.service';
+
+interface AuthContextType {
+  user: UserProfile | null;
+  isLoading: boolean;
+  login: (identifier: string, type: 'phone' | 'email') => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadSession();
+  }, []);
+
+  const loadSession = async () => {
+    try {
+      // FIX: Agregamos un Timeout de 2 segundos. Si AsyncStorage se congela, esto fuerza el desbloqueo.
+      const sessionUser = await Promise.race([
+        mockAuthService.checkSession(),
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error('Timeout loading session')), 2000))
+      ]);
+      setUser(sessionUser as UserProfile | null);
+    } catch (error) {
+      console.warn("Session load aborted or failed:", error);
+      setUser(null);
+    } finally {
+      setIsLoading(false); // Esto ahora siempre se ejecutará
