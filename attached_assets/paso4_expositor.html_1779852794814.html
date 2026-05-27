@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Paso 4: Experiencia del Expositor (Vendedor)</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .file-block { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; }
+        .filepath { font-weight: bold; color: #d6336c; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Ejecución del Paso 4: Expositor (Dashboard, Escáner y Venta)</h1>
+
+    <article class="file-block" data-filepath="src/services/mockDb.service.ts" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/services/mockDb.service.ts</div>
+        <div>Acción: MODIFICAR (Reemplaza el archivo completo con este que incluye los métodos de Expositor)</div>
+<pre><code class="language-typescript">const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export interface VisitorStats {
+  points: number;
+  stamps: string[];
+  level: string;
+}
+
+export const mockDbService = {
+  // --- MÉTODOS DE VISITANTE ---
+  async getHomeStats() {
+    await delay(300);
+    return { visitorCount: 1420, activeStands: 45, happyHour: true };
+  },
+
+  async getLeaderboard() {
+    await delay(300);
+    return [
+      { id: '1', name: 'Carlos M.', points: 2500, municipality: 'Planadas' },
+      { id: '2', name: 'Laura G.', points: 2100, municipality: 'Chaparral' },
+      { id: '3', name: 'Andrés F.', points: 1850, municipality: 'Ibagué' }
+    ];
+  },
+
+  async getUserStats(uid: string): Promise<VisitorStats> {
+    await delay(300);
+    return { points: 1250, stamps: ['Chaparral', 'Planadas', 'Génova'], level: 'Degustador' };
+  },
+
+  // --- MÉTODOS DE EXPOSITOR (PASO 4) ---
+  async getStandStats(expositorUid: string) {
+    await delay(300);
+    return {
+      standName: 'Café Las Palmas',
+      municipality: 'Planadas',
+      todaySalesCOP: 245000,
+      stampsIssued: 32
+    };
+  },
+
+  async registerSale(expositorUid: string, visitorUid: string, amountCOP: number) {
+    await delay(600);
+    // Lógica de puntos: 1 punto por cada $1,000 COP
+    const pointsAwarded = Math.floor(amountCOP / 1000);
+    return {
+      success: true,
+      pointsAwarded,
+      message: `Se otorgaron ${pointsAwarded} puntos y un sello de visitante.`
+    };
+  }
+};
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/expositor/ExpositorDashboardScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/expositor/ExpositorDashboardScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+import { useNavigation } from '@react-navigation/native';
+
+export const ExpositorDashboardScreen = () => {
+  const { user, logout } = useAuth();
+  const navigation = useNavigation<any>();
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const data = await mockDbService.getStandStats(user!.uid);
+    setStats(data);
+    setLoading(false);
+  };
+
+  if (loading) return <ActivityIndicator style={styles.loader} color="#4A3B32" />;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.standName}>{stats?.standName}</Text>
+        <Text style={styles.municipality}>{stats?.municipality} - Expositor</Text>
+        <Text onPress={logout} style={styles.logoutBtn}>Cerrar Sesión</Text>
+      </View>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Ventas Hoy (COP)</Text>
+          <Text style={styles.statValue}>${stats?.todaySalesCOP.toLocaleString()}</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Sellos Otorgados</Text>
+          <Text style={styles.statValue}>{stats?.stampsIssued}</Text>
+        </View>
+      </View>
+
+      <View style={styles.actionContainer}>
+        <TouchableOpacity 
+          style={styles.scanButton}
+          onPress={() => navigation.navigate('Scanner')}
+        >
+          <Text style={styles.scanButtonText}>📸 Escanear Pasaporte (QR)</Text>
+        </TouchableOpacity>
+        <Text style={styles.hint}>Escanea el código de un visitante para registrar una venta y darle puntos.</Text>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAF7F2' },
+  loader: { flex: 1, justifyContent: 'center' },
+  header: { padding: 20, backgroundColor: '#2E3B32', borderBottomLeftRadius: 20, borderBottomRightRadius: 20 },
+  standName: { fontSize: 26, fontWeight: 'bold', color: '#FFF' },
+  municipality: { fontSize: 16, color: '#D4C4B7', marginTop: 5 },
+  logoutBtn: { color: '#E07A5F', marginTop: 15, fontWeight: 'bold' },
+  statsContainer: { padding: 20, gap: 15 },
+  statBox: { backgroundColor: '#FFF', padding: 20, borderRadius: 10, elevation: 2 },
+  statLabel: { fontSize: 14, color: '#7A6B62' },
+  statValue: { fontSize: 28, fontWeight: 'bold', color: '#2E3B32', marginTop: 5 },
+  actionContainer: { padding: 20, alignItems: 'center', marginTop: 20 },
+  scanButton: { backgroundColor: '#4A3B32', padding: 20, borderRadius: 15, width: '100%', alignItems: 'center', elevation: 3 },
+  scanButtonText: { color: '#FFF', fontSize: 18, fontWeight: 'bold' },
+  hint: { textAlign: 'center', color: '#7A6B62', marginTop: 15, fontSize: 14 }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/expositor/ScannerScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/expositor/ScannerScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Button } from 'react-native';
+import { CameraView, Camera } from 'expo-camera';
+import { useNavigation } from '@react-navigation/native';
+
+export const ScannerScreen = () => {
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [scanned, setScanned] = useState(false);
+  const navigation = useNavigation<any>();
+
+  useEffect(() => {
+    const getCameraPermissions = async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+    };
+    getCameraPermissions();
+  }, []);
+
+  const handleBarCodeScanned = ({ type, data }: { type: string; data: string }) => {
+    setScanned(true);
+    // Asumimos que el QR contiene el UID del visitante
+    navigation.navigate('Sale', { visitorUid: data });
+  };
+
+  const simulateScan = () => {
+    // Para probar en la web de Replit sin cámara
+    navigation.navigate('Sale', { visitorUid: 'mock-visitor-123' });
+  };
+
+  if (hasPermission === null) return <View style={styles.container}><Text>Solicitando permiso de cámara...</Text></View>;
+  if (hasPermission === false) return <View style={styles.container}><Text>Sin acceso a la cámara</Text></View>;
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Escanea el QR del Visitante</Text>
+      
+      <View style={styles.cameraContainer}>
+        <CameraView
+          style={StyleSheet.absoluteFillObject}
+          onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+        />
+      </View>
+
+      {scanned && (
+        <Button title="Toca para escanear de nuevo" onPress={() => setScanned(false)} />
+      )}
+
+      <TouchableOpacity style={styles.simulateBtn} onPress={simulateScan}>
+        <Text style={styles.simulateText}>Simular Escaneo (Modo Web)</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
+  title: { color: '#FFF', fontSize: 18, marginBottom: 20, fontWeight: 'bold' },
+  cameraContainer: { width: 300, height: 300, borderRadius: 20, overflow: 'hidden', borderWidth: 2, borderColor: '#FFF' },
+  simulateBtn: { marginTop: 40, backgroundColor: '#E07A5F', padding: 15, borderRadius: 10 },
+  simulateText: { color: '#FFF', fontWeight: 'bold' }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/expositor/SaleScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/expositor/SaleScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+
+export const SaleScreen = () => {
+  const route = useRoute<any>();
+  const navigation = useNavigation<any>();
+  const { user } = useAuth();
+  
+  const visitorUid = route.params?.visitorUid || 'Desconocido';
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const pointsCalculated = amount ? Math.floor(parseInt(amount) / 1000) : 0;
+
+  const handleSale = async () => {
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+      Alert.alert('Error', 'Ingresa un monto válido en COP');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await mockDbService.registerSale(user!.uid, visitorUid, Number(amount));
+      Alert.alert('¡Éxito!', result.message, [
+        { text: 'OK', onPress: () => navigation.navigate('Dashboard') }
+      ]);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo registrar la venta');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Registrar Venta</Text>
+      <Text style={styles.subtitle}>Visitante ID: {visitorUid}</Text>
+
+      <View style={styles.card}>
+        <Text style={styles.label}>Monto de compra ($ COP)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Ej: 15000"
+          keyboardType="numeric"
+          value={amount}
+          onChangeText={setAmount}
+        />
+
+        <View style={styles.pointsPreview}>
+          <Text style={styles.pointsText}>Puntos a otorgar:</Text>
+          <Text style={styles.pointsValue}>{pointsCalculated} pts</Text>
+        </View>
+      </View>
+
+      <TouchableOpacity 
+        style={[styles.button, loading && styles.buttonDisabled]} 
+        onPress={handleSale}
+        disabled={loading}
+      >
+        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Confirmar Venta y Otorgar Sello</Text>}
+      </TouchableOpacity>
+      
+      <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
+        <Text style={styles.cancelText}>Cancelar</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAF7F2', padding: 20, justifyContent: 'center' },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#4A3B32', textAlign: 'center' },
+  subtitle: { fontSize: 14, color: '#7A6B62', textAlign: 'center', marginBottom: 30 },
+  card: { backgroundColor: '#FFF', padding: 20, borderRadius: 15, elevation: 2, marginBottom: 20 },
+  label: { fontSize: 16, color: '#4A3B32', marginBottom: 10, fontWeight: 'bold' },
+  input: { borderWidth: 1, borderColor: '#DDD', padding: 15, borderRadius: 10, fontSize: 18, backgroundColor: '#F9F9F9' },
+  pointsPreview: { marginTop: 20, backgroundColor: '#E3D5CA', padding: 15, borderRadius: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  pointsText: { fontSize: 16, color: '#4A3B32' },
+  pointsValue: { fontSize: 20, fontWeight: 'bold', color: '#E07A5F' },
+  button: { backgroundColor: '#4A3B32', padding: 18, borderRadius: 10, alignItems: 'center' },
+  buttonDisabled: { opacity: 0.7 },
+  buttonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  cancelBtn: { marginTop: 20, alignItems: 'center' },
+  cancelText: { color: '#E07A5F', fontSize: 16, fontWeight: 'bold' }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/navigation/ExpositorNavigator.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/navigation/ExpositorNavigator.tsx</div>
+        <div>Acción: MODIFICAR (Reemplaza el archivo para registrar las nuevas rutas)</div>
+<pre><code class="language-tsx">import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ExpositorDashboardScreen } from '../screens/expositor/ExpositorDashboardScreen';
+import { ScannerScreen } from '../screens/expositor/ScannerScreen';
+import { SaleScreen } from '../screens/expositor/SaleScreen';
+
+const Stack = createNativeStackNavigator();
+
+export const ExpositorNavigator = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Dashboard" component={ExpositorDashboardScreen} />
+      <Stack.Screen name="Scanner" component={ScannerScreen} options={{ presentation: 'modal' }} />
+      <Stack.Screen name="Sale" component={SaleScreen} options={{ presentation: 'modal' }} />
+    </Stack.Navigator>
+  );
+};
+</code></pre>
+    </article>
+
+</body>
+</html>

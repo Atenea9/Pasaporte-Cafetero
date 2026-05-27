@@ -18,8 +18,9 @@ export type VisitanteStackParamList = {
 };
 
 export type ExpositorStackParamList = {
-  ExpositorHome: undefined;
+  Dashboard: undefined;
   Scanner: undefined;
+  Sale: { visitorUid: string };
 };
 
 export type CompradorStackParamList = {
