@@ -1,6 +1,6 @@
 {
   "login": {
-    "fair_name": "Foire Internationale du Café - Chaparral",
+    "fair_name": "Foire Internationale du Café",
     "portal_label": "Portail de Révision Deluxe",
     "roles": {
       "visitor":   { "title": "Visiteur",    "desc": "Itinéraires, gamification et passeport de timbres" },

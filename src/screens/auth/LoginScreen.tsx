@@ -240,6 +240,8 @@ export const LoginScreen = () => {
           </View>
 
           <Text style={s.fairName}>{t('login.fair_name')}</Text>
+          <Text style={s.fairCity}>Chaparral</Text>
+          <Text style={s.fairYear}>2026</Text>
         </Animated.View>
 
         {/* ── Role Cards ── */}
@@ -343,7 +345,9 @@ const s = StyleSheet.create({
   dividerLine:  { flex: 1, height: 1, backgroundColor: G.borderBright },
   dividerIcon:  { width: 36, height: 36, resizeMode: 'contain' },
 
-  fairName:     { fontSize: 13, fontWeight: '700', color: G.goldLight, letterSpacing: 1, textAlign: 'center', marginBottom: 6 },
+  fairName:     { fontSize: 13, fontWeight: '700', color: G.goldLight, letterSpacing: 1, textAlign: 'center', marginBottom: 2 },
+  fairCity:     { fontSize: 22, fontWeight: '900', color: G.cream, letterSpacing: 3, textAlign: 'center', marginBottom: 2, textTransform: 'uppercase' },
+  fairYear:     { fontSize: 11, color: G.muted, letterSpacing: 5, textAlign: 'center', marginBottom: 2 },
   subtitle:     { fontSize: 11, color: G.muted, letterSpacing: 2, textAlign: 'center', textTransform: 'uppercase' },
 
   cards:        { gap: 14, marginBottom: 28 },

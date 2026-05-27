@@ -3,7 +3,7 @@
   "login_title": "Pasaporte Cafetero",
   "login_subtitle": "Acceso Exclusivo",
   "login": {
-    "fair_name": "Feria Internacional de Café - Chaparral",
+    "fair_name": "Feria Internacional de Café",
     "portal_label": "Portal de Revisión Deluxe",
     "roles": {
       "visitor":   { "title": "Visitante",  "desc": "Rutas, gamificación y pasaporte de sellos" },

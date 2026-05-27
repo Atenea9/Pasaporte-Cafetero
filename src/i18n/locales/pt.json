@@ -1,6 +1,6 @@
 {
   "login": {
-    "fair_name": "Feira Internacional de Café - Chaparral",
+    "fair_name": "Feira Internacional de Café",
     "portal_label": "Portal de Revisão Deluxe",
     "roles": {
       "visitor":   { "title": "Visitante",   "desc": "Rotas, gamificação e passaporte de selos" },

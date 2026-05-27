@@ -1,6 +1,6 @@
 {
   "login": {
-    "fair_name": "Internationale Kaffeemesse - Chaparral",
+    "fair_name": "Internationale Kaffeemesse",
     "portal_label": "Deluxe-Überprüfungsportal",
     "roles": {
       "visitor":   { "title": "Besucher",    "desc": "Routen, Gamification und Stempelpass" },

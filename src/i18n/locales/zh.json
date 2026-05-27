@@ -3,7 +3,7 @@
   "login_title": "咖啡护照",
   "login_subtitle": "独家访问",
   "login": {
-    "fair_name": "国际咖啡博览会 - 查帕拉尔",
+    "fair_name": "国际咖啡博览会",
     "portal_label": "豪华审核门户",
     "roles": {
       "visitor":   { "title": "访客",   "desc": "路线、游戏化和印章护照" },

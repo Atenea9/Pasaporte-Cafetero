@@ -3,7 +3,7 @@
   "login_title": "Coffee Passport",
   "login_subtitle": "Exclusive Access",
   "login": {
-    "fair_name": "International Coffee Fair - Chaparral",
+    "fair_name": "International Coffee Fair",
     "portal_label": "Deluxe Review Portal",
     "roles": {
       "visitor":   { "title": "Visitor",    "desc": "Routes, gamification and stamp passport" },

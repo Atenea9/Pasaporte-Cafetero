@@ -1,6 +1,6 @@
 {
   "login": {
-    "fair_name": "Fiera Internazionale del Caffè - Chaparral",
+    "fair_name": "Fiera Internazionale del Caffè",
     "portal_label": "Portale di Revisione Deluxe",
     "roles": {
       "visitor":   { "title": "Visitatore",  "desc": "Percorsi, gamification e passaporto timbri" },
