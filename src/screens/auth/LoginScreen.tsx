@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
-  Animated, Easing, Dimensions, Modal, ScrollView,
+  Animated, Easing, Dimensions, Modal, Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Circle, Defs, RadialGradient, Stop, Path } from 'react-native-svg';
+import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -171,7 +171,7 @@ export const LoginScreen = () => {
 
           <View style={s.dividerRow}>
             <View style={s.dividerLine} />
-            <Text style={s.dividerIcon}>☕</Text>
+            <Image source={require('../../../assets/coffee-bag.png')} style={s.dividerIcon} />
             <View style={s.dividerLine} />
           </View>
 
@@ -204,10 +204,6 @@ export const LoginScreen = () => {
 
                   <View style={s.cardBody}>
                     <Text style={s.cardTitle}>{t(`login.roles.${r.key}.title`)}</Text>
-                    <Text style={s.cardDesc}>{t(`login.roles.${r.key}.desc`)}</Text>
-                    <View style={s.credBadge}>
-                      <Text style={s.credText}>ID: {r.credential.split('@')[0]}</Text>
-                    </View>
                   </View>
 
                   <View style={s.cardArrow}>
@@ -307,7 +303,7 @@ const s = StyleSheet.create({
 
   dividerRow:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, width: '70%' },
   dividerLine:  { flex: 1, height: 1, backgroundColor: G.borderBright },
-  dividerIcon:  { fontSize: 16 },
+  dividerIcon:  { width: 36, height: 36, resizeMode: 'contain' },
 
   fairName:     { fontSize: 13, fontWeight: '700', color: G.goldLight, letterSpacing: 1, textAlign: 'center', marginBottom: 6 },
   subtitle:     { fontSize: 11, color: G.muted, letterSpacing: 2, textAlign: 'center', textTransform: 'uppercase' },
