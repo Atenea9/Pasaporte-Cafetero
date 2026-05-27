@@ -1,145 +1,129 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { CeoNavProp } from '../../navigation/types';
-import { useApp } from '../../context/AppContext';
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity,
+  ActivityIndicator, ScrollView, Alert,
+} from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
 
-const KPI_CARDS = [
-  { icon: '💰', label: 'INGRESOS TOTALES', value: '$—', delta: '+—%' },
-  { icon: '👥', label: 'VISITANTES', value: '—', delta: '+—%' },
-  { icon: '🏪', label: 'STANDS ACTIVOS', value: '—', delta: '—' },
-  { icon: '📊', label: 'CONVERSIÓN', value: '—%', delta: '+—%' },
-];
-
-export default function CeoDashboardScreen() {
-  const navigation = useNavigation<CeoNavProp>();
-  const { dispatch } = useApp();
+export const CeoDashboardScreen = () => {
   const { logout } = useAuth();
+  const [metrics, setMetrics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => { loadData(); }, []);
+
+  const loadData = async () => {
+    const data = await mockDbService.getCeoMetrics();
+    setMetrics(data);
+    setLoading(false);
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const result = await mockDbService.generateDatabaseExport();
+      Alert.alert(
+        '📊 Exportación Completa',
+        `Base de datos generada exitosamente.\n\nArchivo: pasaporte_export.xlsx\nRuta: ${result.url}`
+      );
+    } catch {
+      Alert.alert('Error', 'No se pudo generar la exportación');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  if (loading) return <ActivityIndicator style={styles.loader} color="#C8860A" />;
+
+  const isOperational = metrics.sysStatus === 'Operativo';
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.badge}>👔 CEO</Text>
-          <Text style={styles.title}>DASHBOARD EJECUTIVO</Text>
-          <Text style={styles.subtitle}>Feria del Café Colombiano</Text>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.badge}>👔 CEO</Text>
+        <Text style={styles.title}>Dashboard Ejecutivo</Text>
+        <Text onPress={logout} style={styles.logout}>Cerrar Sesión</Text>
+      </View>
+
+      <View style={styles.kpiGrid}>
+        <View style={styles.kpiCard}>
+          <Text style={styles.kpiIcon}>👥</Text>
+          <Text style={styles.kpiValue}>{metrics.totalUsers.toLocaleString()}</Text>
+          <Text style={styles.kpiLabel}>TOTAL USUARIOS</Text>
         </View>
-
-        <View style={styles.kpiGrid}>
-          {KPI_CARDS.map((kpi) => (
-            <View key={kpi.label} style={styles.kpiCard}>
-              <Text style={styles.kpiIcon}>{kpi.icon}</Text>
-              <Text style={styles.kpiValue}>{kpi.value}</Text>
-              <Text style={styles.kpiLabel}>{kpi.label}</Text>
-              <Text style={styles.kpiDelta}>{kpi.delta}</Text>
-            </View>
-          ))}
+        <View style={styles.kpiCard}>
+          <Text style={styles.kpiIcon}>🏷️</Text>
+          <Text style={styles.kpiValue}>{metrics.activeBuyers}</Text>
+          <Text style={styles.kpiLabel}>COMPRADORES</Text>
         </View>
-
-        <TouchableOpacity style={styles.menuCard} onPress={() => navigation.navigate('Reports')}>
-          <Text style={styles.menuIcon}>📄</Text>
-          <View style={styles.menuTextWrap}>
-            <Text style={styles.menuLabel}>Reportes</Text>
-            <Text style={styles.menuSub}>Exporta datos a Excel / PDF</Text>
-          </View>
-          <Text style={styles.arrow}>›</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuCard} onPress={() => navigation.navigate('Analytics')}>
-          <Text style={styles.menuIcon}>📈</Text>
-          <View style={styles.menuTextWrap}>
-            <Text style={styles.menuLabel}>Analítica Avanzada</Text>
-            <Text style={styles.menuSub}>Tendencias y proyecciones</Text>
-          </View>
-          <Text style={styles.arrow}>›</Text>
-        </TouchableOpacity>
-
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>🔧 MÓDULO EN DESARROLLO</Text>
-          <Text style={styles.infoText}>
-            Este dashboard incluirá:{'\n'}
-            • KPIs en tiempo real con gráficas{'\n'}
-            • Comparación de períodos{'\n'}
-            • Top stands por ingresos y visitantes{'\n'}
-            • Exportación XLSX de todos los datos{'\n'}
-            • Mapa de calor de la feria
+        <View style={styles.kpiCard}>
+          <Text style={styles.kpiIcon}>💵</Text>
+          <Text style={styles.kpiValue}>${metrics.totalAuctionValueUSD.toLocaleString()}</Text>
+          <Text style={styles.kpiLabel}>VALOR SUBASTA (USD)</Text>
+        </View>
+        <View style={styles.kpiCard}>
+          <Text style={styles.kpiIcon}>{isOperational ? '🟢' : '🔴'}</Text>
+          <Text style={[styles.kpiValue, isOperational ? styles.sysOk : styles.sysErr]}>
+            {metrics.sysStatus}
           </Text>
+          <Text style={styles.kpiLabel}>SISTEMA</Text>
         </View>
+      </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Exportación de Datos</Text>
+        <Text style={styles.sectionDesc}>
+          Genera un archivo XLSX con toda la información de visitantes, expositors, pujas y transacciones de la feria.
+        </Text>
         <TouchableOpacity
-          style={styles.logoutBtn}
-          onPress={() => logout()}
+          style={[styles.exportButton, exporting && styles.exportDisabled]}
+          onPress={handleExport}
+          disabled={exporting}
         >
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
+          {exporting
+            ? (
+              <View style={styles.exportRow}>
+                <ActivityIndicator color="#FFF" style={{ marginRight: 10 }} />
+                <Text style={styles.exportText}>Generando XLSX...</Text>
+              </View>
+            )
+            : <Text style={styles.exportText}>📊 Exportar Base de Datos (XLSX)</Text>}
         </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </ScrollView>
   );
-}
+};
+
+export default CeoDashboardScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0800' },
-  header: { alignItems: 'center', padding: 30, paddingBottom: 16 },
+  loader: { flex: 1, justifyContent: 'center', backgroundColor: '#0D0800' },
+  header: { padding: 30, alignItems: 'center', backgroundColor: '#1A1200' },
   badge: {
-    fontSize: 11,
-    color: '#C8860A',
-    letterSpacing: 2,
-    backgroundColor: '#C8860A22',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 12,
-    overflow: 'hidden',
+    fontSize: 11, color: '#C8860A', letterSpacing: 2,
+    backgroundColor: '#C8860A22', paddingHorizontal: 12, paddingVertical: 4,
+    borderRadius: 20, marginBottom: 10, overflow: 'hidden',
   },
   title: { fontSize: 20, fontWeight: '900', color: '#C8860A', letterSpacing: 2 },
-  subtitle: { fontSize: 13, color: '#888', marginTop: 4 },
-  kpiGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    marginBottom: 20,
-    gap: 10,
-  },
+  logout: { color: '#E07A5F', marginTop: 12, fontSize: 14 },
+  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 16, gap: 10 },
   kpiCard: {
-    width: '47%',
-    backgroundColor: '#1A1200',
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#C8860A33',
-    alignItems: 'center',
+    width: '47%', backgroundColor: '#1A1200', borderRadius: 14,
+    padding: 16, alignItems: 'center', borderWidth: 1, borderColor: '#C8860A33',
   },
-  kpiIcon: { fontSize: 28, marginBottom: 8 },
+  kpiIcon: { fontSize: 26, marginBottom: 6 },
   kpiValue: { fontSize: 22, fontWeight: '900', color: '#C8860A' },
-  kpiLabel: { fontSize: 9, color: '#888', letterSpacing: 1, marginTop: 4, textAlign: 'center' },
-  kpiDelta: { fontSize: 11, color: '#4CAF50', marginTop: 4, fontWeight: '700' },
-  menuCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1200',
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#C8860A33',
-  },
-  menuIcon: { fontSize: 28, marginRight: 14 },
-  menuTextWrap: { flex: 1 },
-  menuLabel: { fontSize: 15, fontWeight: '800', color: '#F5E6C8' },
-  menuSub: { fontSize: 12, color: '#888', marginTop: 2 },
-  arrow: { fontSize: 22, color: '#C8860A' },
-  infoCard: {
-    backgroundColor: '#1A1200',
-    borderRadius: 16,
-    padding: 20,
-    margin: 20,
-    borderWidth: 1,
-    borderColor: '#C8860A33',
-  },
-  infoTitle: { fontSize: 13, fontWeight: '800', color: '#C8860A', marginBottom: 10, letterSpacing: 1 },
-  infoText: { fontSize: 13, color: '#AAA', lineHeight: 22 },
-  logoutBtn: { alignItems: 'center', padding: 16, marginBottom: 20 },
-  logoutText: { fontSize: 14, color: '#666', textDecorationLine: 'underline' },
+  kpiLabel: { fontSize: 9, color: '#888', marginTop: 4, letterSpacing: 1, textAlign: 'center' },
+  sysOk: { color: '#4CAF50' },
+  sysErr: { color: '#E07A5F' },
+  section: { margin: 16, padding: 20, backgroundColor: '#1A1200', borderRadius: 16, borderWidth: 1, borderColor: '#C8860A33' },
+  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#F5E6C8', marginBottom: 8 },
+  sectionDesc: { fontSize: 13, color: '#888', marginBottom: 16, lineHeight: 20 },
+  exportButton: { backgroundColor: '#C8860A', padding: 18, borderRadius: 12, alignItems: 'center' },
+  exportDisabled: { opacity: 0.6 },
+  exportRow: { flexDirection: 'row', alignItems: 'center' },
+  exportText: { color: '#FFF', fontWeight: 'bold', fontSize: 15 },
 });

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pasos 6, 7, 8 y 9: Comprador, Admin, CEO y Backend Logic</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .file-block { border: 1px solid #ddd; margin-bottom: 20px; padding: 15px; }
+        .filepath { font-weight: bold; color: #d6336c; }
+        pre { background: #272822; color: #f8f8f2; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Ejecución Masiva: Pasos 6, 7, 8 y 9</h1>
+
+    <article class="file-block" data-filepath="src/services/mockDb.service.ts" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/services/mockDb.service.ts</div>
+        <div>Acción: MODIFICAR (Reemplaza el archivo completo)</div>
+<pre><code class="language-typescript">const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const mockDbService = {
+  // --- ESTADO GLOBAL (SIMULANDO CONFIG DE FIREBASE) ---
+  globalConfig: { happyHourActive: false },
+
+  // --- VISITANTE & EXPOSITOR (PASOS 1-5) ---
+  async getHomeStats() { await delay(300); return { visitorCount: 1420, activeStands: 45, happyHour: this.globalConfig.happyHourActive }; },
+  async getLeaderboard() { await delay(300); return [{ id: '1', name: 'Carlos M.', points: 2500, municipality: 'Planadas' }, { id: '2', name: 'Laura G.', points: 2100, municipality: 'Chaparral' }]; },
+  async getUserStats(uid: string) { await delay(300); return { points: 1250, stamps: ['Chaparral', 'Planadas'], level: 'Degustador' }; },
+  async getStandStats(expositorUid: string) { await delay(300); return { standName: 'Café Las Palmas', municipality: 'Planadas', todaySalesCOP: 245000, stampsIssued: 32 }; },
+  
+  // (Paso 9) Backend Logic: Server-side validation para ventas
+  async registerSale(expositorUid: string, visitorUid: string, amountCOP: number) { 
+    await delay(600); 
+    if (amountCOP <= 0) throw new Error("Monto inválido");
+    let points = Math.floor(amountCOP / 1000);
+    if (this.globalConfig.happyHourActive) points *= 2; // Cloud Function Logic
+    return { success: true, pointsAwarded: points, message: `Venta registrada. Puntos: ${points}` }; 
+  },
+
+  async getAuctionLotStatus(expositorUid: string) { await delay(400); return { status: 'aprobado', scaScore: 88.5, farmName: 'Finca El Mirador' }; },
+  async saveAuctionProfile(uid: string, data: any) { await delay(600); return { success: true }; },
+  async submitScaAnalysis(uid: string, data: any) { await delay(800); return { success: true }; },
+
+  // --- COMPRADOR (PASO 6) ---
+  async getAuctionLots() {
+    await delay(500);
+    return [
+      { id: 'lot_1', farmName: 'Finca El Mirador', municipality: 'Planadas', variety: 'Geisha', scaScore: 89.5, currentBidUSD: 15.50, lotSizeKg: 200 },
+      { id: 'lot_2', farmName: 'Hacienda La Palma', municipality: 'Chaparral', variety: 'Caturra', scaScore: 86.0, currentBidUSD: 8.00, lotSizeKg: 350 }
+    ];
+  },
+  async getLotDetails(lotId: string) {
+    await delay(400);
+    return {
+      id: lotId, farmName: 'Finca El Mirador', owner: 'José Gómez', municipality: 'Planadas', altitude: '1850', variety: 'Geisha', process: 'Lavado', lotSizeKg: 200, scaScore: 89.5, currentBidUSD: 15.50,
+      scaDetails: { aroma: 8.5, flavor: 9.0, aftertaste: 8.5, acidity: 9.0, body: 8.0, balance: 8.5, uniformity: 10, cleanCup: 10, sweetness: 10, overall: 8.0 }
+    };
+  },
+  // (Paso 9) Backend Logic: Server-side validation para pujas
+  async placeBid(lotId: string, buyerUid: string, bidAmountUSD: number) {
+    await delay(700);
+    const currentLot = await this.getLotDetails(lotId);
+    if (bidAmountUSD <= currentLot.currentBidUSD) throw new Error('La oferta debe ser mayor a la puja actual.');
+    return { success: true, message: '¡Puja realizada con éxito!' };
+  },
+  async getCompradorStats(uid: string) { await delay(300); return { activeBids: 2, lotsWon: 0, stamps: ['Subasta VIP'] }; },
+
+  // --- ADMIN (PASO 7) ---
+  async getAdminKPIs() {
+    await delay(400);
+    return { totalVisitors: 1500, activeStands: 45, totalPoints: 125000, happyHour: this.globalConfig.happyHourActive };
+  },
+  async toggleHappyHour() {
+    await delay(300);
+    this.globalConfig.happyHourActive = !this.globalConfig.happyHourActive;
+    return this.globalConfig.happyHourActive;
+  },
+
+  // --- CEO (PASOS 8 y 9) ---
+  async getCeoMetrics() {
+    await delay(500);
+    return { totalUsers: 2100, activeBuyers: 45, totalAuctionValueUSD: 12400, sysStatus: 'Operativo' };
+  },
+  // (Paso 9) Backend Logic: Data Export Simulation
+  async generateDatabaseExport() {
+    await delay(1500); // Simulamos generación de XLSX
+    return { success: true, url: 'file://simulated/path/pasaporte_export.xlsx' };
+  }
+};
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/comprador/CompradorDashboardScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/comprador/CompradorDashboardScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+
+export const CompradorDashboardScreen = () => {
+  const { logout } = useAuth();
+  const navigation = useNavigation<any>();
+  const [lots, setLots] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { mockDbService.getAuctionLots().then(data => { setLots(data); setLoading(false); }); }, []);
+
+  if (loading) return <ActivityIndicator style={styles.loader} color="#4A3B32" />;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Catálogo de Subasta</Text>
+        <View style={styles.row}>
+          <TouchableOpacity onPress={() => navigation.navigate('CompradorPasaporte')}><Text style={styles.link}>Mi Perfil</Text></TouchableOpacity>
+          <TouchableOpacity onPress={logout}><Text style={styles.logout}>Salir</Text></TouchableOpacity>
+        </View>
+      </View>
+      <FlatList
+        data={lots} keyExtractor={(item) => item.id} contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('LotDetail', { lotId: item.id })}>
+            <Text style={styles.farmName}>{item.farmName} <Text style={styles.score}>(SCA {item.scaScore})</Text></Text>
+            <Text style={styles.detailText}>{item.variety} • {item.lotSizeKg} Kg</Text>
+            <Text style={styles.bidValue}>Puja Actual: ${item.currentBidUSD.toFixed(2)} USD</Text>
+          </TouchableOpacity>
+        )}
+      />
+    </View>
+  );
+};
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAF7F2' }, loader: { flex: 1, justifyContent: 'center' },
+  header: { padding: 20, backgroundColor: '#1A2530' }, title: { fontSize: 24, fontWeight: 'bold', color: '#FFF' },
+  row: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }, link: { color: '#4DA8DA' }, logout: { color: '#E07A5F' },
+  list: { padding: 20 }, card: { backgroundColor: '#FFF', padding: 15, borderRadius: 10, marginBottom: 15, elevation: 2 },
+  farmName: { fontSize: 18, fontWeight: 'bold', color: '#4A3B32' }, score: { fontSize: 14, color: '#7A6B62' },
+  detailText: { fontSize: 14, color: '#7A6B62', marginVertical: 5 }, bidValue: { fontSize: 16, fontWeight: 'bold', color: '#28A745' }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/comprador/LotDetailScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/comprador/LotDetailScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+
+export const LotDetailScreen = () => {
+  const route = useRoute<any>(); const navigation = useNavigation<any>(); const { user } = useAuth();
+  const [lot, setLot] = useState<any>(null);
+
+  useEffect(() => { mockDbService.getLotDetails(route.params?.lotId).then(setLot); }, []);
+
+  const handleBid = async () => {
+    try {
+      await mockDbService.placeBid(lot.id, user!.uid, lot.currentBidUSD + 1);
+      Alert.alert('Éxito', 'Puja colocada (+ $1 USD)');
+      navigation.goBack();
+    } catch (e: any) { Alert.alert('Error', e.message); }
+  };
+
+  if (!lot) return <ActivityIndicator style={{ flex: 1 }} color="#4A3B32" />;
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{lot.farmName}</Text>
+      <Text style={styles.text}>Variedad: {lot.variety}</Text>
+      <Text style={styles.text}>Puntaje SCA: {lot.scaScore}</Text>
+      <Text style={styles.text}>Puja Actual: ${lot.currentBidUSD.toFixed(2)} USD</Text>
+      
+      <TouchableOpacity style={styles.button} onPress={handleBid}>
+        <Text style={styles.buttonText}>Pujar ${lot.currentBidUSD + 1} USD</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>Volver</Text></TouchableOpacity>
+    </View>
+  );
+};
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: '#FAF7F2', justifyContent: 'center' },
+  title: { fontSize: 26, fontWeight: 'bold', color: '#1A2530', marginBottom: 10 }, text: { fontSize: 18, color: '#4A3B32', marginBottom: 10 },
+  button: { backgroundColor: '#28A745', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 20 }, buttonText: { color: '#FFF', fontWeight: 'bold' },
+  back: { marginTop: 20, textAlign: 'center', color: '#4DA8DA' }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/comprador/CompradorPasaporteScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/comprador/CompradorPasaporteScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+export const CompradorPasaporteScreen = () => {
+  const navigation = useNavigation();
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Pasaporte Comprador</Text>
+      <Text>Aquí se muestran las insignias y pujas ganadas.</Text>
+      <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.back}>Volver</Text></TouchableOpacity>
+    </View>
+  );
+};
+const styles = StyleSheet.create({ container: { flex: 1, padding: 20, justifyContent: 'center' }, title: { fontSize: 24, fontWeight: 'bold' }, back: { marginTop: 20, color: 'blue' } });
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/navigation/CompradorNavigator.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/navigation/CompradorNavigator.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { CompradorDashboardScreen } from '../screens/comprador/CompradorDashboardScreen';
+import { LotDetailScreen } from '../screens/comprador/LotDetailScreen';
+import { CompradorPasaporteScreen } from '../screens/comprador/CompradorPasaporteScreen';
+
+const Stack = createNativeStackNavigator();
+export const CompradorNavigator = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Dashboard" component={CompradorDashboardScreen} />
+    <Stack.Screen name="LotDetail" component={LotDetailScreen} />
+    <Stack.Screen name="CompradorPasaporte" component={CompradorPasaporteScreen} />
+  </Stack.Navigator>
+);
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/admin/AdminDashboardScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/admin/AdminDashboardScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+
+export const AdminDashboardScreen = () => {
+  const { logout } = useAuth();
+  const [kpis, setKpis] = useState<any>(null);
+
+  const loadData = async () => setKpis(await mockDbService.getAdminKPIs());
+  useEffect(() => { loadData(); }, []);
+
+  const handleHappyHour = async () => {
+    await mockDbService.toggleHappyHour();
+    loadData();
+  };
+
+  if (!kpis) return <ActivityIndicator style={styles.loader} color="#4A3B32" />;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Panel de Administración</Text>
+        <TouchableOpacity onPress={logout}><Text style={styles.logout}>Cerrar Sesión</Text></TouchableOpacity>
+      </View>
+      <View style={styles.grid}>
+        <View style={styles.box}><Text style={styles.val}>{kpis.totalVisitors}</Text><Text>Visitantes</Text></View>
+        <View style={styles.box}><Text style={styles.val}>{kpis.activeStands}</Text><Text>Stands</Text></View>
+      </View>
+      <TouchableOpacity style={[styles.btn, kpis.happyHour && styles.btnActive]} onPress={handleHappyHour}>
+        <Text style={styles.btnText}>{kpis.happyHour ? 'Desactivar Happy Hour' : 'Activar Happy Hour'}</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#FAF7F2' }, loader: { flex: 1, justifyContent: 'center' },
+  header: { padding: 20, backgroundColor: '#8B2635', flexDirection: 'row', justifyContent: 'space-between' },
+  title: { fontSize: 20, fontWeight: 'bold', color: '#FFF' }, logout: { color: '#FFF' },
+  grid: { flexDirection: 'row', padding: 20, justifyContent: 'space-between' },
+  box: { backgroundColor: '#FFF', padding: 20, borderRadius: 10, width: '48%', alignItems: 'center', elevation: 2 }, val: { fontSize: 24, fontWeight: 'bold' },
+  btn: { margin: 20, backgroundColor: '#4A3B32', padding: 15, borderRadius: 10, alignItems: 'center' }, btnActive: { backgroundColor: '#E07A5F' },
+  btnText: { color: '#FFF', fontWeight: 'bold' }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/navigation/AdminNavigator.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/navigation/AdminNavigator.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { AdminDashboardScreen } from '../screens/admin/AdminDashboardScreen';
+
+const Stack = createNativeStackNavigator();
+export const AdminNavigator = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}><Stack.Screen name="Dashboard" component={AdminDashboardScreen} /></Stack.Navigator>
+);
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/screens/ceo/CeoDashboardScreen.tsx" data-action="CREATE">
+        <div class="filepath">// Ruta: src/screens/ceo/CeoDashboardScreen.tsx</div>
+        <div>Acción: CREAR</div>
+<pre><code class="language-tsx">import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
+
+export const CeoDashboardScreen = () => {
+  const { logout } = useAuth();
+  const [metrics, setMetrics] = useState<any>(null);
+  const [exporting, setExporting] = useState(false);
+
+  useEffect(() => { mockDbService.getCeoMetrics().then(setMetrics); }, []);
+
+  const handleExport = async () => {
+    setExporting(true);
+    const result = await mockDbService.generateDatabaseExport();
+    setExporting(false);
+    Alert.alert('Exportación Exitosa', `Archivo descargado en: ${result.url}`);
+  };
+
+  if (!metrics) return <ActivityIndicator style={styles.loader} color="#000" />;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Super-Admin (CEO)</Text>
+        <TouchableOpacity onPress={logout}><Text style={styles.logout}>Cerrar Sesión</Text></TouchableOpacity>
+      </View>
+      <View style={styles.card}>
+        <Text style={styles.label}>Usuarios Totales: <Text style={styles.val}>{metrics.totalUsers}</Text></Text>
+        <Text style={styles.label}>Subasta Total (USD): <Text style={styles.val}>${metrics.totalAuctionValueUSD}</Text></Text>
+      </View>
+      <TouchableOpacity style={styles.btn} onPress={handleExport} disabled={exporting}>
+        {exporting ? <ActivityIndicator color="#FFF" /> : <Text style={styles.btnText}>Exportar Base de Datos (XLSX)</Text>}
+      </TouchableOpacity>
+    </View>
+  );
+};
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#E5E5E5' }, loader: { flex: 1, justifyContent: 'center' },
+  header: { padding: 20, backgroundColor: '#000', flexDirection: 'row', justifyContent: 'space-between' },
+  title: { fontSize: 20, fontWeight: 'bold', color: '#FFF' }, logout: { color: '#FFF' },
+  card: { backgroundColor: '#FFF', margin: 20, padding: 20, borderRadius: 10 }, label: { fontSize: 16, marginBottom: 10 }, val: { fontWeight: 'bold', fontSize: 18 },
+  btn: { margin: 20, backgroundColor: '#00509E', padding: 15, borderRadius: 10, alignItems: 'center' }, btnText: { color: '#FFF', fontWeight: 'bold' }
+});
+</code></pre>
+    </article>
+
+    <article class="file-block" data-filepath="src/navigation/CeoNavigator.tsx" data-action="MODIFY">
+        <div class="filepath">// Ruta: src/navigation/CeoNavigator.tsx</div>
+        <div>Acción: MODIFICAR</div>
+<pre><code class="language-tsx">import React from 'react';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { CeoDashboardScreen } from '../screens/ceo/CeoDashboardScreen';
+
+const Stack = createNativeStackNavigator();
+export const CeoNavigator = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}><Stack.Screen name="Dashboard" component={CeoDashboardScreen} /></Stack.Navigator>
+);
+</code></pre>
+    </article>
+
+</body>
+</html>

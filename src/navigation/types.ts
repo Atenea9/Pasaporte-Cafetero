@@ -27,10 +27,9 @@ export type ExpositorStackParamList = {
 };
 
 export type CompradorStackParamList = {
-  CompradorHome: undefined;
-  Catalog: undefined;
-  Auctions: undefined;
-  MyOrders: undefined;
+  Dashboard: undefined;
+  LotDetail: { lotId: string };
+  CompradorPasaporte: undefined;
 };
 
 export type AdminStackParamList = {

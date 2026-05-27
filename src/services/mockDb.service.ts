@@ -1,18 +1,14 @@
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-export interface VisitorStats {
-  points: number;
-  stamps: string[];
-  level: string;
-}
-
 export const mockDbService = {
-  // --- MÉTODOS DE VISITANTE ---
+  // --- ESTADO GLOBAL (SIMULANDO CONFIG DE FIREBASE) ---
+  globalConfig: { happyHourActive: false },
+
+  // --- VISITANTE & EXPOSITOR (PASOS 1-5) ---
   async getHomeStats() {
     await delay(300);
-    return { visitorCount: 1420, activeStands: 45, happyHour: true };
+    return { visitorCount: 1420, activeStands: 45, happyHour: this.globalConfig.happyHourActive };
   },
-
   async getLeaderboard() {
     await delay(300);
     return [
@@ -20,37 +16,100 @@ export const mockDbService = {
       { id: '2', name: 'Laura G.', points: 2100, municipality: 'Chaparral' },
     ];
   },
-
-  async getUserStats(uid: string): Promise<VisitorStats> {
+  async getUserStats(uid: string) {
     await delay(300);
     return { points: 1250, stamps: ['Chaparral', 'Planadas'], level: 'Degustador' };
   },
-
-  // --- MÉTODOS DE EXPOSITOR (STAND) ---
   async getStandStats(expositorUid: string) {
     await delay(300);
     return { standName: 'Café Las Palmas', municipality: 'Planadas', todaySalesCOP: 245000, stampsIssued: 32 };
   },
 
+  // (Paso 9) Backend Logic: Server-side validation para ventas
   async registerSale(expositorUid: string, visitorUid: string, amountCOP: number) {
     await delay(600);
-    return { success: true, pointsAwarded: Math.floor(amountCOP / 1000), message: 'Venta y puntos registrados.' };
+    if (amountCOP <= 0) throw new Error('Monto inválido');
+    let points = Math.floor(amountCOP / 1000);
+    if (this.globalConfig.happyHourActive) points *= 2; // Cloud Function Logic
+    return { success: true, pointsAwarded: points, message: `Venta registrada. Puntos: ${points}` };
   },
 
-  // --- MÉTODOS DE EXPOSITOR (SUBASTA - PASO 5) ---
   async getAuctionLotStatus(expositorUid: string) {
     await delay(400);
-    // Estados posibles: 'no_registrado', 'borrador', 'pendiente_revision', 'aprobado'
-    return { status: 'borrador', scaScore: 0, farmName: 'Finca El Mirador' };
+    return { status: 'aprobado', scaScore: 88.5, farmName: 'Finca El Mirador' };
+  },
+  async saveAuctionProfile(uid: string, data: any) { await delay(600); return { success: true }; },
+  async submitScaAnalysis(uid: string, data: any) { await delay(800); return { success: true }; },
+
+  // --- COMPRADOR (PASO 6) ---
+  async getAuctionLots() {
+    await delay(500);
+    return [
+      { id: 'lot_1', farmName: 'Finca El Mirador', municipality: 'Planadas', variety: 'Geisha', scaScore: 89.5, currentBidUSD: 15.50, lotSizeKg: 200 },
+      { id: 'lot_2', farmName: 'Hacienda La Palma', municipality: 'Chaparral', variety: 'Caturra', scaScore: 86.0, currentBidUSD: 8.00, lotSizeKg: 350 },
+    ];
+  },
+  async getLotDetails(lotId: string) {
+    await delay(400);
+    return {
+      id: lotId,
+      farmName: 'Finca El Mirador',
+      owner: 'José Gómez',
+      municipality: 'Planadas',
+      altitude: '1850',
+      variety: 'Geisha',
+      process: 'Lavado',
+      lotSizeKg: 200,
+      scaScore: 89.5,
+      currentBidUSD: 15.50,
+      scaDetails: {
+        aroma: 8.5, flavor: 9.0, aftertaste: 8.5, acidity: 9.0,
+        body: 8.0, balance: 8.5, uniformity: 10, cleanCup: 10,
+        sweetness: 10, overall: 8.0,
+      },
+    };
+  },
+  // (Paso 9) Backend Logic: Server-side validation para pujas
+  async placeBid(lotId: string, buyerUid: string, bidAmountUSD: number) {
+    await delay(700);
+    const currentLot = await this.getLotDetails(lotId);
+    if (bidAmountUSD <= currentLot.currentBidUSD) throw new Error('La oferta debe ser mayor a la puja actual.');
+    return { success: true, message: '¡Puja realizada con éxito!' };
+  },
+  async getCompradorStats(uid: string) {
+    await delay(300);
+    return { activeBids: 2, lotsWon: 0, stamps: ['Subasta VIP'] };
   },
 
-  async saveAuctionProfile(expositorUid: string, profileData: any) {
-    await delay(600);
-    return { success: true, message: 'Perfil de finca guardado correctamente.' };
+  // --- ADMIN (PASO 7) ---
+  async getAdminKPIs() {
+    await delay(400);
+    return {
+      totalVisitors: 1500,
+      activeStands: 45,
+      totalPoints: 125000,
+      happyHour: this.globalConfig.happyHourActive,
+    };
+  },
+  async toggleHappyHour() {
+    await delay(300);
+    this.globalConfig.happyHourActive = !this.globalConfig.happyHourActive;
+    return this.globalConfig.happyHourActive;
   },
 
-  async submitScaAnalysis(expositorUid: string, scaData: any) {
-    await delay(800);
-    return { success: true, message: 'Análisis SCA enviado a la Universidad del Tolima para revisión.' };
+  // --- CEO (PASOS 8 y 9) ---
+  async getCeoMetrics() {
+    await delay(500);
+    return {
+      totalUsers: 2100,
+      activeBuyers: 45,
+      totalAuctionValueUSD: 12400,
+      sysStatus: 'Operativo',
+    };
+  },
+  // (Paso 9) Backend Logic: Data Export Simulation
+  async generateDatabaseExport() {
+    await delay(1500); // Simulamos generación de XLSX
+    return { success: true, url: 'file://simulated/path/pasaporte_export.xlsx' };
   },
 };

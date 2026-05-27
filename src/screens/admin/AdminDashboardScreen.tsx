@@ -1,136 +1,114 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { AdminNavProp } from '../../navigation/types';
-import { useApp } from '../../context/AppContext';
+import React, { useEffect, useState } from 'react';
+import {
+  View, Text, StyleSheet, TouchableOpacity,
+  ActivityIndicator, ScrollView, Alert,
+} from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
+import { mockDbService } from '../../services/mockDb.service';
 
-const MENU_ITEMS = [
-  { icon: '👥', label: 'Gestión de Usuarios', screen: 'UsersManagement' as const, sub: 'Ver y editar visitantes registrados' },
-  { icon: '🏪', label: 'Gestión de Stands', screen: 'StandsManagement' as const, sub: 'Administra stands y PINs' },
-  { icon: '⚡', label: 'Happy Hour', screen: 'HappyHourControl' as const, sub: 'Activa multiplicadores de puntos' },
-  { icon: '🔔', label: 'Notificaciones', screen: 'SendNotification' as const, sub: 'Envía push a todos los usuarios' },
-];
-
-export default function AdminDashboardScreen() {
-  const navigation = useNavigation<AdminNavProp>();
-  const { dispatch } = useApp();
+export const AdminDashboardScreen = () => {
   const { logout } = useAuth();
+  const [kpis, setKpis] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [toggling, setToggling] = useState(false);
+
+  useEffect(() => { loadData(); }, []);
+
+  const loadData = async () => {
+    const data = await mockDbService.getAdminKPIs();
+    setKpis(data);
+    setLoading(false);
+  };
+
+  const handleToggleHappyHour = async () => {
+    setToggling(true);
+    const isActive = await mockDbService.toggleHappyHour();
+    setKpis({ ...kpis, happyHour: isActive });
+    setToggling(false);
+    Alert.alert(
+      isActive ? '⚡ Happy Hour Activado' : '🌙 Happy Hour Desactivado',
+      isActive ? 'Los puntos ahora se duplican para todos los visitantes.' : 'Los puntos vuelven al valor normal.'
+    );
+  };
+
+  if (loading) return <ActivityIndicator style={styles.loader} color="#C8860A" />;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.badge}>⚙️ ADMINISTRADOR</Text>
-          <Text style={styles.title}>PANEL DE CONTROL</Text>
-          <Text style={styles.subtitle}>Feria del Café Colombiano</Text>
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.badge}>⚙️ ADMINISTRADOR</Text>
+        <Text style={styles.title}>Panel de Control</Text>
+        <Text onPress={logout} style={styles.logout}>Cerrar Sesión</Text>
+      </View>
+
+      <View style={styles.kpiGrid}>
+        <View style={styles.kpiCard}>
+          <Text style={styles.kpiValue}>{kpis.totalVisitors.toLocaleString()}</Text>
+          <Text style={styles.kpiLabel}>VISITANTES</Text>
         </View>
-
-        <View style={styles.statsRow}>
-          {[
-            { n: '—', l: 'VISITANTES' },
-            { n: '—', l: 'STANDS' },
-            { n: '—', l: 'VENTAS' },
-          ].map((s) => (
-            <View key={s.l} style={styles.statCard}>
-              <Text style={styles.statN}>{s.n}</Text>
-              <Text style={styles.statL}>{s.l}</Text>
-            </View>
-          ))}
+        <View style={styles.kpiCard}>
+          <Text style={styles.kpiValue}>{kpis.activeStands}</Text>
+          <Text style={styles.kpiLabel}>STANDS</Text>
         </View>
-
-        {MENU_ITEMS.map((item) => (
-          <TouchableOpacity
-            key={item.screen}
-            style={styles.menuCard}
-            onPress={() => navigation.navigate(item.screen)}
-          >
-            <Text style={styles.menuIcon}>{item.icon}</Text>
-            <View style={styles.menuTextWrap}>
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <Text style={styles.menuSub}>{item.sub}</Text>
-            </View>
-            <Text style={styles.arrow}>›</Text>
-          </TouchableOpacity>
-        ))}
-
-        <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>🔧 MÓDULO EN DESARROLLO</Text>
-          <Text style={styles.infoText}>
-            Este panel incluirá:{'\n'}
-            • Dashboard con métricas en tiempo real{'\n'}
-            • Control de Happy Hour{'\n'}
-            • Gestión completa de stands{'\n'}
-            • Envío de notificaciones push{'\n'}
-            • Exportación de datos a Excel
-          </Text>
+        <View style={[styles.kpiCard, styles.kpiWide]}>
+          <Text style={styles.kpiValue}>{kpis.totalPoints.toLocaleString()}</Text>
+          <Text style={styles.kpiLabel}>PUNTOS TOTALES</Text>
         </View>
+      </View>
 
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Control de Happy Hour</Text>
+        <Text style={styles.sectionDesc}>
+          Cuando está activo, todos los visitantes ganan el doble de puntos por compra.
+        </Text>
         <TouchableOpacity
-          style={styles.logoutBtn}
-          onPress={() => logout()}
+          style={[styles.hhButton, kpis.happyHour && styles.hhActive]}
+          onPress={handleToggleHappyHour}
+          disabled={toggling}
         >
-          <Text style={styles.logoutText}>Cerrar sesión</Text>
+          {toggling
+            ? <ActivityIndicator color="#FFF" />
+            : (
+              <Text style={styles.hhText}>
+                {kpis.happyHour
+                  ? '⚡ Happy Hour ACTIVO — Toca para desactivar'
+                  : '🌙 Happy Hour INACTIVO — Toca para activar'}
+              </Text>
+            )}
         </TouchableOpacity>
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </ScrollView>
   );
-}
+};
+
+export default AdminDashboardScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0800' },
-  header: { alignItems: 'center', padding: 30, paddingBottom: 20 },
+  loader: { flex: 1, justifyContent: 'center', backgroundColor: '#0D0800' },
+  header: { padding: 30, alignItems: 'center', backgroundColor: '#1A1200' },
   badge: {
-    fontSize: 11,
-    color: '#C8860A',
-    letterSpacing: 2,
-    backgroundColor: '#C8860A22',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-    marginBottom: 12,
-    overflow: 'hidden',
+    fontSize: 11, color: '#C8860A', letterSpacing: 2,
+    backgroundColor: '#C8860A22', paddingHorizontal: 12, paddingVertical: 4,
+    borderRadius: 20, marginBottom: 10, overflow: 'hidden',
   },
   title: { fontSize: 22, fontWeight: '900', color: '#C8860A', letterSpacing: 2 },
-  subtitle: { fontSize: 13, color: '#888', marginTop: 4 },
-  statsRow: { flexDirection: 'row', paddingHorizontal: 20, marginBottom: 20, gap: 10 },
-  statCard: {
-    flex: 1,
-    backgroundColor: '#1A1200',
-    borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#C8860A33',
+  logout: { color: '#E07A5F', marginTop: 12, fontSize: 14 },
+  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', padding: 16, gap: 12 },
+  kpiCard: {
+    flex: 1, minWidth: '40%', backgroundColor: '#1A1200',
+    borderRadius: 14, padding: 16, alignItems: 'center',
+    borderWidth: 1, borderColor: '#C8860A33',
   },
-  statN: { fontSize: 24, fontWeight: '900', color: '#C8860A' },
-  statL: { fontSize: 9, color: '#888', marginTop: 4, letterSpacing: 1, textAlign: 'center' },
-  menuCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1200',
-    marginHorizontal: 20,
-    marginBottom: 12,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: '#C8860A33',
+  kpiWide: { minWidth: '90%' },
+  kpiValue: { fontSize: 28, fontWeight: '900', color: '#C8860A' },
+  kpiLabel: { fontSize: 10, color: '#888', marginTop: 4, letterSpacing: 1 },
+  section: { margin: 16, padding: 20, backgroundColor: '#1A1200', borderRadius: 16, borderWidth: 1, borderColor: '#C8860A33' },
+  sectionTitle: { fontSize: 16, fontWeight: '800', color: '#F5E6C8', marginBottom: 8 },
+  sectionDesc: { fontSize: 13, color: '#888', marginBottom: 16, lineHeight: 20 },
+  hhButton: {
+    backgroundColor: '#444', padding: 18, borderRadius: 12, alignItems: 'center',
   },
-  menuIcon: { fontSize: 28, marginRight: 14 },
-  menuTextWrap: { flex: 1 },
-  menuLabel: { fontSize: 15, fontWeight: '800', color: '#F5E6C8', letterSpacing: 0.5 },
-  menuSub: { fontSize: 12, color: '#888', marginTop: 2 },
-  arrow: { fontSize: 22, color: '#C8860A', fontWeight: '300' },
-  infoCard: {
-    backgroundColor: '#1A1200',
-    borderRadius: 16,
-    padding: 20,
-    margin: 20,
-    borderWidth: 1,
-    borderColor: '#C8860A33',
-  },
-  infoTitle: { fontSize: 13, fontWeight: '800', color: '#C8860A', marginBottom: 10, letterSpacing: 1 },
-  infoText: { fontSize: 13, color: '#AAA', lineHeight: 22 },
-  logoutBtn: { alignItems: 'center', padding: 16, marginBottom: 20 },
-  logoutText: { fontSize: 14, color: '#666', textDecorationLine: 'underline' },
+  hhActive: { backgroundColor: '#C8860A' },
+  hhText: { color: '#FFF', fontWeight: 'bold', fontSize: 15 },
 });

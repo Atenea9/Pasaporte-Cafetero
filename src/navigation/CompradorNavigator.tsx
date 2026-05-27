@@ -1,24 +1,17 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import type { CompradorStackParamList } from './types';
+import { CompradorDashboardScreen } from '../screens/comprador/CompradorDashboardScreen';
+import { LotDetailScreen } from '../screens/comprador/LotDetailScreen';
+import { CompradorPasaporteScreen } from '../screens/comprador/CompradorPasaporteScreen';
 
-import CompradorHomeScreen from '../screens/comprador/CompradorHomeScreen';
-import CatalogScreen from '../screens/comprador/CatalogScreen';
-import AuctionsScreen from '../screens/comprador/AuctionsScreen';
-import MyOrdersScreen from '../screens/comprador/MyOrdersScreen';
+const Stack = createNativeStackNavigator();
 
-const Stack = createNativeStackNavigator<CompradorStackParamList>();
+export const CompradorNavigator = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+    <Stack.Screen name="Dashboard" component={CompradorDashboardScreen} />
+    <Stack.Screen name="LotDetail" component={LotDetailScreen} />
+    <Stack.Screen name="CompradorPasaporte" component={CompradorPasaporteScreen} />
+  </Stack.Navigator>
+);
 
-export default function CompradorNavigator() {
-  return (
-    <Stack.Navigator
-      initialRouteName="CompradorHome"
-      screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
-    >
-      <Stack.Screen name="CompradorHome" component={CompradorHomeScreen} />
-      <Stack.Screen name="Catalog" component={CatalogScreen} />
-      <Stack.Screen name="Auctions" component={AuctionsScreen} />
-      <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
-    </Stack.Navigator>
-  );
-}
+export default CompradorNavigator;
