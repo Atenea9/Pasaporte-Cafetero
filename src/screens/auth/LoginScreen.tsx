@@ -11,19 +11,19 @@ import { useAuth } from '../../contexts/AuthContext';
 const { width, height } = Dimensions.get('window');
 
 const G = {
-  bg:           '#0D0800',
-  bgDeep:       '#060400',
-  card:         '#1A0E00',
-  cardHover:    '#241500',
-  gold:         '#C8860A',
-  goldLight:    '#E8A830',
-  goldDim:      '#8B5E07',
-  goldGlow:     '#C8860A30',
-  cream:        '#F5EDD8',
-  muted:        '#7A6045',
-  border:       '#C8860A22',
-  borderBright: '#C8860A55',
-  separator:    '#3A2200',
+  bg:           '#0B1608',
+  bgDeep:       '#060F04',
+  card:         '#142210',
+  cardHover:    '#1C3018',
+  gold:         '#CFA020',
+  goldLight:    '#EAC040',
+  goldDim:      '#7A6210',
+  goldGlow:     '#CFA02028',
+  cream:        '#F3EED6',
+  muted:        '#6A8060',
+  border:       '#CFA02022',
+  borderBright: '#CFA02055',
+  separator:    '#1C3018',
 };
 
 const LANGUAGES: { code: string; label: string; native: string }[] = [

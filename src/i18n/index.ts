@@ -1,6 +1,5 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import * as Localization from 'expo-localization';
 
 import es from './locales/es.json';
 import en from './locales/en.json';
@@ -14,10 +13,18 @@ const SUPPORTED = ['es', 'en', 'fr', 'de', 'zh', 'pt', 'it'] as const;
 type SupportedLang = (typeof SUPPORTED)[number];
 
 function detectLanguage(): SupportedLang {
-  const locales = Localization.getLocales();
-  const tag = locales[0]?.languageTag ?? 'es';
-  const code = tag.split('-')[0] as SupportedLang;
-  return SUPPORTED.includes(code) ? code : 'es';
+  try {
+    // Dynamically require to avoid module-load crashes on mismatched native versions
+    const Localization = require('expo-localization');
+    const getLocales = Localization.getLocales ?? Localization.default?.getLocales;
+    if (typeof getLocales !== 'function') return 'es';
+    const locales = getLocales();
+    const tag: string = locales?.[0]?.languageTag ?? 'es';
+    const code = tag.split('-')[0] as SupportedLang;
+    return SUPPORTED.includes(code) ? code : 'es';
+  } catch {
+    return 'es';
+  }
 }
 
 i18n.use(initReactI18next).init({
@@ -32,9 +39,7 @@ i18n.use(initReactI18next).init({
   },
   lng: detectLanguage(),
   fallbackLng: 'es',
-  interpolation: {
-    escapeValue: false,
-  },
+  interpolation: { escapeValue: false },
   compatibilityJSON: 'v4',
 });
 
