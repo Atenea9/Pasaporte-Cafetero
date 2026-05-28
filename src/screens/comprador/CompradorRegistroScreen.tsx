@@ -117,7 +117,7 @@ export const CompradorRegistroScreen = () => {
                 <Text style={styles.prizeHighlight}>ganar premios</Text>
               </Text>
               <View style={styles.prizePills}>
-                {['☕ Café premium', '🎁 Kits Tolima', '🏅 Medallas', '💰 Descuentos'].map((p) => (
+                {['☕ Café', '🎁 Kits de Café', '📚 Cursos', '🏡 Visitas Exclusivas'].map((p) => (
                   <View key={p} style={styles.pill}><Text style={styles.pillText}>{p}</Text></View>
                 ))}
               </View>

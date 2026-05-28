@@ -189,10 +189,68 @@
     "session_expired": "La tua sessione è scaduta. Accedi di nuovo."
   },
   "levels": {
-    "bronce": "BRONZO",
-    "plata": "ARGENTO",
-    "oro": "ORO",
-    "platino": "PLATINO",
-    "diamante": "DIAMANTE"
+    "modo_cafetero": "Modalità Caffè",
+    "cazador_granos": "Cacciatore di Chicchi",
+    "maestro_grano": "Maestro del Chicco",
+    "gold_brew": "Gold Brew Society",
+    "range_1": "1 – 200 pts", "range_2": "201 – 400 pts",
+    "range_3": "401 – 600 pts", "range_4": "601+ pts",
+    "pts_explain": "Ogni 1.000 COP spesi = 1 punto",
+    "none_title": "Nessun livello — Fai il primo acquisto!",
+    "your_prize": "Il tuo premio", "next_prize": "Prossimo premio"
+  },
+  "prizes": {
+    "title": "PREMI PER LIVELLO",
+    "cafe": "Caffè Speciale del Tolima",
+    "kits_cafe": "Kit Caffè Artigianale",
+    "cursos": "Corso SCA Certificato",
+    "visitas_exclusivas": "Visita Esclusiva alla Fattoria",
+    "redeemable_at": "Riscattabile allo stand premi"
+  },
+  "agenda": {
+    "title": "AGENDA DELL'EVENTO", "subtitle": "Fiera Internazionale del Caffè · Chaparral 2026",
+    "day1": "Gio 29 Mag", "day2": "Ven 30 Mag", "day3": "Sab 31 Mag",
+    "venue": "Luogo", "opening": "Apertura", "tasting": "Degustazione",
+    "auction": "Asta", "workshop": "Workshop", "award": "Premiazione",
+    "cultural": "Culturale", "conference": "Conferenza"
+  },
+  "map": {
+    "title": "MAPPA DELLA FIERA", "subtitle": "Stand e palchi · Chaparral 2026",
+    "all_sections": "Tutti", "stands_open": "stand aperti",
+    "products": "Prodotti", "section": "Sezione"
+  },
+  "sponsors": {
+    "title": "SPONSOR", "subtitle": "Organizzazioni che rendono possibile la Fiera 2026",
+    "main_sponsor": "Sponsor Principale", "co_organizer": "Co-organizzatore",
+    "strategic_ally": "Alleato Strategico", "host": "Città Ospitante",
+    "governor_highlight": "Promotrice del caffè tolimense"
+  },
+  "auction": {
+    "title": "ASTA INTERNAZIONALE", "subtitle": "Lotti speciali · Offerte in USD",
+    "current_bid": "OFFERTA ATTUALE", "base_price": "PREZZO BASE",
+    "bids": "offerte", "place_bid": "FAI UN'OFFERTA",
+    "bid_amount": "La tua offerta (USD)", "bid_success": "Offerta registrata!",
+    "active": "ATTIVA", "closed": "CHIUSA",
+    "masl": "m.s.l.m.", "farm": "Fattoria", "farmer": "Produttore",
+    "variety": "Varietà", "process": "Processo", "altitude": "Altitudine",
+    "weight": "Peso", "sca_score": "Punteggio SCA",
+    "notes": "Note di degustazione", "history": "Storia della fattoria",
+    "bid_min_error": "La tua offerta deve essere superiore a quella attuale.",
+    "live_auction": "ASTA IN DIRETTA"
+  },
+  "home": {
+    "greeting": "Ciao,", "subtitle": "Il tuo viaggio del caffè continua",
+    "your_passport": "IL TUO PASSAPORTO", "your_level": "IL TUO LIVELLO",
+    "stamps_collected": "timbri raccolti", "pts_to_next": "pts per prossimo livello",
+    "top_stands": "MIGLIORI STAND", "sales": "vendite",
+    "explore": "ESPLORA LA FIERA",
+    "fair_map": "Mappa della Fiera", "fair_map_sub": "Stand e palchi",
+    "agenda": "Agenda Evento", "agenda_sub": "Programma 3 giorni",
+    "sponsors": "Sponsor", "sponsors_sub": "Governatorato del Tolima",
+    "ranking_nav": "Classifica", "ranking_nav_sub": "Tabella posizioni",
+    "happy_hour_active": "✨ HAPPY HOUR — PUNTI DOPPI ✨",
+    "visitors_now": "visitatori ora", "active_stands": "stand attivi",
+    "pts_explain": "1.000 COP = 1 punto", "quick_access": "ACCESSO RAPIDO",
+    "live_results": "RISULTATI IN DIRETTA", "view_all": "Vedi tutti"
   }
 }

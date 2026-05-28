@@ -195,10 +195,68 @@
     "session_expired": "您的会话已过期。请重新登录。"
   },
   "levels": {
-    "bronce": "铜牌",
-    "plata": "银牌",
-    "oro": "金牌",
-    "platino": "铂金",
-    "diamante": "钻石"
+    "modo_cafetero": "咖啡模式",
+    "cazador_granos": "咖啡豆猎手",
+    "maestro_grano": "咖啡豆大师",
+    "gold_brew": "黄金冲煮协会",
+    "range_1": "1 – 200 分", "range_2": "201 – 400 分",
+    "range_3": "401 – 600 分", "range_4": "601+ 分",
+    "pts_explain": "每消费1,000 COP = 1积分",
+    "none_title": "尚无等级 — 完成首次购买！",
+    "your_prize": "您的奖品", "next_prize": "下一个奖品"
+  },
+  "prizes": {
+    "title": "按等级奖品",
+    "cafe": "托利马特种咖啡",
+    "kits_cafe": "手工咖啡套装",
+    "cursos": "SCA认证品鉴课程",
+    "visitas_exclusivas": "独家农场参观",
+    "redeemable_at": "可在奖品摊位兑换"
+  },
+  "agenda": {
+    "title": "活动日程", "subtitle": "国际咖啡博览会 · 查帕拉尔 2026",
+    "day1": "周四 5/29", "day2": "周五 5/30", "day3": "周六 5/31",
+    "venue": "地点", "opening": "开幕", "tasting": "品鉴",
+    "auction": "拍卖", "workshop": "工作坊", "award": "颁奖",
+    "cultural": "文化", "conference": "讲座"
+  },
+  "map": {
+    "title": "展会地图", "subtitle": "摊位和舞台 · 查帕拉尔 2026",
+    "all_sections": "全部", "stands_open": "开放摊位",
+    "products": "产品", "section": "区域"
+  },
+  "sponsors": {
+    "title": "赞助商", "subtitle": "支持2026年博览会的机构",
+    "main_sponsor": "主要赞助商", "co_organizer": "联合主办方",
+    "strategic_ally": "战略合作伙伴", "host": "主办城市",
+    "governor_highlight": "托利马咖啡推动者"
+  },
+  "auction": {
+    "title": "国际拍卖", "subtitle": "特别批次 · 美元报价",
+    "current_bid": "当前出价", "base_price": "起拍价",
+    "bids": "次出价", "place_bid": "出价",
+    "bid_amount": "您的出价（美元）", "bid_success": "出价成功！",
+    "active": "进行中", "closed": "已结束",
+    "masl": "海拔m", "farm": "农场", "farmer": "咖农",
+    "variety": "品种", "process": "处理法", "altitude": "海拔",
+    "weight": "重量", "sca_score": "SCA评分",
+    "notes": "品鉴笔记", "history": "农场历史",
+    "bid_min_error": "您的出价必须高于当前最高价。",
+    "live_auction": "实时拍卖"
+  },
+  "home": {
+    "greeting": "你好,", "subtitle": "您的咖啡之旅继续",
+    "your_passport": "您的护照", "your_level": "您的等级",
+    "stamps_collected": "已收集印章", "pts_to_next": "升级所需积分",
+    "top_stands": "热门摊位", "sales": "销量",
+    "explore": "探索展会",
+    "fair_map": "展会地图", "fair_map_sub": "摊位和舞台",
+    "agenda": "活动日程", "agenda_sub": "3天活动",
+    "sponsors": "赞助商", "sponsors_sub": "托利马省政府",
+    "ranking_nav": "排行榜", "ranking_nav_sub": "积分排名",
+    "happy_hour_active": "✨ 欢乐时光 — 积分双倍 ✨",
+    "visitors_now": "当前访客", "active_stands": "活跃摊位",
+    "pts_explain": "1,000 COP = 1积分", "quick_access": "快速访问",
+    "live_results": "实时结果", "view_all": "查看全部"
   }
 }

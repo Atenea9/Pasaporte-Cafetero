@@ -195,10 +195,77 @@
     "session_expired": "Tu sesión ha expirado. Inicia de nuevo."
   },
   "levels": {
-    "bronce": "BRONCE",
-    "plata": "PLATA",
-    "oro": "ORO",
-    "platino": "PLATINO",
-    "diamante": "DIAMANTE"
+    "modo_cafetero": "Modo Cafetero",
+    "cazador_granos": "Cazador de Granos",
+    "maestro_grano": "Maestro del Grano",
+    "gold_brew": "Gold Brew Society",
+    "range_1": "1 – 200 pts",
+    "range_2": "201 – 400 pts",
+    "range_3": "401 – 600 pts",
+    "range_4": "601+ pts",
+    "pts_explain": "Por cada $1.000 COP = 1 punto",
+    "none_title": "Sin nivel — ¡Haz tu primera compra!",
+    "your_prize": "Tu premio",
+    "next_prize": "Próximo premio"
+  },
+  "prizes": {
+    "title": "PREMIOS POR NIVEL",
+    "cafe": "Café Especial del Tolima",
+    "kits_cafe": "Kit de Café Artesanal",
+    "cursos": "Curso Certificado de Catación SCA",
+    "visitas_exclusivas": "Visita Exclusiva a Finca Cafetera",
+    "redeemable_at": "Canjeable en el stand de premios"
+  },
+  "agenda": {
+    "title": "AGENDA DEL EVENTO",
+    "subtitle": "Feria Internacional del Café · Chaparral 2026",
+    "day1": "Jue 29 May", "day2": "Vie 30 May", "day3": "Sáb 31 May",
+    "venue": "Lugar", "opening": "Apertura", "tasting": "Cata",
+    "auction": "Subasta", "workshop": "Taller", "award": "Premiación",
+    "cultural": "Cultural", "conference": "Conferencia"
+  },
+  "map": {
+    "title": "MAPA DE LA FERIA",
+    "subtitle": "Stands y escenarios · Chaparral 2026",
+    "all_sections": "Todas", "stands_open": "stands abiertos",
+    "products": "Productos", "section": "Sección"
+  },
+  "sponsors": {
+    "title": "AUSPICIADORES",
+    "subtitle": "Entidades que hacen posible la Feria 2026",
+    "main_sponsor": "Auspiciador Principal",
+    "co_organizer": "Co-organizador",
+    "strategic_ally": "Aliado Estratégico",
+    "host": "Sede Anfitriona",
+    "governor_highlight": "Impulsora del café tolimense"
+  },
+  "auction": {
+    "title": "SUBASTA INTERNACIONAL",
+    "subtitle": "Lotes especiales · Pujas en USD",
+    "current_bid": "PUJA ACTUAL", "base_price": "PRECIO BASE",
+    "bids": "pujas", "place_bid": "REALIZAR PUJA",
+    "bid_amount": "Tu puja (USD)", "bid_success": "¡Puja registrada!",
+    "active": "ACTIVA", "closed": "CERRADA",
+    "masl": "m.s.n.m.", "farm": "Finca", "farmer": "Caficultor",
+    "variety": "Variedad", "process": "Proceso", "altitude": "Altitud",
+    "weight": "Peso", "sca_score": "Puntaje SCA",
+    "notes": "Notas de cata", "history": "Historia de la finca",
+    "bid_min_error": "Tu puja debe ser mayor a la puja actual.",
+    "live_auction": "SUBASTA EN VIVO"
+  },
+  "home": {
+    "greeting": "¡Hola,", "subtitle": "Tu viaje cafetero continúa",
+    "your_passport": "TU PASAPORTE", "your_level": "TU NIVEL",
+    "stamps_collected": "sellos obtenidos", "pts_to_next": "pts para siguiente nivel",
+    "top_stands": "STANDS MÁS VISITADOS", "sales": "ventas",
+    "explore": "EXPLORAR LA FERIA",
+    "fair_map": "Mapa de la Feria", "fair_map_sub": "Ubicación de stands",
+    "agenda": "Agenda del Evento", "agenda_sub": "3 días de programa",
+    "sponsors": "Auspiciadores", "sponsors_sub": "Gobernación del Tolima",
+    "ranking_nav": "Ranking", "ranking_nav_sub": "Tabla de posiciones",
+    "happy_hour_active": "✨ HAPPY HOUR — PUNTOS DOBLES ✨",
+    "visitors_now": "visitantes ahora", "active_stands": "stands activos",
+    "pts_explain": "$1.000 COP = 1 punto", "quick_access": "ACCESOS RÁPIDOS",
+    "live_results": "RESULTADOS EN VIVO", "view_all": "Ver todos"
   }
 }

@@ -128,7 +128,7 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
                 <Text style={s.prizeHighlight}>ganar premios</Text>
               </Text>
               <View style={s.prizePills}>
-                {['☕ Café premium', '🎁 Kits Tolima', '🏅 Medallas', '💰 Descuentos'].map((p) => (
+                {['☕ Café', '🎁 Kits de Café', '📚 Cursos', '🏡 Visitas Exclusivas'].map((p) => (
                   <View key={p} style={s.pill}><Text style={s.pillText}>{p}</Text></View>
                 ))}
               </View>

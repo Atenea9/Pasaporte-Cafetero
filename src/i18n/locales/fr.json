@@ -189,10 +189,68 @@
     "session_expired": "Votre session a expiré. Reconnectez-vous."
   },
   "levels": {
-    "bronce": "BRONZE",
-    "plata": "ARGENT",
-    "oro": "OR",
-    "platino": "PLATINE",
-    "diamante": "DIAMANT"
+    "modo_cafetero": "Mode Café",
+    "cazador_granos": "Chasseur de Grains",
+    "maestro_grano": "Maître du Grain",
+    "gold_brew": "Gold Brew Society",
+    "range_1": "1 – 200 pts", "range_2": "201 – 400 pts",
+    "range_3": "401 – 600 pts", "range_4": "601+ pts",
+    "pts_explain": "Chaque 1 000 COP dépensé = 1 point",
+    "none_title": "Aucun niveau — Faites votre premier achat!",
+    "your_prize": "Votre prix", "next_prize": "Prochain prix"
+  },
+  "prizes": {
+    "title": "PRIX PAR NIVEAU",
+    "cafe": "Café Spécial du Tolima",
+    "kits_cafe": "Kit de Café Artisanal",
+    "cursos": "Cours SCA Certifié",
+    "visitas_exclusivas": "Visite Exclusive de Ferme",
+    "redeemable_at": "Échangeable au stand des prix"
+  },
+  "agenda": {
+    "title": "AGENDA DE L'ÉVÉNEMENT", "subtitle": "Foire Internationale du Café · Chaparral 2026",
+    "day1": "Jeu 29 Mai", "day2": "Ven 30 Mai", "day3": "Sam 31 Mai",
+    "venue": "Lieu", "opening": "Ouverture", "tasting": "Dégustation",
+    "auction": "Enchères", "workshop": "Atelier", "award": "Remise des prix",
+    "cultural": "Culturel", "conference": "Conférence"
+  },
+  "map": {
+    "title": "PLAN DE LA FOIRE", "subtitle": "Stands et scènes · Chaparral 2026",
+    "all_sections": "Toutes", "stands_open": "stands ouverts",
+    "products": "Produits", "section": "Section"
+  },
+  "sponsors": {
+    "title": "SPONSORS", "subtitle": "Organisations qui rendent la Foire 2026 possible",
+    "main_sponsor": "Sponsor Principal", "co_organizer": "Co-organisateur",
+    "strategic_ally": "Allié Stratégique", "host": "Ville Hôte",
+    "governor_highlight": "Championne du café du Tolima"
+  },
+  "auction": {
+    "title": "ENCHÈRES INTERNATIONALES", "subtitle": "Lots spéciaux · Offres en USD",
+    "current_bid": "OFFRE ACTUELLE", "base_price": "PRIX DE BASE",
+    "bids": "offres", "place_bid": "FAIRE UNE OFFRE",
+    "bid_amount": "Votre offre (USD)", "bid_success": "Offre enregistrée!",
+    "active": "ACTIVE", "closed": "FERMÉE",
+    "masl": "m.a.s.l.", "farm": "Ferme", "farmer": "Producteur",
+    "variety": "Variété", "process": "Procédé", "altitude": "Altitude",
+    "weight": "Poids", "sca_score": "Score SCA",
+    "notes": "Notes de dégustation", "history": "Histoire de la ferme",
+    "bid_min_error": "Votre offre doit être supérieure à l'offre actuelle.",
+    "live_auction": "ENCHÈRES EN DIRECT"
+  },
+  "home": {
+    "greeting": "Bonjour,", "subtitle": "Votre voyage café continue",
+    "your_passport": "VOTRE PASSEPORT", "your_level": "VOTRE NIVEAU",
+    "stamps_collected": "tampons collectés", "pts_to_next": "pts pour niveau suivant",
+    "top_stands": "MEILLEURS STANDS", "sales": "ventes",
+    "explore": "EXPLORER LA FOIRE",
+    "fair_map": "Plan de la Foire", "fair_map_sub": "Stands et scènes",
+    "agenda": "Agenda", "agenda_sub": "Programme 3 jours",
+    "sponsors": "Sponsors", "sponsors_sub": "Gouvernorat du Tolima",
+    "ranking_nav": "Classement", "ranking_nav_sub": "Tableau des scores",
+    "happy_hour_active": "✨ HAPPY HOUR — POINTS DOUBLES ✨",
+    "visitors_now": "visiteurs maintenant", "active_stands": "stands actifs",
+    "pts_explain": "1 000 COP = 1 point", "quick_access": "ACCÈS RAPIDE",
+    "live_results": "RÉSULTATS EN DIRECT", "view_all": "Voir tout"
   }
 }

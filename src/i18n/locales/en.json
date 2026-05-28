@@ -195,10 +195,68 @@
     "session_expired": "Your session has expired. Log in again."
   },
   "levels": {
-    "bronce": "BRONZE",
-    "plata": "SILVER",
-    "oro": "GOLD",
-    "platino": "PLATINUM",
-    "diamante": "DIAMOND"
+    "modo_cafetero": "Coffee Mode",
+    "cazador_granos": "Bean Hunter",
+    "maestro_grano": "Grain Master",
+    "gold_brew": "Gold Brew Society",
+    "range_1": "1 – 200 pts", "range_2": "201 – 400 pts",
+    "range_3": "401 – 600 pts", "range_4": "601+ pts",
+    "pts_explain": "Every $1,000 COP spent = 1 point",
+    "none_title": "No level yet — Make your first purchase!",
+    "your_prize": "Your prize", "next_prize": "Next prize"
+  },
+  "prizes": {
+    "title": "PRIZES BY LEVEL",
+    "cafe": "Tolima Specialty Coffee",
+    "kits_cafe": "Artisan Coffee Kit",
+    "cursos": "SCA Certified Cupping Course",
+    "visitas_exclusivas": "Exclusive Farm Visit",
+    "redeemable_at": "Redeemable at the prize stand"
+  },
+  "agenda": {
+    "title": "EVENT AGENDA", "subtitle": "International Coffee Fair · Chaparral 2026",
+    "day1": "Thu 29 May", "day2": "Fri 30 May", "day3": "Sat 31 May",
+    "venue": "Venue", "opening": "Opening", "tasting": "Tasting",
+    "auction": "Auction", "workshop": "Workshop", "award": "Awards",
+    "cultural": "Cultural", "conference": "Conference"
+  },
+  "map": {
+    "title": "FAIR MAP", "subtitle": "Stands & venues · Chaparral 2026",
+    "all_sections": "All", "stands_open": "open stands",
+    "products": "Products", "section": "Section"
+  },
+  "sponsors": {
+    "title": "SPONSORS", "subtitle": "Organizations that make the Fair 2026 possible",
+    "main_sponsor": "Main Sponsor", "co_organizer": "Co-organizer",
+    "strategic_ally": "Strategic Ally", "host": "Host City",
+    "governor_highlight": "Champion of Tolima coffee"
+  },
+  "auction": {
+    "title": "INTERNATIONAL AUCTION", "subtitle": "Special lots · Bids in USD",
+    "current_bid": "CURRENT BID", "base_price": "BASE PRICE",
+    "bids": "bids", "place_bid": "PLACE BID",
+    "bid_amount": "Your bid (USD)", "bid_success": "Bid placed!",
+    "active": "ACTIVE", "closed": "CLOSED",
+    "masl": "masl", "farm": "Farm", "farmer": "Farmer",
+    "variety": "Variety", "process": "Process", "altitude": "Altitude",
+    "weight": "Weight", "sca_score": "SCA Score",
+    "notes": "Cupping notes", "history": "Farm history",
+    "bid_min_error": "Your bid must be higher than the current bid.",
+    "live_auction": "LIVE AUCTION"
+  },
+  "home": {
+    "greeting": "Hello,", "subtitle": "Your coffee journey continues",
+    "your_passport": "YOUR PASSPORT", "your_level": "YOUR LEVEL",
+    "stamps_collected": "stamps collected", "pts_to_next": "pts to next level",
+    "top_stands": "TOP STANDS", "sales": "sales",
+    "explore": "EXPLORE THE FAIR",
+    "fair_map": "Fair Map", "fair_map_sub": "Stands & venues",
+    "agenda": "Event Agenda", "agenda_sub": "3-day program",
+    "sponsors": "Sponsors", "sponsors_sub": "Gobernación del Tolima",
+    "ranking_nav": "Ranking", "ranking_nav_sub": "Leaderboard",
+    "happy_hour_active": "✨ HAPPY HOUR — DOUBLE POINTS ✨",
+    "visitors_now": "visitors now", "active_stands": "active stands",
+    "pts_explain": "$1,000 COP = 1 point", "quick_access": "QUICK ACCESS",
+    "live_results": "LIVE RESULTS", "view_all": "View all"
   }
 }
