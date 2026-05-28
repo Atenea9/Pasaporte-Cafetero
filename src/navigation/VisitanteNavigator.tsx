@@ -1,5 +1,5 @@
 import React from 'react';
-import { BackHandler } from 'react-native';
+import { Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { VisitanteStackParamList } from './types';
 
@@ -20,7 +20,10 @@ export default function VisitanteNavigator() {
   return (
     <Stack.Navigator
       initialRouteName="Welcome"
-      screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
+      screenOptions={{
+        headerShown: false,
+        animation: Platform.OS === 'web' ? 'none' : 'slide_from_right',
+      }}
     >
       <Stack.Screen name="Welcome"       component={VisitanteWelcomeScreen} />
       <Stack.Screen name="Login"         component={VisitanteLoginScreen} />

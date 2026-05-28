@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { CompradorStackParamList } from './types';
 import CompradorWelcomeScreen from '../screens/comprador/CompradorWelcomeScreen';
@@ -17,18 +18,21 @@ const Stack = createNativeStackNavigator<CompradorStackParamList>();
 export const CompradorNavigator = () => (
   <Stack.Navigator
     initialRouteName="Welcome"
-    screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
+    screenOptions={{
+      headerShown: false,
+      animation: Platform.OS === 'web' ? 'none' : 'slide_from_right',
+    }}
   >
-    <Stack.Screen name="Welcome"           component={CompradorWelcomeScreen} />
-    <Stack.Screen name="Login"             component={CompradorLoginScreen} />
-    <Stack.Screen name="Registro"          component={CompradorRegistroScreen} />
-    <Stack.Screen name="Dashboard"         component={CompradorDashboardScreen} />
-    <Stack.Screen name="LotDetail"         component={LotDetailScreen} />
+    <Stack.Screen name="Welcome"            component={CompradorWelcomeScreen} />
+    <Stack.Screen name="Login"              component={CompradorLoginScreen} />
+    <Stack.Screen name="Registro"           component={CompradorRegistroScreen} />
+    <Stack.Screen name="Dashboard"          component={CompradorDashboardScreen} />
+    <Stack.Screen name="LotDetail"          component={LotDetailScreen} />
     <Stack.Screen name="CompradorPasaporte" component={CompradorPasaporteScreen} />
-    <Stack.Screen name="AuctionLive"       component={AuctionLiveScreen} />
-    <Stack.Screen name="Agenda"            component={AgendaScreen} />
-    <Stack.Screen name="MapaFeria"         component={MapaFeriaScreen} />
-    <Stack.Screen name="Auspiciadores"     component={AuspiciadoresScreen} />
+    <Stack.Screen name="AuctionLive"        component={AuctionLiveScreen} />
+    <Stack.Screen name="Agenda"             component={AgendaScreen} />
+    <Stack.Screen name="MapaFeria"          component={MapaFeriaScreen} />
+    <Stack.Screen name="Auspiciadores"      component={AuspiciadoresScreen} />
   </Stack.Navigator>
 );
 
