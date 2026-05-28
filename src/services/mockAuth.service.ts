@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+import { Platform } from 'react-native';
 
 export type UserRole = 'visitante' | 'expositor' | 'comprador' | 'admin' | 'ceo';
 
@@ -15,18 +14,17 @@ export interface UserProfile {
 const SESSION_KEY = '@mock_auth_session';
 
 const DEMO_ACCOUNTS: Record<string, { role: UserRole; name: string }> = {
-  'visitor@demo.com':    { role: 'visitante',  name: 'Carlos Andrés Rojas'    },
-  'buyer@demo.com':      { role: 'comprador',  name: 'James Whitfield'         },
-  'expositor@demo.com':  { role: 'expositor',  name: 'María Castaño'           },
-  'admin@demo.com':      { role: 'admin',      name: 'Administrador Feria'     },
-  'ceo@demo.com':        { role: 'ceo',        name: 'Director General'        },
-  'stevenpolania23@outlook.com': { role: 'ceo', name: 'Steven Polania'         },
+  'visitor@demo.com':    { role: 'visitante',  name: 'Carlos Andrés Rojas'  },
+  'buyer@demo.com':      { role: 'comprador',  name: 'James Whitfield'      },
+  'expositor@demo.com':  { role: 'expositor',  name: 'María Castaño'        },
+  'admin@demo.com':      { role: 'admin',      name: 'Administrador Feria'  },
+  'ceo@demo.com':        { role: 'ceo',        name: 'Director General'     },
+  'stevenpolania23@outlook.com': { role: 'ceo', name: 'Steven Polania'      },
 };
 
 export const mockAuthService = {
   async login(identifier: string, type: 'phone' | 'email'): Promise<UserProfile> {
-    await delay(800);
-
+    // No artificial delay — setTimeout freezes in Expo web iframe
     const normalizedId = identifier.toLowerCase().trim();
     let role: UserRole = 'visitante';
     let name: string | undefined;
@@ -54,8 +52,12 @@ export const mockAuthService = {
   },
 
   async checkSession(): Promise<UserProfile | null> {
-    const session = await AsyncStorage.getItem(SESSION_KEY);
-    return session ? JSON.parse(session) : null;
+    try {
+      const session = await AsyncStorage.getItem(SESSION_KEY);
+      return session ? JSON.parse(session) : null;
+    } catch {
+      return null;
+    }
   },
 
   async logout(): Promise<void> {

@@ -11,7 +11,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser]         = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -20,16 +20,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadSession = async () => {
     try {
-      // Timeout de 2 segundos para evitar que Expo Go se congele al inicio
-      const sessionUser = await Promise.race([
-        mockAuthService.checkSession(),
-        new Promise<null>((_, reject) =>
-          setTimeout(() => reject(new Error('Timeout loading session')), 2000)
-        ),
-      ]);
-      setUser(sessionUser as UserProfile | null);
-    } catch (error) {
-      console.warn('Session load aborted or failed:', error);
+      // Direct call — no setTimeout race (freezes in Expo web iframe)
+      const sessionUser = await mockAuthService.checkSession();
+      setUser(sessionUser);
+    } catch {
       setUser(null);
     } finally {
       setIsLoading(false);

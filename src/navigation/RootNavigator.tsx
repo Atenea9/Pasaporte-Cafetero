@@ -14,8 +14,8 @@ export default function RootNavigator() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0D0800' }}>
-        <ActivityIndicator size="large" color="#C8860A" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FBF7ED' }}>
+        <ActivityIndicator size="large" color="#C8960C" />
       </View>
     );
   }
@@ -25,15 +25,10 @@ export default function RootNavigator() {
   }
 
   switch (user.role) {
-    case 'expositor':
-      return <ExpositorNavigator />;
-    case 'comprador':
-      return <CompradorNavigator />;
-    case 'admin':
-      return <AdminNavigator />;
-    case 'ceo':
-      return <CeoNavigator />;
-    default:
-      return <VisitanteNavigator />;
+    case 'expositor':  return <ExpositorNavigator />;
+    case 'comprador':  return <CompradorNavigator />;
+    case 'admin':      return <AdminNavigator />;
+    case 'ceo':        return <CeoNavigator />;
+    default:           return <VisitanteNavigator />;
   }
 }
