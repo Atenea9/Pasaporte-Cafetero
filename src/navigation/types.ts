@@ -1,5 +1,4 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 
 export type RootStackParamList = {
   Visitante: undefined;
@@ -10,6 +9,8 @@ export type RootStackParamList = {
 };
 
 export type VisitanteStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
   Registro: undefined;
   Inicio: undefined;
   Pasaporte: undefined;
@@ -22,18 +23,28 @@ export type VisitanteStackParamList = {
 
 export type ExpositorStackParamList = {
   Dashboard: undefined;
+  StandDashboard: undefined;
+  StandCatalog: undefined;
+  FincaProfile: undefined;
   Scanner: undefined;
   Sale: { visitorUid: string };
   SubastaDashboard: undefined;
   SubastaProfile: undefined;
   ScaForm: undefined;
+  NuevoLote: undefined;
 };
 
 export type CompradorStackParamList = {
+  Welcome: undefined;
+  Login: undefined;
   Registro: undefined;
   Dashboard: undefined;
   LotDetail: { lotId: string };
   CompradorPasaporte: undefined;
+  AuctionLive: undefined;
+  Agenda: undefined;
+  MapaFeria: undefined;
+  Auspiciadores: undefined;
 };
 
 export type AdminStackParamList = {

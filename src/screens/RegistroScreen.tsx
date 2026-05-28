@@ -11,29 +11,37 @@ import type { VisitanteStackParamList } from '../navigation/types';
 import { useApp } from '../context/AppContext';
 import CedulaScanner, { ScannedData } from '../components/CedulaScanner';
 
-const C = {
-  bg: '#0B1608', card: '#142210', card2: '#1C3018',
-  gold: '#CFA020', goldLight: '#EAC040', goldGlow: '#CFA02018',
-  green: '#2E5016', text: '#F3EED6', muted: '#6A8060',
-  border: '#CFA02022', borderBright: '#CFA02055',
-  accent: '#FF6B35',
+const T = {
+  bg:         '#FAF7F0',
+  card:       '#FFFFFF',
+  dark:       '#2C1810',
+  body:       '#4A3728',
+  muted:      '#8A7060',
+  gold:       '#B8860B',
+  goldLight:  '#D4A520',
+  goldPale:   '#F5E6B0',
+  green:      '#2D5A1E',
+  greenLight: '#4A8030',
+  greenPale:  '#E8F2E4',
+  border:     '#E8D5B0',
+  borderMed:  '#D4B896',
 };
 
 export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => void }) {
   const { dispatch, state } = useApp();
   const navigation = useNavigation<NativeStackNavigationProp<VisitanteStackParamList>>();
 
-  const [cedula, setCedula]     = useState('');
-  const [nombre, setNombre]     = useState('');
+  const [cedula,   setCedula]   = useState('');
+  const [nombre,   setNombre]   = useState('');
   const [whatsapp, setWhatsapp] = useState('');
-  const [pais, setPais]         = useState('');
-  const [estado, setEstado]     = useState('');
-  const [ciudad, setCiudad]     = useState('');
-  const [termsOk, setTermsOk]   = useState(false);
-  const [dataOk, setDataOk]     = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
-  const [scannedOk, setScannedOk]    = useState(false);
+  const [pais,     setPais]     = useState('');
+  const [estado,   setEstado]   = useState('');
+  const [ciudad,   setCiudad]   = useState('');
+  const [termsOk,  setTermsOk]  = useState(false);
+  const [dataOk,   setDataOk]   = useState(false);
+  const [loading,  setLoading]  = useState(false);
+  const [scannerOpen,  setScannerOpen]  = useState(false);
+  const [scannedOk,    setScannedOk]    = useState(false);
 
   const scanSuccessScale = useRef(new Animated.Value(0)).current;
   const prizeShimmer     = useRef(new Animated.Value(0)).current;
@@ -45,8 +53,8 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(prizeShimmer, { toValue: 1, duration: 1400, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
-        Animated.timing(prizeShimmer, { toValue: 0, duration: 1400, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+        Animated.timing(prizeShimmer, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+        Animated.timing(prizeShimmer, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
       ])
     ).start();
   }, []);
@@ -88,138 +96,115 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
       setLoading(false);
       onRegistrado?.();
       navigation.navigate('Inicio');
-    }, 1200);
+    }, 1000);
   };
-
-  const prizeBg = prizeShimmer.interpolate({ inputRange: [0, 1], outputRange: ['rgba(207,160,32,0.10)', 'rgba(207,160,32,0.22)'] });
-  const prizeBorder = prizeShimmer.interpolate({ inputRange: [0, 1], outputRange: ['rgba(207,160,32,0.35)', 'rgba(234,192,64,0.85)'] });
 
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={C.card} />
+      <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
       <CedulaScanner visible={scannerOpen} onScanned={handleScanned} onClose={() => setScannerOpen(false)} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-          {/* HEADER */}
-          <View style={s.header}>
-            <Text style={s.headerIcon}>🌿</Text>
-            <View>
-              <Text style={s.brand1}>PASAPORTE CAFETERO</Text>
-              <Text style={s.brand2}>Feria Internacional del Café · Chaparral 2026</Text>
-            </View>
+          {/* Back + Header */}
+          <View style={s.topBar}>
+            <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+              <Text style={s.backIcon}>‹</Text>
+              <Text style={s.backText}>Volver</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* HERO */}
-          <LinearGradient colors={['#0F2209', '#0B1608']} style={s.hero}>
-            <Text style={s.heroEmoji}>🪪</Text>
+          {/* Hero */}
+          <LinearGradient colors={[T.green, T.greenLight, T.green]} style={s.hero}>
+            <Text style={s.heroEmoji}>📗</Text>
             <Text style={s.heroTitle}>CREA TU PASAPORTE{'\n'}CAFETERO</Text>
-
-            {/* Prize highlight */}
-            <Animated.View style={[s.prizeBox, { backgroundColor: prizeBg, borderColor: prizeBorder }]}>
-              <Text style={s.prizeTop}>🏆  ¿POR QUÉ REGISTRARTE?</Text>
-              <Text style={s.prizeMain}>Regístrate en menos de{' '}
-                <Text style={s.prizeAccent}>30 segundos</Text>
-                {' '}y empieza a{'\n'}
-                <Text style={s.prizeHighlight}>coleccionar sellos</Text>
-                {'  ·  '}
-                <Text style={s.prizeHighlight}>sumar puntos</Text>
-                {'  ·  '}
-                <Text style={s.prizeHighlight}>ganar premios</Text>
-              </Text>
-              <View style={s.prizePills}>
-                {['☕ Café', '🎁 Kits de Café', '📚 Cursos', '🏡 Visitas Exclusivas'].map((p) => (
-                  <View key={p} style={s.pill}><Text style={s.pillText}>{p}</Text></View>
-                ))}
-              </View>
-            </Animated.View>
+            <View style={s.heroPills}>
+              {['Sellos', 'Puntos', 'Premios'].map(p => (
+                <View key={p} style={s.heroPill}><Text style={s.heroPillText}>{p}</Text></View>
+              ))}
+            </View>
           </LinearGradient>
 
           <View style={s.form}>
 
-            {/* SCAN BUTTON */}
+            {/* Prize Highlight */}
+            <Animated.View style={[s.prizeBox, {
+              backgroundColor: prizeShimmer.interpolate({ inputRange: [0, 1], outputRange: [T.goldPale, '#FFF8E0'] }),
+              borderColor: prizeShimmer.interpolate({ inputRange: [0, 1], outputRange: [T.gold + '60', T.gold] }),
+            }]}>
+              <Text style={s.prizeTop}>🏆 ¿POR QUÉ REGISTRARTE?</Text>
+              <Text style={s.prizeMain}>
+                Regístrate en <Text style={s.prizeAccent}>menos de 30 segundos</Text> y empieza a{'\n'}
+                <Text style={s.prizeHighlight}>coleccionar sellos</Text>  ·  <Text style={s.prizeHighlight}>sumar puntos</Text>  ·  <Text style={s.prizeHighlight}>ganar premios</Text>
+              </Text>
+            </Animated.View>
+
+            {/* Scan button */}
             <TouchableOpacity style={s.scanCard} onPress={() => setScannerOpen(true)} activeOpacity={0.85}>
-              <LinearGradient colors={['#1C3A10', '#142210']} style={s.scanGrad}>
-                <View style={s.scanIconWrap}>
-                  <Text style={s.scanIconBig}>📷</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.scanTitle}>ESCANEAR DOCUMENTO</Text>
-                  <Text style={s.scanSub}>Cédula · Pasaporte · DNI · ID extranjero</Text>
-                  <Text style={s.scanDetail}>Auto-completa nombre, documento, país, departamento y ciudad</Text>
-                </View>
-                <Text style={s.scanArrow}>›</Text>
-              </LinearGradient>
+              <View style={s.scanIconWrap}>
+                <Text style={s.scanIconBig}>📷</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.scanTitle}>ESCANEAR DOCUMENTO</Text>
+                <Text style={s.scanSub}>Cédula · Pasaporte · DNI · ID extranjero</Text>
+                <Text style={s.scanDetail}>Auto-completa nombre, documento, país y ciudad</Text>
+              </View>
+              <Text style={s.scanArrow}>›</Text>
             </TouchableOpacity>
 
             {scannedOk && (
               <Animated.View style={[s.scannedBadge, { transform: [{ scale: scanSuccessScale }] }]}>
-                <Text style={s.scannedBadgeText}>✅  Documento leído — solo falta tu WhatsApp</Text>
+                <Text style={s.scannedText}>✅ Documento leído — solo falta tu WhatsApp</Text>
               </Animated.View>
             )}
 
             <Text style={s.orText}>— o ingresa los datos manualmente —</Text>
 
-            {/* CEDULA */}
-            <View style={s.fieldGroup}>
-              <Text style={s.label}>NÚMERO DE CÉDULA / DOCUMENTO / PASAPORTE</Text>
-              <TextInput style={[s.input, scannedOk && s.inputFilled]} value={cedula} onChangeText={setCedula}
-                placeholder="Ej: 1107654321 · A12345678" placeholderTextColor={C.muted}
-                keyboardType="default" maxLength={20} />
-            </View>
+            {/* Fields */}
+            {[
+              { label: 'NÚMERO DE CÉDULA / DOCUMENTO / PASAPORTE', val: cedula, set: setCedula, ph: 'Ej: 1107654321 · A12345678', kb: 'default' as const },
+              { label: 'NOMBRE COMPLETO', val: nombre, set: setNombre, ph: 'Ej: Carlos Andrés Rojas', kb: 'default' as const, autoCapitalize: 'words' as const },
+            ].map(f => (
+              <View key={f.label} style={s.fieldGroup}>
+                <Text style={s.label}>{f.label}</Text>
+                <TextInput style={[s.input, scannedOk && s.inputFilled]} value={f.val} onChangeText={f.set} placeholder={f.ph} placeholderTextColor={T.muted} keyboardType={f.kb} autoCapitalize={f.autoCapitalize} />
+              </View>
+            ))}
 
-            {/* NOMBRE */}
-            <View style={s.fieldGroup}>
-              <Text style={s.label}>NOMBRE COMPLETO</Text>
-              <TextInput style={[s.input, scannedOk && s.inputFilled]} value={nombre} onChangeText={setNombre}
-                placeholder="Ej: Carlos Andrés Rojas" placeholderTextColor={C.muted}
-                autoCapitalize="words" />
-            </View>
-
-            {/* WHATSAPP — highlighted when scanned */}
             <View style={[s.fieldGroup, scannedOk && s.fieldGroupHighlight]}>
               <Text style={[s.label, scannedOk && s.labelHighlight]}>
-                {scannedOk ? '📲  WHATSAPP — ¡SOLO FALTA ESTE CAMPO!' : 'NÚMERO DE WHATSAPP (con código de país)'}
+                {scannedOk ? '📲 WHATSAPP — ¡SOLO FALTA ESTE CAMPO!' : 'NÚMERO DE WHATSAPP (con código de país)'}
               </Text>
               <TextInput
                 style={[s.input, scannedOk && s.inputHighlight]}
-                value={whatsapp} onChangeText={setWhatsapp}
+                value={whatsapp}
+                onChangeText={setWhatsapp}
                 placeholder="Ej: +573156789012  /  +12025550123"
-                placeholderTextColor={scannedOk ? C.goldLight + '90' : C.muted}
+                placeholderTextColor={T.muted}
                 keyboardType="phone-pad"
                 autoFocus={scannedOk}
               />
               <Text style={s.fieldHint}>Incluye el código de país · Ej: +57 Colombia, +1 EE.UU., +55 Brasil</Text>
             </View>
 
-            <View style={s.sectionDivider}>
+            <View style={s.sectionDiv}>
               <View style={s.sectionLine} />
-              <Text style={s.sectionLabel}>📍 UBICACIÓN</Text>
+              <Text style={s.sectionLbl}>📍 UBICACIÓN</Text>
               <View style={s.sectionLine} />
             </View>
 
-            <View style={s.fieldGroup}>
-              <Text style={s.label}>PAÍS</Text>
-              <TextInput style={[s.input, scannedOk && s.inputFilled]} value={pais} onChangeText={setPais}
-                placeholder="Ej: Colombia, México, España..." placeholderTextColor={C.muted}
-                autoCapitalize="words" />
-            </View>
+            {[
+              { label: 'PAÍS', val: pais, set: setPais, ph: 'Ej: Colombia, México, España...' },
+              { label: 'DEPARTAMENTO / ESTADO / PROVINCIA', val: estado, set: setEstado, ph: 'Ej: Tolima, Cundinamarca, Texas...' },
+              { label: 'CIUDAD / MUNICIPIO', val: ciudad, set: setCiudad, ph: 'Ej: Chaparral, Bogotá, Miami...' },
+            ].map(f => (
+              <View key={f.label} style={s.fieldGroup}>
+                <Text style={s.label}>{f.label}</Text>
+                <TextInput style={[s.input, scannedOk && s.inputFilled]} value={f.val} onChangeText={f.set} placeholder={f.ph} placeholderTextColor={T.muted} autoCapitalize="words" />
+              </View>
+            ))}
 
-            <View style={s.fieldGroup}>
-              <Text style={s.label}>DEPARTAMENTO / ESTADO / PROVINCIA</Text>
-              <TextInput style={[s.input, scannedOk && s.inputFilled]} value={estado} onChangeText={setEstado}
-                placeholder="Ej: Tolima, Cundinamarca, Texas..." placeholderTextColor={C.muted}
-                autoCapitalize="words" />
-            </View>
-
-            <View style={s.fieldGroup}>
-              <Text style={s.label}>CIUDAD / MUNICIPIO</Text>
-              <TextInput style={[s.input, scannedOk && s.inputFilled]} value={ciudad} onChangeText={setCiudad}
-                placeholder="Ej: Chaparral, Bogotá, Miami..." placeholderTextColor={C.muted}
-                autoCapitalize="words" />
-            </View>
-
-            {/* PREVIEW */}
+            {/* Preview */}
             {nombre.length > 0 && (
               <View style={s.preview}>
                 <Text style={s.previewTitle}>VISTA PREVIA DE TU PASAPORTE</Text>
@@ -234,40 +219,39 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
                       <Text style={s.previewBadgeText}>⭐ Visitante · 0 puntos</Text>
                     </View>
                   </View>
-                  <Text style={{ fontSize: 32 }}>🪪</Text>
+                  <Text style={{ fontSize: 32 }}>📗</Text>
                 </View>
               </View>
             )}
 
-            {/* TERMS */}
-            <View style={s.sectionDivider}>
+            <View style={s.sectionDiv}>
               <View style={s.sectionLine} />
-              <Text style={s.sectionLabel}>📋 AUTORIZACIÓN</Text>
+              <Text style={s.sectionLbl}>📋 AUTORIZACIÓN</Text>
               <View style={s.sectionLine} />
             </View>
 
-            <TouchableOpacity style={s.checkRow} onPress={() => setTermsOk(v => !v)} activeOpacity={0.75}>
-              <View style={[s.checkbox, termsOk && s.checkboxChecked]}>
-                {termsOk && <Text style={s.checkmark}>✓</Text>}
-              </View>
-              <Text style={s.checkText}>
-                Acepto los <Text style={s.checkLink}>Términos y Condiciones</Text> de la Feria Internacional de Café de Chaparral, Tolima 2026.
-              </Text>
-            </TouchableOpacity>
+            {[
+              { checked: termsOk, toggle: () => setTermsOk(v => !v), text: 'Acepto los ', link: 'Términos y Condiciones', rest: ' de la Feria Internacional de Café de Chaparral, Tolima 2026.' },
+              { checked: dataOk,  toggle: () => setDataOk(v => !v),  text: 'Autorizo el tratamiento de mis datos personales conforme a la ', link: 'Ley 1581 de 2012', rest: ' (Habeas Data) de la República de Colombia.' },
+            ].map((c, i) => (
+              <TouchableOpacity key={i} style={s.checkRow} onPress={c.toggle} activeOpacity={0.75}>
+                <View style={[s.checkbox, c.checked && s.checkboxChecked]}>
+                  {c.checked && <Text style={s.checkmark}>✓</Text>}
+                </View>
+                <Text style={s.checkText}>
+                  {c.text}<Text style={s.checkLink}>{c.link}</Text>{c.rest}
+                </Text>
+              </TouchableOpacity>
+            ))}
 
-            <TouchableOpacity style={s.checkRow} onPress={() => setDataOk(v => !v)} activeOpacity={0.75}>
-              <View style={[s.checkbox, dataOk && s.checkboxChecked]}>
-                {dataOk && <Text style={s.checkmark}>✓</Text>}
-              </View>
-              <Text style={s.checkText}>
-                Autorizo el tratamiento de mis datos personales conforme a la <Text style={s.checkLink}>Ley 1581 de 2012</Text> (Habeas Data) de la República de Colombia y la política de privacidad de la Gobernación del Tolima.
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={[s.createBtn, loading && s.createBtnLoading]}
-              onPress={registrar} activeOpacity={0.85} disabled={loading}>
+            <TouchableOpacity
+              style={[s.createBtn, loading && { opacity: 0.7 }]}
+              onPress={registrar}
+              activeOpacity={0.85}
+              disabled={loading}
+            >
               <Text style={s.createBtnText}>
-                {loading ? 'CREANDO TU PASAPORTE...' : '🎉 CREAR MI PASAPORTE CAFETERO'}
+                {loading ? '⏳ CREANDO TU PASAPORTE...' : '🎉 CREAR MI PASAPORTE CAFETERO'}
               </Text>
             </TouchableOpacity>
 
@@ -280,72 +264,72 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
 }
 
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.bg },
-  scroll: { flex: 1, backgroundColor: C.bg },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 20, backgroundColor: C.card },
-  headerIcon: { fontSize: 28 },
-  brand1: { fontSize: 13, fontWeight: '900', color: C.gold, letterSpacing: 2 },
-  brand2: { fontSize: 10, color: C.muted, marginTop: 2 },
+  safe:              { flex: 1, backgroundColor: T.bg },
+  scroll:            { flex: 1, backgroundColor: T.bg },
 
-  hero: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 28, alignItems: 'center', gap: 14 },
-  heroEmoji: { fontSize: 52 },
-  heroTitle: { fontSize: 24, fontWeight: '900', color: C.text, textAlign: 'center', letterSpacing: 1 },
+  topBar:            { padding: 16, paddingBottom: 0 },
+  backBtn:           { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', padding: 4, marginLeft: -4 },
+  backIcon:          { fontSize: 28, color: T.green, lineHeight: 32, fontWeight: '300' },
+  backText:          { fontSize: 15, color: T.green, fontWeight: '600' },
 
-  prizeBox: { width: '100%', borderRadius: 16, borderWidth: 1.5, padding: 16, gap: 10 },
-  prizeTop: { fontSize: 10, fontWeight: '900', color: C.gold, letterSpacing: 2 },
-  prizeMain: { fontSize: 13, color: C.text, lineHeight: 22 },
-  prizeAccent: { color: C.goldLight, fontWeight: '900' },
-  prizeHighlight: { color: C.goldLight, fontWeight: '800' },
-  prizePills: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
-  pill: { backgroundColor: C.card2, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, borderWidth: 0.5, borderColor: C.borderBright },
-  pillText: { fontSize: 11, color: C.goldLight, fontWeight: '600' },
+  hero:              { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 28, alignItems: 'center', gap: 10 },
+  heroEmoji:         { fontSize: 52 },
+  heroTitle:         { fontSize: 24, fontWeight: '900', color: '#FFF', textAlign: 'center', letterSpacing: 0.5, lineHeight: 30 },
+  heroPills:         { flexDirection: 'row', gap: 8 },
+  heroPill:          { backgroundColor: 'rgba(255,255,255,0.22)', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 5 },
+  heroPillText:      { fontSize: 12, fontWeight: '700', color: '#FFF' },
 
-  form: { padding: 16 },
+  form:              { padding: 16 },
 
-  scanCard: { borderRadius: 16, overflow: 'hidden', marginBottom: 12, borderWidth: 1, borderColor: C.gold + '55', shadowColor: C.gold, shadowRadius: 10, shadowOpacity: 0.2, elevation: 4 },
-  scanGrad: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
-  scanIconWrap: { width: 52, height: 52, borderRadius: 26, backgroundColor: C.green, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.gold + '40' },
-  scanIconBig: { fontSize: 26 },
-  scanTitle: { fontSize: 13, fontWeight: '900', color: C.goldLight, letterSpacing: 0.5 },
-  scanSub: { fontSize: 10, color: C.muted, marginTop: 2 },
-  scanDetail: { fontSize: 10, color: C.gold + 'AA', marginTop: 3, lineHeight: 14 },
-  scanArrow: { fontSize: 28, color: C.gold, fontWeight: '300' },
+  prizeBox:          { borderRadius: 14, borderWidth: 1.5, padding: 16, marginBottom: 18, gap: 8 },
+  prizeTop:          { fontSize: 10, fontWeight: '900', color: T.gold, letterSpacing: 2 },
+  prizeMain:         { fontSize: 13, color: T.body, lineHeight: 22 },
+  prizeAccent:       { color: T.green, fontWeight: '900' },
+  prizeHighlight:    { color: T.gold, fontWeight: '800' },
 
-  scannedBadge: { backgroundColor: '#1C3A10', borderRadius: 10, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: C.gold + '50', alignItems: 'center' },
-  scannedBadgeText: { fontSize: 12, color: C.goldLight, fontWeight: '700' },
+  scanCard:          { borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, marginBottom: 14, backgroundColor: T.card, borderWidth: 1, borderColor: T.border, shadowColor: T.dark, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3 },
+  scanIconWrap:      { width: 52, height: 52, borderRadius: 26, backgroundColor: T.greenPale, alignItems: 'center', justifyContent: 'center' },
+  scanIconBig:       { fontSize: 26 },
+  scanTitle:         { fontSize: 13, fontWeight: '900', color: T.dark, letterSpacing: 0.3 },
+  scanSub:           { fontSize: 10, color: T.muted, marginTop: 2 },
+  scanDetail:        { fontSize: 10, color: T.gold, marginTop: 3 },
+  scanArrow:         { fontSize: 28, color: T.gold, fontWeight: '300' },
 
-  orText: { textAlign: 'center', color: C.muted, fontSize: 11, marginBottom: 16 },
-  fieldGroup: { marginBottom: 16 },
-  fieldGroupHighlight: { backgroundColor: C.gold + '0A', borderRadius: 12, padding: 10, marginHorizontal: -10, marginBottom: 16 },
-  label: { fontSize: 10, fontWeight: '800', color: C.gold, letterSpacing: 1, marginBottom: 6 },
-  labelHighlight: { color: C.goldLight, fontSize: 11 },
-  input: { backgroundColor: C.card, borderWidth: 0.5, borderColor: C.borderBright, borderRadius: 10, padding: 14, fontSize: 14, color: C.text },
-  inputFilled: { borderColor: C.gold + '70', backgroundColor: '#1A2E14' },
-  inputHighlight: { borderColor: C.gold, borderWidth: 1.5, backgroundColor: '#1C3018', fontSize: 15 },
-  fieldHint: { fontSize: 10, color: C.muted, marginTop: 4, lineHeight: 15 },
+  scannedBadge:      { backgroundColor: T.greenPale, borderRadius: 10, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: T.green + '50', alignItems: 'center' },
+  scannedText:       { fontSize: 12, color: T.green, fontWeight: '700' },
 
-  sectionDivider: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 4 },
-  sectionLine: { flex: 1, height: 0.5, backgroundColor: C.borderBright },
-  sectionLabel: { fontSize: 9, fontWeight: '900', color: C.gold, letterSpacing: 2 },
+  orText:            { textAlign: 'center', color: T.muted, fontSize: 11, marginBottom: 16 },
 
-  preview: { marginBottom: 20 },
-  previewTitle: { fontSize: 10, fontWeight: '800', color: C.gold, letterSpacing: 1, marginBottom: 8 },
-  previewCard: { backgroundColor: C.card2, borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 0.5, borderColor: C.borderBright },
-  previewAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: C.gold, alignItems: 'center', justifyContent: 'center' },
-  previewAvatarText: { fontSize: 20, fontWeight: '800', color: C.bg },
-  previewNombre: { fontSize: 14, fontWeight: '700', color: C.text },
-  previewLoc: { fontSize: 11, color: C.muted, marginTop: 2 },
-  previewBadge: { marginTop: 6, backgroundColor: C.green, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start' },
-  previewBadgeText: { fontSize: 10, color: C.goldLight, fontWeight: '600' },
+  fieldGroup:        { marginBottom: 16 },
+  fieldGroupHighlight:{ backgroundColor: T.goldPale, borderRadius: 12, padding: 10, marginHorizontal: -6, marginBottom: 16 },
+  label:             { fontSize: 10, fontWeight: '800', color: T.gold, letterSpacing: 1, marginBottom: 6 },
+  labelHighlight:    { color: T.goldLight, fontSize: 11 },
+  input:             { backgroundColor: T.card, borderWidth: 1, borderColor: T.border, borderRadius: 12, padding: 14, fontSize: 14, color: T.dark },
+  inputFilled:       { borderColor: T.green + '60', backgroundColor: T.greenPale },
+  inputHighlight:    { borderColor: T.gold, borderWidth: 1.5, backgroundColor: T.goldPale + '80', fontSize: 15 },
+  fieldHint:         { fontSize: 10, color: T.muted, marginTop: 4, lineHeight: 15 },
 
-  checkRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
-  checkbox: { width: 20, height: 20, borderRadius: 5, borderWidth: 1.5, borderColor: C.borderBright, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
-  checkboxChecked: { backgroundColor: C.gold, borderColor: C.gold },
-  checkmark: { fontSize: 12, fontWeight: '900', color: C.bg },
-  checkText: { flex: 1, fontSize: 11, color: C.muted, lineHeight: 17 },
-  checkLink: { color: C.goldLight, fontWeight: '700' },
+  sectionDiv:        { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, marginTop: 4 },
+  sectionLine:       { flex: 1, height: 1, backgroundColor: T.border },
+  sectionLbl:        { fontSize: 9, fontWeight: '900', color: T.gold, letterSpacing: 2 },
 
-  createBtn: { backgroundColor: C.gold, borderRadius: 30, padding: 18, alignItems: 'center', marginTop: 8, marginBottom: 12 },
-  createBtnLoading: { opacity: 0.7 },
-  createBtnText: { fontSize: 14, fontWeight: '900', color: C.bg, letterSpacing: 0.5 },
+  preview:           { marginBottom: 20 },
+  previewTitle:      { fontSize: 10, fontWeight: '800', color: T.gold, letterSpacing: 1, marginBottom: 8 },
+  previewCard:       { backgroundColor: T.card, borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: T.border },
+  previewAvatar:     { width: 44, height: 44, borderRadius: 22, backgroundColor: T.green, alignItems: 'center', justifyContent: 'center' },
+  previewAvatarText: { fontSize: 20, fontWeight: '800', color: '#FFF' },
+  previewNombre:     { fontSize: 14, fontWeight: '700', color: T.dark },
+  previewLoc:        { fontSize: 11, color: T.muted, marginTop: 2 },
+  previewBadge:      { marginTop: 6, backgroundColor: T.greenPale, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start' },
+  previewBadgeText:  { fontSize: 10, color: T.green, fontWeight: '600' },
+
+  checkRow:          { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 14 },
+  checkbox:          { width: 22, height: 22, borderRadius: 6, borderWidth: 1.5, borderColor: T.border, backgroundColor: T.card, alignItems: 'center', justifyContent: 'center', marginTop: 1, flexShrink: 0 },
+  checkboxChecked:   { backgroundColor: T.green, borderColor: T.green },
+  checkmark:         { fontSize: 13, fontWeight: '900', color: '#FFF' },
+  checkText:         { flex: 1, fontSize: 12, color: T.body, lineHeight: 18 },
+  checkLink:         { color: T.green, fontWeight: '700' },
+
+  createBtn:         { backgroundColor: T.green, borderRadius: 20, padding: 18, alignItems: 'center', marginTop: 8, marginBottom: 12, shadowColor: T.green, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  createBtnText:     { fontSize: 15, fontWeight: '900', color: '#FFF', letterSpacing: 0.5 },
 });

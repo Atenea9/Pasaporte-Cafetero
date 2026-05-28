@@ -1,106 +1,73 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
-  Animated, Easing, Dimensions, Modal, Image,
+  Animated, Easing, Dimensions, Modal, Image, SafeAreaView, StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import * as Haptics from 'expo-haptics';
 
 const { width, height } = Dimensions.get('window');
 
-const G = {
-  bg:           '#0B1608',
-  bgDeep:       '#060F04',
-  card:         '#142210',
-  cardHover:    '#1C3018',
-  gold:         '#CFA020',
-  goldLight:    '#EAC040',
-  goldDim:      '#7A6210',
-  goldGlow:     '#CFA02028',
-  cream:        '#F3EED6',
-  muted:        '#6A8060',
-  border:       '#CFA02022',
-  borderBright: '#CFA02055',
-  separator:    '#1C3018',
+const T = {
+  bg:        '#FAF7F0',
+  card:      '#FFFFFF',
+  dark:      '#2C1810',
+  body:      '#4A3728',
+  muted:     '#8A7060',
+  gold:      '#B8860B',
+  goldDark:  '#8B6308',
+  goldLight: '#D4A520',
+  goldPale:  '#F5E6B0',
+  green:     '#2D5A1E',
+  greenLight:'#4A8030',
+  greenPale: '#E8F2E4',
+  border:    '#E8D5B0',
+  borderMed: '#D4B896',
 };
 
-const LANGUAGES: { code: string; label: string; native: string }[] = [
-  { code: 'es', label: 'Español',    native: 'ES' },
-  { code: 'en', label: 'English',    native: 'EN' },
-  { code: 'fr', label: 'Français',   native: 'FR' },
-  { code: 'de', label: 'Deutsch',    native: 'DE' },
-  { code: 'zh', label: '中文',        native: '中文' },
-  { code: 'pt', label: 'Português',  native: 'PT' },
-  { code: 'it', label: 'Italiano',   native: 'IT' },
+const LANGUAGES = [
+  { code: 'es', label: 'Español',   native: 'ES' },
+  { code: 'en', label: 'English',   native: 'EN' },
+  { code: 'fr', label: 'Français',  native: 'FR' },
+  { code: 'de', label: 'Deutsch',   native: 'DE' },
+  { code: 'zh', label: '中文',       native: '中文' },
+  { code: 'pt', label: 'Português', native: 'PT' },
+  { code: 'it', label: 'Italiano',  native: 'IT' },
 ];
 
 const ROLES = [
-  { num: '01', key: 'visitor',   credential: 'visitor@demo.com',  color: '#C8860A' },
-  { num: '02', key: 'expositor', credential: 'expositor@demo.com', color: '#8B6914' },
-  { num: '03', key: 'buyer',     credential: 'buyer@demo.com',    color: '#6B5012' },
+  { num: '01', key: 'visitor',   credential: 'visitor@demo.com',   color: T.green,     colorLight: T.greenLight },
+  { num: '02', key: 'expositor', credential: 'expositor@demo.com', color: T.gold,      colorLight: T.goldLight  },
+  { num: '03', key: 'buyer',     credential: 'buyer@demo.com',     color: '#1565C0',   colorLight: '#1976D2'    },
 ];
-
-function CoffeeOrb() {
-  return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Svg width={width * 1.2} height={width * 1.2} style={{ position: 'absolute', top: -width * 0.3, left: -width * 0.1, opacity: 0.12 }}>
-        <Defs>
-          <RadialGradient id="orb1" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%"   stopColor="#E8A830" stopOpacity="1" />
-            <Stop offset="60%"  stopColor="#C8860A" stopOpacity="0.4" />
-            <Stop offset="100%" stopColor="#C8860A" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Circle cx={width * 0.6} cy={width * 0.6} r={width * 0.6} fill="url(#orb1)" />
-      </Svg>
-      <Svg width={200} height={200} style={{ position: 'absolute', bottom: height * 0.18, right: -40, opacity: 0.06 }}>
-        <Defs>
-          <RadialGradient id="orb2" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%"   stopColor="#C8860A" stopOpacity="1" />
-            <Stop offset="100%" stopColor="#C8860A" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Circle cx={100} cy={100} r={100} fill="url(#orb2)" />
-      </Svg>
-    </View>
-  );
-}
 
 function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) => void }) {
   const [open, setOpen] = useState(false);
   const current = LANGUAGES.find(l => l.code === lang) ?? LANGUAGES[0];
-
   return (
-    <View style={dd.wrap}>
+    <View>
       <TouchableOpacity style={dd.trigger} onPress={() => setOpen(true)} activeOpacity={0.8}>
-        <Text style={dd.triggerNative}>{current.native}</Text>
+        <Text style={dd.triggerText}>{current.native}</Text>
         <Text style={dd.chevron}>▾</Text>
       </TouchableOpacity>
-
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <TouchableOpacity style={dd.backdrop} activeOpacity={1} onPress={() => setOpen(false)}>
           <View style={dd.menu}>
-            <LinearGradient colors={['#2C1A00', '#1A0E00']} style={dd.menuInner}>
+            <View style={dd.menuInner}>
               <Text style={dd.menuTitle}>IDIOMA / LANGUAGE</Text>
-              {LANGUAGES.map((l) => {
+              {LANGUAGES.map(l => {
                 const active = l.code === lang;
                 return (
-                  <TouchableOpacity
-                    key={l.code}
-                    style={[dd.option, active && dd.optionActive]}
-                    onPress={() => { onSelect(l.code); setOpen(false); }}
-                    activeOpacity={0.75}
-                  >
-                    <Text style={[dd.optionNative, active && dd.optionNativeActive]}>{l.native}</Text>
-                    <Text style={[dd.optionLabel, active && dd.optionLabelActive]}>{l.label}</Text>
+                  <TouchableOpacity key={l.code} style={[dd.option, active && dd.optionActive]} onPress={() => { onSelect(l.code); setOpen(false); }} activeOpacity={0.75}>
+                    <Text style={[dd.optNative, active && dd.optNativeActive]}>{l.native}</Text>
+                    <Text style={[dd.optLabel, active && dd.optLabelActive]}>{l.label}</Text>
                     {active && <Text style={dd.check}>✓</Text>}
                   </TouchableOpacity>
                 );
               })}
-            </LinearGradient>
+            </View>
           </View>
         </TouchableOpacity>
       </Modal>
@@ -108,65 +75,31 @@ function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) 
   );
 }
 
-type RoleItem = { key: string; credential: string; color: string; num: string };
-
-function AnimatedCard({ role, loading, disabled, label, onPress }: {
-  role: RoleItem; loading: boolean; disabled: boolean; label: string; onPress: () => void;
+function RoleCard({ role, loading, disabled, label, onPress }: {
+  role: typeof ROLES[0]; loading: boolean; disabled: boolean; label: string; onPress: () => void;
 }) {
   const scale = useRef(new Animated.Value(1)).current;
-  const glow  = useRef(new Animated.Value(0)).current;
-
   const onPressIn = () => {
     try { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); } catch (_) {}
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 0.96, useNativeDriver: true, friction: 8 }),
-      Animated.timing(glow,  { toValue: 1, duration: 150, useNativeDriver: false }),
-    ]).start();
+    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, friction: 8 }).start();
   };
-
-  const onPressOut = () => {
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 6 }),
-      Animated.timing(glow,  { toValue: 0, duration: 300, useNativeDriver: false }),
-    ]).start();
-  };
-
-  const borderColor = glow.interpolate({
-    inputRange: [0, 1],
-    outputRange: [G.borderBright, role.color],
-  });
-
-  const shadowOpacity = glow.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.2, 0.55],
-  });
+  const onPressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true, friction: 6 }).start();
 
   return (
-    <Animated.View style={[
-      s.card,
-      { transform: [{ scale }], borderColor, shadowColor: role.color, shadowOpacity },
-    ]}>
-      <TouchableOpacity
-        onPress={onPress}
-        onPressIn={onPressIn}
-        onPressOut={onPressOut}
-        activeOpacity={1}
-        disabled={disabled}
-        style={{ flex: 1 }}
-      >
-        <LinearGradient
-          colors={['rgba(255,255,255,0.07)', 'rgba(255,255,255,0.02)']}
-          style={s.cardGrad}
-        >
+    <Animated.View style={[s.card, { transform: [{ scale }], borderColor: role.color + '40' }]}>
+      <TouchableOpacity onPress={onPress} onPressIn={onPressIn} onPressOut={onPressOut} activeOpacity={1} disabled={disabled} style={{ flex: 1 }}>
+        <LinearGradient colors={[role.color, role.colorLight]} style={s.cardGrad}>
+          <View style={s.cardIconBox}>
+            <Text style={s.cardIcon}>{role.key === 'visitor' ? '🌿' : role.key === 'expositor' ? '🏪' : '🌍'}</Text>
+          </View>
           <View style={s.cardBody}>
-            <Text style={[s.cardTitle, { color: role.color }]}>{label}</Text>
+            <Text style={s.cardTitle}>{label}</Text>
+            <Text style={s.cardNum}>{role.num}</Text>
           </View>
-          <View style={s.cardArrow}>
-            {loading
-              ? <ActivityIndicator color={G.goldLight} size="small" />
-              : <Text style={[s.arrow, { color: role.color }]}>›</Text>
-            }
-          </View>
+          {loading
+            ? <ActivityIndicator color="rgba(255,255,255,0.8)" size="small" />
+            : <Text style={s.cardArrow}>›</Text>
+          }
         </LinearGradient>
       </TouchableOpacity>
     </Animated.View>
@@ -176,19 +109,17 @@ function AnimatedCard({ role, loading, disabled, label, onPress }: {
 export const LoginScreen = () => {
   const { t, i18n } = useTranslation();
   const { login } = useAuth();
-  const [isLoading, setIsLoading]   = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
-  const [showAdmin, setShowAdmin]   = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
-  const logoScale = useRef(new Animated.Value(0.88)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim,  { toValue: 1, duration: 900, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 750, easing: Easing.out(Easing.exp), useNativeDriver: true }),
-      Animated.spring(logoScale, { toValue: 1, friction: 7, useNativeDriver: true }),
+      Animated.timing(fadeAnim,  { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 650, easing: Easing.out(Easing.exp), useNativeDriver: true }),
     ]).start();
   }, []);
 
@@ -207,9 +138,8 @@ export const LoginScreen = () => {
   };
 
   return (
-    <View style={s.root}>
-      <LinearGradient colors={[G.bgDeep, G.bg, '#110700']} style={StyleSheet.absoluteFill} />
-      <CoffeeOrb />
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
 
       {/* Top bar */}
       <View style={s.topBar}>
@@ -224,157 +154,142 @@ export const LoginScreen = () => {
         showsVerticalScrollIndicator={false}
         style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
       >
-        {/* ── Logo / Hero ── */}
-        <Animated.View style={[s.hero, { transform: [{ scale: logoScale }] }]}>
-          <View style={s.badgeRow}>
-            <View style={s.editionBadge}>
-              <Text style={s.editionText}>✦ EDICIÓN 2026 ✦</Text>
-            </View>
+        {/* Hero */}
+        <View style={s.hero}>
+          <View style={s.heroBadge}>
+            <Text style={s.heroBadgeText}>✦ EDICIÓN 2026 ✦</Text>
           </View>
 
-          <Text style={s.title}>PASAPORTE</Text>
-          <Text style={s.titleGold}>CAFETERO</Text>
+          <LinearGradient colors={[T.green, T.greenLight, T.green]} style={s.heroLogoWrap}>
+            <Text style={s.heroLogoEmoji}>☕</Text>
+          </LinearGradient>
 
-          <View style={s.dividerRow}>
-            <View style={s.dividerLine} />
-            <Image source={require('../../../assets/coffee-bag.png')} style={s.dividerIcon} />
-            <View style={s.dividerLine} />
+          <Text style={s.heroTitle}>PASAPORTE</Text>
+          <Text style={s.heroGold}>CAFETERO</Text>
+
+          <View style={s.heroDivider}>
+            <View style={s.heroDivLine} />
+            <Image source={require('../../../assets/coffee-bag.png')} style={s.heroDivIcon} />
+            <View style={s.heroDivLine} />
           </View>
 
-          <Text style={s.fairName}>{t('login.fair_name')}</Text>
-          <Text style={s.fairCity}>Chaparral</Text>
-          <Text style={s.fairYear}>2026</Text>
-        </Animated.View>
+          <Text style={s.heroFair}>{t('login.fair_name', 'Feria Internacional del Café')}</Text>
+          <Text style={s.heroCity}>CHAPARRAL · TOLIMA</Text>
+          <Text style={s.heroYear}>14 · 15 · 16 DE AGOSTO 2026</Text>
+        </View>
 
-        {/* ── Role Cards ── */}
+        {/* Role Cards */}
+        <View style={s.sectionLabel_}>
+          <View style={s.sectionLine_} />
+          <Text style={s.sectionText_}>SELECCIONA TU PERFIL</Text>
+          <View style={s.sectionLine_} />
+        </View>
+
         <View style={s.cards}>
-          {ROLES.map((r) => (
-            <AnimatedCard
+          {ROLES.map(r => (
+            <RoleCard
               key={r.key}
               role={r}
               loading={loadingRole === r.key}
               disabled={isLoading}
-              label={t(`login.roles.${r.key}.title`)}
+              label={t(`login.roles.${r.key}.title`, r.key === 'visitor' ? 'Visitante' : r.key === 'expositor' ? 'Expositor' : 'Comprador')}
               onPress={() => handleLogin(r.credential, r.key)}
             />
           ))}
         </View>
 
-        {/* ── ADMIN access ── */}
+        {/* Admin access */}
         {showAdmin ? (
           <View style={s.adminRow}>
-            <TouchableOpacity
-              style={s.adminBtn}
-              onPress={() => handleLogin('admin@demo.com', 'admin')}
-              disabled={isLoading}
-              activeOpacity={0.75}
-            >
-              <LinearGradient colors={['#2C1A00', '#1A0E00']} style={s.adminGrad}>
-                {loadingRole === 'admin'
-                  ? <ActivityIndicator color={G.goldLight} size="small" />
-                  : <Text style={s.adminText}>ADMIN</Text>
-                }
-              </LinearGradient>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={s.adminBtn}
-              onPress={() => handleLogin('ceo@demo.com', 'ceo')}
-              disabled={isLoading}
-              activeOpacity={0.75}
-            >
-              <LinearGradient colors={['#2C1A00', '#1A0E00']} style={s.adminGrad}>
-                {loadingRole === 'ceo'
-                  ? <ActivityIndicator color={G.goldLight} size="small" />
-                  : <Text style={s.adminText}>CEO</Text>
-                }
-              </LinearGradient>
-            </TouchableOpacity>
+            {['admin', 'ceo'].map(role => (
+              <TouchableOpacity key={role} style={s.adminBtn} onPress={() => handleLogin(`${role}@demo.com`, role)} disabled={isLoading} activeOpacity={0.75}>
+                <View style={s.adminBtnInner}>
+                  {loadingRole === role
+                    ? <ActivityIndicator color={T.dark} size="small" />
+                    : <Text style={s.adminBtnText}>{role.toUpperCase()}</Text>
+                  }
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         ) : (
           <TouchableOpacity style={s.adminTrigger} onPress={() => setShowAdmin(true)} activeOpacity={0.6}>
-            <Text style={s.adminTriggerText}>ADMIN</Text>
+            <Text style={s.adminTriggerText}>ACCESO ADMINISTRATIVO</Text>
           </TouchableOpacity>
         )}
 
         <View style={s.footer}>
           <Text style={s.footerText}>© 2026 Gobernación del Tolima</Text>
+          <Text style={s.footerSub}>Comité de Cafeteros del Tolima · Alcaldía de Chaparral</Text>
         </View>
       </Animated.ScrollView>
-    </View>
+    </SafeAreaView>
   );
 };
 
 export default LoginScreen;
 
-// ── Dropdown styles ────────────────────────────────────────────────────────────
 const dd = StyleSheet.create({
-  wrap:             { position: 'relative' },
-  trigger:          { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: G.goldGlow, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 7, borderWidth: 1, borderColor: G.borderBright },
-  triggerNative:    { color: G.goldLight, fontSize: 13, fontWeight: '800', letterSpacing: 1 },
-  chevron:          { color: G.gold, fontSize: 10 },
-  backdrop:         { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-start', alignItems: 'flex-end', paddingTop: 80, paddingRight: 20 },
-  menu:             { width: 200, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: G.borderBright, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 12 },
-  menuInner:        { paddingVertical: 8 },
-  menuTitle:        { fontSize: 9, fontWeight: '900', color: G.muted, letterSpacing: 2.5, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: G.border },
-  option:           { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 11, gap: 10 },
-  optionActive:     { backgroundColor: G.goldGlow },
-  optionNative:     { fontSize: 13, fontWeight: '800', color: G.muted, width: 32 },
-  optionNativeActive: { color: G.goldLight },
-  optionLabel:      { flex: 1, fontSize: 13, color: G.muted, fontWeight: '500' },
-  optionLabelActive:{ color: G.cream },
-  check:            { color: G.gold, fontSize: 14, fontWeight: '900' },
+  trigger:        { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: T.card, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: T.borderMed },
+  triggerText:    { color: T.dark, fontSize: 13, fontWeight: '800', letterSpacing: 1 },
+  chevron:        { color: T.gold, fontSize: 10 },
+  backdrop:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-start', alignItems: 'flex-end', paddingTop: 80, paddingRight: 20 },
+  menu:           { width: 200, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: T.border, shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 20, elevation: 12 },
+  menuInner:      { backgroundColor: T.card, paddingVertical: 8 },
+  menuTitle:      { fontSize: 9, fontWeight: '900', color: T.muted, letterSpacing: 2.5, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: T.border },
+  option:         { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 11, gap: 10 },
+  optionActive:   { backgroundColor: T.greenPale },
+  optNative:      { fontSize: 13, fontWeight: '800', color: T.muted, width: 32 },
+  optNativeActive:{ color: T.green },
+  optLabel:       { flex: 1, fontSize: 13, color: T.muted, fontWeight: '500' },
+  optLabelActive: { color: T.dark },
+  check:          { color: T.green, fontSize: 14, fontWeight: '900' },
 });
 
-// ── Screen styles ──────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root:         { flex: 1, backgroundColor: G.bg },
+  safe:           { flex: 1, backgroundColor: T.bg },
+  topBar:         { position: 'absolute', top: 52, left: 20, right: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 20 },
+  topBarLeft:     { padding: 8 },
+  coffeeDot:      { width: 8, height: 8, borderRadius: 4, backgroundColor: T.gold, opacity: 0.5 },
+  scroll:         { flexGrow: 1, paddingHorizontal: 22, paddingTop: 110, paddingBottom: 40 },
 
-  topBar:       { position: 'absolute', top: 52, left: 20, right: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 20 },
-  topBarLeft:   { padding: 8 },
-  coffeeDot:    { width: 8, height: 8, borderRadius: 4, backgroundColor: G.gold, opacity: 0.4 },
+  hero:           { alignItems: 'center', marginBottom: 32 },
+  heroBadge:      { backgroundColor: T.goldPale, borderRadius: 30, paddingHorizontal: 18, paddingVertical: 6, borderWidth: 1, borderColor: T.border, marginBottom: 20 },
+  heroBadgeText:  { color: T.gold, fontSize: 10, fontWeight: '900', letterSpacing: 3.5 },
+  heroLogoWrap:   { width: 90, height: 90, borderRadius: 45, alignItems: 'center', justifyContent: 'center', marginBottom: 18, shadowColor: T.green, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 },
+  heroLogoEmoji:  { fontSize: 44 },
+  heroTitle:      { fontSize: 40, fontWeight: '900', color: T.dark, letterSpacing: -1, lineHeight: 42, textAlign: 'center' },
+  heroGold:       { fontSize: 40, fontWeight: '900', color: T.gold, letterSpacing: -1, lineHeight: 44, textAlign: 'center', marginBottom: 18 },
+  heroDivider:    { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, width: '70%' },
+  heroDivLine:    { flex: 1, height: 1, backgroundColor: T.borderMed },
+  heroDivIcon:    { width: 36, height: 36, resizeMode: 'contain' },
+  heroFair:       { fontSize: 12, fontWeight: '700', color: T.body, letterSpacing: 0.5, textAlign: 'center', marginBottom: 4 },
+  heroCity:       { fontSize: 20, fontWeight: '900', color: T.dark, letterSpacing: 3, textAlign: 'center', marginBottom: 4, textTransform: 'uppercase' },
+  heroYear:       { fontSize: 11, color: T.muted, letterSpacing: 2, textAlign: 'center', marginBottom: 4 },
 
-  scroll:       { flexGrow: 1, paddingHorizontal: 22, paddingTop: 110, paddingBottom: 40 },
+  sectionLabel_:  { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+  sectionLine_:   { flex: 1, height: 1, backgroundColor: T.border },
+  sectionText_:   { fontSize: 9, fontWeight: '900', color: T.muted, letterSpacing: 2 },
 
-  hero:         { alignItems: 'center', marginBottom: 40 },
-  badgeRow:     { marginBottom: 18 },
-  editionBadge: { backgroundColor: G.goldGlow, borderRadius: 30, paddingHorizontal: 18, paddingVertical: 6, borderWidth: 1, borderColor: G.borderBright },
-  editionText:  { color: G.gold, fontSize: 10, fontWeight: '900', letterSpacing: 3.5 },
+  cards:          { gap: 12, marginBottom: 24 },
+  card:           { borderRadius: 18, overflow: 'hidden', borderWidth: 1, shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.10, shadowRadius: 8, elevation: 4 },
+  cardGrad:       { flexDirection: 'row', alignItems: 'center', paddingVertical: 20, paddingHorizontal: 20, gap: 14 },
+  cardIconBox:    { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,255,255,0.25)', alignItems: 'center', justifyContent: 'center' },
+  cardIcon:       { fontSize: 26 },
+  cardBody:       { flex: 1 },
+  cardTitle:      { fontSize: 20, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
+  cardNum:        { fontSize: 11, color: 'rgba(255,255,255,0.65)', marginTop: 2, letterSpacing: 2 },
+  cardArrow:      { fontSize: 30, color: 'rgba(255,255,255,0.7)', fontWeight: '300' },
 
-  title:        { fontSize: 46, fontWeight: '900', color: G.cream, letterSpacing: -1, lineHeight: 48, textAlign: 'center' },
-  titleGold:    { fontSize: 46, fontWeight: '900', color: G.gold, letterSpacing: -1, lineHeight: 50, textAlign: 'center', marginBottom: 18 },
+  adminRow:       { flexDirection: 'row', gap: 12, justifyContent: 'center', marginBottom: 24 },
+  adminBtn:       { flex: 1, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: T.border },
+  adminBtnInner:  { paddingVertical: 13, alignItems: 'center', backgroundColor: T.card },
+  adminBtnText:   { color: T.dark, fontSize: 11, fontWeight: '900', letterSpacing: 2.5 },
 
-  dividerRow:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16, width: '70%' },
-  dividerLine:  { flex: 1, height: 1, backgroundColor: G.borderBright },
-  dividerIcon:  { width: 36, height: 36, resizeMode: 'contain' },
+  adminTrigger:   { alignSelf: 'center', marginBottom: 24, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: T.border },
+  adminTriggerText: { color: T.muted, fontSize: 10, fontWeight: '700', letterSpacing: 2 },
 
-  fairName:     { fontSize: 13, fontWeight: '700', color: G.goldLight, letterSpacing: 1, textAlign: 'center', marginBottom: 2 },
-  fairCity:     { fontSize: 22, fontWeight: '900', color: G.cream, letterSpacing: 3, textAlign: 'center', marginBottom: 2, textTransform: 'uppercase' },
-  fairYear:     { fontSize: 11, color: G.muted, letterSpacing: 5, textAlign: 'center', marginBottom: 2 },
-  subtitle:     { fontSize: 11, color: G.muted, letterSpacing: 2, textAlign: 'center', textTransform: 'uppercase' },
-
-  cards:        { gap: 14, marginBottom: 28 },
-
-  card:         { borderRadius: 18, overflow: 'hidden', borderWidth: 1, borderColor: G.borderBright, shadowColor: '#C8860A', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 14, elevation: 8 },
-  cardGrad:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 22, paddingHorizontal: 20 },
-  cardAccent:   { width: 3, alignSelf: 'stretch', marginRight: 16, borderRadius: 2, opacity: 0.8 },
-  cardNumWrap:  { marginRight: 14 },
-  cardNum:      { fontSize: 30, fontWeight: '900', letterSpacing: -1, lineHeight: 34 },
-  cardBody:     { flex: 1, alignItems: 'center' },
-  cardTitle:    { fontSize: 24, fontWeight: '900', letterSpacing: 2, textAlign: 'center', textTransform: 'uppercase' },
-  cardDesc:     { fontSize: 11, color: G.muted, lineHeight: 16, marginBottom: 9 },
-  credBadge:    { alignSelf: 'flex-start', backgroundColor: 'rgba(200,134,10,0.12)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: G.borderBright },
-  credText:     { color: G.gold, fontSize: 10, fontWeight: '700', letterSpacing: 0.8 },
-  cardArrow:    { paddingLeft: 8, width: 28, alignItems: 'center' },
-  arrow:        { fontSize: 28, fontWeight: '300', lineHeight: 32 },
-
-  adminRow:     { flexDirection: 'row', gap: 12, justifyContent: 'center', marginBottom: 24 },
-  adminBtn:     { borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: G.borderBright, flex: 1 },
-  adminGrad:    { paddingVertical: 13, alignItems: 'center' },
-  adminText:    { color: G.gold, fontSize: 11, fontWeight: '900', letterSpacing: 2.5 },
-
-  adminTrigger: { alignSelf: 'center', marginBottom: 24, paddingHorizontal: 24, paddingVertical: 10, borderRadius: 20, borderWidth: 1, borderColor: G.borderBright, backgroundColor: 'rgba(200,134,10,0.06)' },
-  adminTriggerText: { color: G.goldDim, fontSize: 11, fontWeight: '900', letterSpacing: 2.5 },
-
-  footer:       { alignItems: 'center', marginTop: 8 },
-  footerText:   { fontSize: 10, color: G.muted, opacity: 0.6, letterSpacing: 0.5 },
+  footer:         { alignItems: 'center', marginTop: 8, gap: 4 },
+  footerText:     { fontSize: 11, color: T.muted },
+  footerSub:      { fontSize: 9, color: T.muted, opacity: 0.6, textAlign: 'center' },
 });

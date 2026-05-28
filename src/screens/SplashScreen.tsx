@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import {
-  View, Text, StyleSheet, Animated, Easing, Dimensions,
+  View, Text, StyleSheet, Animated, Easing, Dimensions, Platform,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -18,22 +18,26 @@ export default function SplashScreen({ onFinish }: Props) {
   const screenOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Hard fallback — always proceed after 3.8 s regardless of animation state
-    const fallback = setTimeout(() => onFinish(), 3800);
+    // On web, setTimeout freezes in the iframe when unfocused — call onFinish immediately
+    if (Platform.OS === 'web') {
+      onFinish();
+      return;
+    }
+
+    const fallback = setTimeout(() => onFinish(), 2200);
 
     Animated.sequence([
       Animated.parallel([
         Animated.timing(bagScale,   { toValue: 1, duration: 500, easing: Easing.out(Easing.back(1.5)), useNativeDriver: false }),
         Animated.timing(bagOpacity, { toValue: 1, duration: 380, useNativeDriver: false }),
       ]),
-      Animated.timing(lineScale,    { toValue: 1, duration: 280, easing: Easing.out(Easing.exp), useNativeDriver: false }),
+      Animated.timing(lineScale,    { toValue: 1, duration: 260, easing: Easing.out(Easing.exp), useNativeDriver: false }),
       Animated.parallel([
-        Animated.timing(titleOpacity, { toValue: 1, duration: 420, useNativeDriver: false }),
-        Animated.timing(titleY,       { toValue: 0, duration: 420, easing: Easing.out(Easing.exp), useNativeDriver: false }),
+        Animated.timing(titleOpacity, { toValue: 1, duration: 380, useNativeDriver: false }),
+        Animated.timing(titleY,       { toValue: 0, duration: 380, easing: Easing.out(Easing.exp), useNativeDriver: false }),
       ]),
-      Animated.timing(subOpacity,   { toValue: 1, duration: 320, useNativeDriver: false }),
-      Animated.delay(800),
-      Animated.timing(screenOpacity,{ toValue: 0, duration: 500, useNativeDriver: false }),
+      Animated.timing(subOpacity,   { toValue: 1, duration: 280, useNativeDriver: false }),
+      Animated.timing(screenOpacity,{ toValue: 0, duration: 400, useNativeDriver: false }),
     ]).start(() => {
       clearTimeout(fallback);
       onFinish();
