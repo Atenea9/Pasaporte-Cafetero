@@ -45,7 +45,8 @@
       ],
       [
         "expo-localization"
-      ]
+      ],
+      "expo-asset"
     ],
     "notification": {
       "icon": "./assets/icon.png",
