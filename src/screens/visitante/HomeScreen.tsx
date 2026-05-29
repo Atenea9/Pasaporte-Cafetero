@@ -75,7 +75,7 @@ export const HomeScreen = () => {
     { icon: '📅', label: t('home.agenda',    'Agenda'),        sub: '3 días de programa',  screen: 'Agenda'        as const, c1: '#1565C0',     c2: '#1976D2'   },
     { icon: '🏛️', label: t('home.sponsors', 'Auspiciadores'), sub: 'Gobernación',          screen: 'Auspiciadores' as const, c1: '#5D4037',     c2: '#795548'   },
     { icon: '🏅', label: t('nav.ranking',    'Ranking'),       sub: 'Tabla de posiciones', screen: 'Ranking'       as const, c1: T.amber,       c2: T.amberLight},
-    { icon: '🛍️', label: t('comprador.catalog', 'Catálogo'),  sub: 'Productos de los stands', screen: 'Catalogo'  as const, c1: T.green ?? '#2D5A1E', c2: '#4A8A2E' },
+    { icon: '🛍️', label: t('comprador.catalog', 'Catálogo'),  sub: 'Productos de los stands', screen: 'Catalogo'  as const, c1: '#2D5A1E',             c2: '#4A8A2E' },
   ];
 
   return (

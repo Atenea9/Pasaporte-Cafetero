@@ -109,6 +109,22 @@ export const CompradorPasaporteScreen = () => {
   const progPct = nivelActual && nivelSig
     ? Math.min(((puntos - nivelActual.minPuntos) / (nivelSig.minPuntos - nivelActual.minPuntos)) * 100, 100)
     : nivelActual ? 100 : 0;
+  const SUBREGIONES: Record<string, { nombre: string; municipioIds: string[] }[]> = {
+    Norte: [
+      { nombre: '⛰️ Norte',   municipioIds: ['armero', 'falan', 'fresno', 'herveo', 'mariquita', 'palocabildo'] },
+      { nombre: '🌋 Nevados', municipioIds: ['casabianca', 'lerida', 'libano', 'murillo', 'santa_isabel', 'villahermosa'] },
+    ],
+    Centro: [
+      { nombre: '🏙️ Centro (Ibagué)', municipioIds: ['alvarado', 'anzoategui', 'ibague', 'venadillo'] },
+    ],
+    Sur: [
+      { nombre: '🌄 Sur',       municipioIds: ['ataco', 'coyaima', 'natagaima', 'planadas', 'rioblanco', 'roncesvalles', 'san_antonio', 'cajamarca', 'rovira', 'san_luis', 'valle_san_juan'] },
+      { nombre: '🌿 Suroriente', municipioIds: ['alpujarra', 'cunday', 'dolores', 'icononzo', 'melgar', 'prado', 'purificacion', 'suarez', 'villarrica'] },
+    ],
+  };
+
+  const TOTAL_SELLOS = Object.values(SUBREGIONES).flat().reduce((acc, s) => acc + s.municipioIds.length, 0);
+
   const porRegion = getMunicipiosPorRegion();
   const nombre = state.usuario?.nombre || user?.name || 'Comprador';
 
@@ -132,7 +148,7 @@ export const CompradorPasaporteScreen = () => {
         <Text style={s.topTitle}>Pasaporte Comprador</Text>
         <View style={s.stampCount}>
           <Text style={s.stampCountNum}>{obtainedStamps.length}</Text>
-          <Text style={s.stampCountOf}>/38</Text>
+          <Text style={s.stampCountOf}>/{TOTAL_SELLOS}</Text>
         </View>
       </View>
 
@@ -219,7 +235,7 @@ export const CompradorPasaporteScreen = () => {
                   </View>
                   <View style={s.ptsDiv} />
                   <View style={s.ptsBox}>
-                    <Text style={s.ptsNum}>{38 - obtainedStamps.length}</Text>
+                    <Text style={s.ptsNum}>{TOTAL_SELLOS - obtainedStamps.length}</Text>
                     <Text style={s.ptsLabel}>PENDIENTES</Text>
                   </View>
                 </View>
@@ -237,7 +253,7 @@ export const CompradorPasaporteScreen = () => {
               </View>
 
               <View style={s.miniAlbum}>
-                <Text style={s.miniAlbumTitle}>PROGRESO DEL ÁLBUM — {obtainedStamps.length} de 38 sellos</Text>
+                <Text style={s.miniAlbumTitle}>PROGRESO DEL ÁLBUM — {obtainedStamps.length} de {TOTAL_SELLOS} sellos</Text>
                 <View style={s.miniGrid}>
                   {MUNICIPIOS.map((mun) => {
                     const got = obtainedStamps.includes(mun.id);
@@ -253,7 +269,7 @@ export const CompradorPasaporteScreen = () => {
 
             <View style={s.infoNote}>
               <Text style={s.infoNoteIcon}>ℹ️</Text>
-              <Text style={s.infoNoteText}>Cada compra en los stands de los 38 municipios cafeteros del Tolima te otorga un sello único. Colecciónalos todos para completar el álbum.</Text>
+              <Text style={s.infoNoteText}>Cada compra en los stands de los {TOTAL_SELLOS} municipios cafeteros del Tolima te otorga un sello único. Colecciónalos todos para completar el álbum.</Text>
             </View>
           </View>
         )}

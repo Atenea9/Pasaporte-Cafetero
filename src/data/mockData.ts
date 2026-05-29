@@ -9,46 +9,52 @@ export interface Municipio {
   region: string;
 }
 
-// 38 municipios cafeteros del Tolima
+// 36 municipios cafeteros del Tolima — Feria Internacional del Café Chaparral 2026
 export const MUNICIPIOS: Municipio[] = [
-  { id: 'ibague',       nombre: 'Ibagué',          color: '#8B4513', emoji: '☕', modelo: 'A', region: 'Centro' },
-  { id: 'anzoategui',   nombre: 'Anzoátegui',      color: '#6B4226', emoji: '🌄', modelo: 'B', region: 'Norte' },
-  { id: 'casabianca',   nombre: 'Casabianca',      color: '#F57F17', emoji: '🌻', modelo: 'C', region: 'Norte' },
-  { id: 'falan',        nombre: 'Falán',            color: '#558B2F', emoji: '🌿', modelo: 'D', region: 'Norte' },
-  { id: 'fresno',       nombre: 'Fresno',           color: '#E65100', emoji: '🍊', modelo: 'A', region: 'Norte' },
-  { id: 'herveo',       nombre: 'Herveo',           color: '#00695C', emoji: '🏔️', modelo: 'B', region: 'Norte' },
-  { id: 'lerida',       nombre: 'Lérida',           color: '#1565C0', emoji: '💧', modelo: 'C', region: 'Norte' },
-  { id: 'libano',       nombre: 'Líbano',           color: '#4A148C', emoji: '🔮', modelo: 'D', region: 'Norte' },
-  { id: 'mariquita',    nombre: 'Mariquita',        color: '#BF360C', emoji: '🌺', modelo: 'A', region: 'Norte' },
-  { id: 'murillo',      nombre: 'Murillo',          color: '#37474F', emoji: '❄️', modelo: 'B', region: 'Norte' },
-  { id: 'palocabildo',  nombre: 'Palocabildo',      color: '#2E7D32', emoji: '🌳', modelo: 'C', region: 'Norte' },
-  { id: 'santa_isabel', nombre: 'Santa Isabel',     color: '#6D4C41', emoji: '⛪', modelo: 'D', region: 'Norte' },
-  { id: 'villahermosa', nombre: 'Villahermosa',     color: '#00838F', emoji: '🏡', modelo: 'A', region: 'Norte' },
-  { id: 'alvarado',     nombre: 'Alvarado',         color: '#827717', emoji: '🌾', modelo: 'B', region: 'Centro' },
-  { id: 'ambalema',     nombre: 'Ambalema',         color: '#4E342E', emoji: '🏛️', modelo: 'C', region: 'Centro' },
-  { id: 'armero',       nombre: 'Armero-Guayabal',  color: '#C62828', emoji: '🌋', modelo: 'D', region: 'Centro' },
-  { id: 'cajamarca',    nombre: 'Cajamarca',        color: '#1B5E20', emoji: '🥕', modelo: 'A', region: 'Centro' },
-  { id: 'espinal',      nombre: 'Espinal',          color: '#AD1457', emoji: '💃', modelo: 'B', region: 'Centro' },
-  { id: 'flandes',      nombre: 'Flandes',          color: '#0277BD', emoji: '🌊', modelo: 'C', region: 'Centro' },
-  { id: 'rovira',       nombre: 'Rovira',           color: '#00695C', emoji: '🦜', modelo: 'D', region: 'Centro' },
-  { id: 'venadillo',    nombre: 'Venadillo',        color: '#558B2F', emoji: '🦌', modelo: 'A', region: 'Centro' },
-  { id: 'alpujarra',    nombre: 'Alpujarra',        color: '#00695C', emoji: '🌱', modelo: 'B', region: 'Sur' },
-  { id: 'ataco',        nombre: 'Ataco',            color: '#BF360C', emoji: '🔥', modelo: 'C', region: 'Sur' },
-  { id: 'chaparral',    nombre: 'Chaparral',        color: '#4E342E', emoji: '🪵', modelo: 'D', region: 'Sur' },
-  { id: 'coyaima',      nombre: 'Coyaima',          color: '#E65100', emoji: '🏺', modelo: 'A', region: 'Sur' },
-  { id: 'cunday',       nombre: 'Cunday',           color: '#2E7D32', emoji: '🌿', modelo: 'B', region: 'Sur' },
-  { id: 'dolores',      nombre: 'Dolores',          color: '#880E4F', emoji: '🌸', modelo: 'C', region: 'Sur' },
-  { id: 'herrera',      nombre: 'Herrera',          color: '#6A1B9A', emoji: '🍇', modelo: 'D', region: 'Sur' },
-  { id: 'icononzo',     nombre: 'Icononzo',         color: '#33691E', emoji: '🦋', modelo: 'A', region: 'Sur' },
-  { id: 'natagaima',    nombre: 'Natagaima',        color: '#BF360C', emoji: '🌵', modelo: 'B', region: 'Sur' },
-  { id: 'ortega',       nombre: 'Ortega',           color: '#6D4C41', emoji: '🌄', modelo: 'C', region: 'Sur' },
-  { id: 'planadas',     nombre: 'Planadas',         color: '#2E7D32', emoji: '🌿', modelo: 'D', region: 'Sur' },
-  { id: 'prado',        nombre: 'Prado',            color: '#1565C0', emoji: '🏞️', modelo: 'A', region: 'Sur' },
-  { id: 'purificacion', nombre: 'Purificación',     color: '#F57F17', emoji: '🕊️', modelo: 'B', region: 'Sur' },
-  { id: 'rioblanco',    nombre: 'Rio Blanco',       color: '#1565C0', emoji: '💧', modelo: 'C', region: 'Sur' },
-  { id: 'roncesvalles', nombre: 'Roncesvalles',     color: '#37474F', emoji: '🏔️', modelo: 'D', region: 'Sur' },
-  { id: 'san_antonio',  nombre: 'San Antonio',      color: '#558B2F', emoji: '🌾', modelo: 'A', region: 'Sur' },
-  { id: 'villarrica',   nombre: 'Villarrica',       color: '#4A148C', emoji: '🦚', modelo: 'B', region: 'Sur' },
+  // ── NORTE ────────────────────────────────────────────────────────────────
+  // ⛰️ Subregión Norte
+  { id: 'armero',        nombre: 'Armero-Guayabal',  color: '#C62828', emoji: '🌋', modelo: 'D', region: 'Norte' },
+  { id: 'falan',         nombre: 'Falán',             color: '#558B2F', emoji: '🌿', modelo: 'D', region: 'Norte' },
+  { id: 'fresno',        nombre: 'Fresno',            color: '#E65100', emoji: '🍊', modelo: 'A', region: 'Norte' },
+  { id: 'herveo',        nombre: 'Herveo',            color: '#00695C', emoji: '🏔️', modelo: 'B', region: 'Norte' },
+  { id: 'mariquita',     nombre: 'Mariquita',         color: '#BF360C', emoji: '🌺', modelo: 'A', region: 'Norte' },
+  { id: 'palocabildo',   nombre: 'Palocabildo',       color: '#2E7D32', emoji: '🌳', modelo: 'C', region: 'Norte' },
+  // 🌋 Subregión Nevados
+  { id: 'casabianca',    nombre: 'Casabianca',        color: '#F57F17', emoji: '🌻', modelo: 'C', region: 'Norte' },
+  { id: 'lerida',        nombre: 'Lérida',            color: '#1565C0', emoji: '💧', modelo: 'C', region: 'Norte' },
+  { id: 'libano',        nombre: 'Líbano',            color: '#4A148C', emoji: '🔮', modelo: 'D', region: 'Norte' },
+  { id: 'murillo',       nombre: 'Murillo',           color: '#37474F', emoji: '❄️', modelo: 'B', region: 'Norte' },
+  { id: 'santa_isabel',  nombre: 'Santa Isabel',      color: '#6D4C41', emoji: '⛪', modelo: 'D', region: 'Norte' },
+  { id: 'villahermosa',  nombre: 'Villahermosa',      color: '#00838F', emoji: '🏡', modelo: 'A', region: 'Norte' },
+  // ── CENTRO ───────────────────────────────────────────────────────────────
+  // 🏙️ Subregión Centro (Ibagué)
+  { id: 'alvarado',      nombre: 'Alvarado',          color: '#827717', emoji: '🌾', modelo: 'B', region: 'Centro' },
+  { id: 'anzoategui',    nombre: 'Anzoátegui',        color: '#6B4226', emoji: '🌄', modelo: 'B', region: 'Centro' },
+  { id: 'ibague',        nombre: 'Ibagué',            color: '#8B4513', emoji: '☕', modelo: 'A', region: 'Centro' },
+  { id: 'venadillo',     nombre: 'Venadillo',         color: '#558B2F', emoji: '🦌', modelo: 'A', region: 'Centro' },
+  // ── SUR ──────────────────────────────────────────────────────────────────
+  // 🌄 Subregión Sur
+  { id: 'ataco',         nombre: 'Ataco',             color: '#BF360C', emoji: '🔥', modelo: 'C', region: 'Sur' },
+  { id: 'coyaima',       nombre: 'Coyaima',           color: '#E65100', emoji: '🏺', modelo: 'A', region: 'Sur' },
+  { id: 'natagaima',     nombre: 'Natagaima',         color: '#BF360C', emoji: '🌵', modelo: 'B', region: 'Sur' },
+  { id: 'planadas',      nombre: 'Planadas',          color: '#2E7D32', emoji: '🌿', modelo: 'D', region: 'Sur' },
+  { id: 'rioblanco',     nombre: 'Rio Blanco',        color: '#1565C0', emoji: '💧', modelo: 'C', region: 'Sur' },
+  { id: 'roncesvalles',  nombre: 'Roncesvalles',      color: '#37474F', emoji: '🏔️', modelo: 'D', region: 'Sur' },
+  { id: 'san_antonio',   nombre: 'San Antonio',       color: '#558B2F', emoji: '🌾', modelo: 'A', region: 'Sur' },
+  { id: 'cajamarca',     nombre: 'Cajamarca',         color: '#1B5E20', emoji: '🥕', modelo: 'A', region: 'Sur' },
+  { id: 'rovira',        nombre: 'Rovira',            color: '#00695C', emoji: '🦜', modelo: 'D', region: 'Sur' },
+  { id: 'san_luis',      nombre: 'San Luis',          color: '#AD1457', emoji: '🌸', modelo: 'B', region: 'Sur' },
+  { id: 'valle_san_juan',nombre: 'Valle de San Juan', color: '#0277BD', emoji: '🏞️', modelo: 'C', region: 'Sur' },
+  // 🌿 Subregión Suroriente
+  { id: 'alpujarra',     nombre: 'Alpujarra',         color: '#00695C', emoji: '🌱', modelo: 'B', region: 'Sur' },
+  { id: 'cunday',        nombre: 'Cunday',            color: '#2E7D32', emoji: '🌿', modelo: 'B', region: 'Sur' },
+  { id: 'dolores',       nombre: 'Dolores',           color: '#880E4F', emoji: '🌸', modelo: 'C', region: 'Sur' },
+  { id: 'icononzo',      nombre: 'Icononzo',          color: '#33691E', emoji: '🦋', modelo: 'A', region: 'Sur' },
+  { id: 'melgar',        nombre: 'Melgar',            color: '#F57F17', emoji: '☀️', modelo: 'B', region: 'Sur' },
+  { id: 'prado',         nombre: 'Prado',             color: '#1565C0', emoji: '🏞️', modelo: 'A', region: 'Sur' },
+  { id: 'purificacion',  nombre: 'Purificación',      color: '#F57F17', emoji: '🕊️', modelo: 'B', region: 'Sur' },
+  { id: 'suarez',        nombre: 'Suárez',            color: '#6A1B9A', emoji: '🍇', modelo: 'D', region: 'Sur' },
+  { id: 'villarrica',    nombre: 'Villarrica',        color: '#4A148C', emoji: '🦚', modelo: 'B', region: 'Sur' },
 ];
 
 export interface Stand {

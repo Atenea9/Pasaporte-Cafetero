@@ -43,43 +43,33 @@ const T = {
 const SUBREGIONES: Record<string, { nombre: string; municipioIds: string[] }[]> = {
   Norte: [
     {
-      nombre: 'Nevados del Tolima',
-      municipioIds: ['murillo', 'santa_isabel', 'casabianca', 'herveo', 'anzoategui'],
+      nombre: '⛰️ Norte',
+      municipioIds: ['armero', 'falan', 'fresno', 'herveo', 'mariquita', 'palocabildo'],
     },
     {
-      nombre: 'Valle del Magdalena Norte',
-      municipioIds: ['mariquita', 'fresno', 'palocabildo', 'falan', 'lerida'],
-    },
-    {
-      nombre: 'Altiplano Norte',
-      municipioIds: ['libano', 'villahermosa'],
+      nombre: '🌋 Nevados',
+      municipioIds: ['casabianca', 'lerida', 'libano', 'murillo', 'santa_isabel', 'villahermosa'],
     },
   ],
   Centro: [
     {
-      nombre: 'Ibagué y Piedemonte',
-      municipioIds: ['ibague', 'cajamarca', 'rovira', 'alvarado'],
-    },
-    {
-      nombre: 'Valle del Magdalena Centro',
-      municipioIds: ['ambalema', 'armero', 'venadillo', 'espinal', 'flandes'],
+      nombre: '🏙️ Centro (Ibagué)',
+      municipioIds: ['alvarado', 'anzoategui', 'ibague', 'venadillo'],
     },
   ],
   Sur: [
     {
-      nombre: 'Cordillera Sur',
-      municipioIds: ['chaparral', 'ataco', 'planadas', 'rioblanco', 'san_antonio', 'roncesvalles'],
+      nombre: '🌄 Sur',
+      municipioIds: ['ataco', 'coyaima', 'natagaima', 'planadas', 'rioblanco', 'roncesvalles', 'san_antonio', 'cajamarca', 'rovira', 'san_luis', 'valle_san_juan'],
     },
     {
-      nombre: 'Serranía del Sur',
-      municipioIds: ['herrera', 'alpujarra', 'ortega'],
-    },
-    {
-      nombre: 'Valle del Saldaña',
-      municipioIds: ['natagaima', 'coyaima', 'purificacion', 'prado', 'dolores', 'cunday', 'icononzo', 'villarrica'],
+      nombre: '🌿 Suroriente',
+      municipioIds: ['alpujarra', 'cunday', 'dolores', 'icononzo', 'melgar', 'prado', 'purificacion', 'suarez', 'villarrica'],
     },
   ],
 };
+
+const TOTAL_SELLOS = Object.values(SUBREGIONES).flat().reduce((acc, s) => acc + s.municipioIds.length, 0);
 
 function StampShape({ mun, size = 66, obtained }: { mun: typeof MUNICIPIOS[0]; size?: number; obtained: boolean }) {
   const baseStyle = {
@@ -231,7 +221,7 @@ export const PasaporteScreen = () => {
         <Text style={s.topTitle}>Pasaporte Cafetero</Text>
         <View style={s.stampCount}>
           <Text style={s.stampCountNum}>{obtainedStamps.length}</Text>
-          <Text style={s.stampCountOf}>/38</Text>
+          <Text style={s.stampCountOf}>/{TOTAL_SELLOS}</Text>
         </View>
       </View>
 
@@ -316,7 +306,7 @@ export const PasaporteScreen = () => {
                   </View>
                   <View style={s.ptsDiv} />
                   <View style={s.ptsBox}>
-                    <Text style={s.ptsNum}>{38 - obtainedStamps.length}</Text>
+                    <Text style={s.ptsNum}>{TOTAL_SELLOS - obtainedStamps.length}</Text>
                     <Text style={s.ptsLabel}>PENDIENTES</Text>
                   </View>
                 </View>
@@ -334,7 +324,7 @@ export const PasaporteScreen = () => {
               </View>
 
               <View style={s.miniAlbum}>
-                <Text style={s.miniAlbumTitle}>PROGRESO DEL ÁLBUM — {obtainedStamps.length} de 38 sellos</Text>
+                <Text style={s.miniAlbumTitle}>PROGRESO DEL ÁLBUM — {obtainedStamps.length} de {TOTAL_SELLOS} sellos</Text>
                 <View style={s.miniGrid}>
                   {MUNICIPIOS.map((mun) => {
                     const got = obtainedStamps.includes(mun.id);
@@ -350,7 +340,7 @@ export const PasaporteScreen = () => {
 
             <View style={s.infoNote}>
               <Text style={s.infoNoteIcon}>ℹ️</Text>
-              <Text style={s.infoNoteText}>Cada compra en los stands de los 38 municipios cafeteros del Tolima te otorga un sello único. Colecciónalos todos para completar el álbum.</Text>
+              <Text style={s.infoNoteText}>Cada compra en los stands de los {TOTAL_SELLOS} municipios cafeteros del Tolima te otorga un sello único. Colecciónalos todos para completar el álbum.</Text>
             </View>
           </View>
         )}
@@ -447,7 +437,7 @@ export const PasaporteScreen = () => {
             <View style={s.pointsExplain}>
               <Text style={s.pointsExplainTitle}>💡 ¿Cómo ganar puntos?</Text>
               {[
-                '🛍️ Compra en cualquier stand de los 38 municipios',
+                `🛍️ Compra en cualquier stand de los ${TOTAL_SELLOS} municipios`,
                 '📸 Muestra tu QR al vendedor para que escanee tu pasaporte',
                 '⭐ Por cada $1.000 COP en compras recibes 1 punto',
                 '✨ Happy Hour: puntos dobles en horarios especiales',
