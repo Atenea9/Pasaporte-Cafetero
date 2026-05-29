@@ -25,7 +25,7 @@ export default function SplashScreen({ onFinish }: Props) {
 
     // Hard fallback — guarantees the app continues even if the animation
     // callback never fires (a known issue on Expo Web with useNativeDriver:false)
-    const fallback = setTimeout(finish, 3500);
+    const fallback = setTimeout(finish, 500);
 
     Animated.sequence([
       // 1. Everything fades in + logo scales up
