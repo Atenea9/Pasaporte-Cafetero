@@ -13,6 +13,7 @@ import VendedorScreen from '../screens/VendedorScreen';
 import AgendaScreen from '../screens/visitante/AgendaScreen';
 import MapaFeriaScreen from '../screens/visitante/MapaFeriaScreen';
 import AuspiciadoresScreen from '../screens/visitante/AuspiciadoresScreen';
+import CatalogPublicoScreen from '../screens/CatalogPublicoScreen';
 
 const Stack = createNativeStackNavigator<VisitanteStackParamList>();
 
@@ -35,6 +36,7 @@ export default function VisitanteNavigator() {
       <Stack.Screen name="Agenda"        component={AgendaScreen} />
       <Stack.Screen name="MapaFeria"     component={MapaFeriaScreen} />
       <Stack.Screen name="Auspiciadores" component={AuspiciadoresScreen} />
+      <Stack.Screen name="Catalogo"      component={CatalogPublicoScreen} />
     </Stack.Navigator>
   );
 }

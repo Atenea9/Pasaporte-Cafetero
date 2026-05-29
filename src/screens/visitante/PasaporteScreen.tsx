@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Animated, Dimensions, SafeAreaView, StatusBar,
+  ActivityIndicator, LayoutAnimation, Platform, UIManager,
+  Dimensions, SafeAreaView, StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -12,6 +13,11 @@ import {
 } from '../../data/mockData';
 import { useApp } from '../../context/AppContext';
 import type { VisitanteNavProp } from '../../navigation/types';
+import { useTranslation } from 'react-i18next';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const { width } = Dimensions.get('window');
 
@@ -34,25 +40,59 @@ const T = {
   ink:         '#3A2818',
 };
 
-const STAMP_SHAPES = ['circle', 'hexagon', 'octagon', 'round-rect'];
+const SUBREGIONES: Record<string, { nombre: string; municipioIds: string[] }[]> = {
+  Norte: [
+    {
+      nombre: 'Nevados del Tolima',
+      municipioIds: ['murillo', 'santa_isabel', 'casabianca', 'herveo', 'anzoategui'],
+    },
+    {
+      nombre: 'Valle del Magdalena Norte',
+      municipioIds: ['mariquita', 'fresno', 'palocabildo', 'falan', 'lerida'],
+    },
+    {
+      nombre: 'Altiplano Norte',
+      municipioIds: ['libano', 'villahermosa'],
+    },
+  ],
+  Centro: [
+    {
+      nombre: 'Ibagué y Piedemonte',
+      municipioIds: ['ibague', 'cajamarca', 'rovira', 'alvarado'],
+    },
+    {
+      nombre: 'Valle del Magdalena Centro',
+      municipioIds: ['ambalema', 'armero', 'venadillo', 'espinal', 'flandes'],
+    },
+  ],
+  Sur: [
+    {
+      nombre: 'Cordillera Sur',
+      municipioIds: ['chaparral', 'ataco', 'planadas', 'rioblanco', 'san_antonio', 'roncesvalles'],
+    },
+    {
+      nombre: 'Serranía del Sur',
+      municipioIds: ['herrera', 'alpujarra', 'ortega'],
+    },
+    {
+      nombre: 'Valle del Saldaña',
+      municipioIds: ['natagaima', 'coyaima', 'purificacion', 'prado', 'dolores', 'cunday', 'icononzo', 'villarrica'],
+    },
+  ],
+};
 
-function StampShape({ mun, size = 76, obtained }: { mun: typeof MUNICIPIOS[0]; size?: number; obtained: boolean }) {
+function StampShape({ mun, size = 66, obtained }: { mun: typeof MUNICIPIOS[0]; size?: number; obtained: boolean }) {
   const baseStyle = {
     width: size, height: size, alignItems: 'center' as const, justifyContent: 'center' as const, padding: 4,
   };
-
   if (!obtained) {
     return (
       <View style={[baseStyle, ss.stampEmpty]}>
         <Text style={[ss.stampQ, { fontSize: size * 0.32 }]}>?</Text>
-        <View style={ss.stampLines}>
-          <View style={ss.stampLine} />
-          <View style={ss.stampLine} />
-        </View>
+        <View style={ss.stampLines}><View style={ss.stampLine} /><View style={ss.stampLine} /></View>
       </View>
     );
   }
-
   return (
     <View style={[baseStyle, ss.stampObtained, { borderColor: mun.color }]}>
       <LinearGradient colors={[mun.color + '22', mun.color + '08']} style={StyleSheet.absoluteFill} />
@@ -81,8 +121,62 @@ function PassportPage({ children, title }: { children: React.ReactNode; title?: 
   );
 }
 
+function SubregionAccordion({
+  subregion, municipios, obtainedStamps,
+}: {
+  subregion: { nombre: string; municipioIds: string[] };
+  municipios: typeof MUNICIPIOS;
+  obtainedStamps: string[];
+}) {
+  const [open, setOpen] = useState(true);
+  const muns = subregion.municipioIds
+    .map(id => municipios.find(m => m.id === id))
+    .filter(Boolean) as typeof MUNICIPIOS;
+  const obtained = muns.filter(m => obtainedStamps.includes(m.id));
+
+  const toggle = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setOpen(v => !v);
+  };
+
+  return (
+    <View style={acc.container}>
+      <TouchableOpacity style={acc.header} onPress={toggle} activeOpacity={0.75}>
+        <View style={acc.headerLeft}>
+          <Text style={acc.nombre}>{subregion.nombre}</Text>
+          <View style={[acc.badge, { backgroundColor: obtained.length === muns.length ? T.gold + '20' : T.parchDark }]}>
+            <Text style={[acc.badgeText, { color: obtained.length === muns.length ? T.gold : T.muted }]}>
+              {obtained.length}/{muns.length}
+            </Text>
+          </View>
+        </View>
+        <Text style={[acc.chevron, open && acc.chevronOpen]}>{open ? '▲' : '▼'}</Text>
+      </TouchableOpacity>
+
+      {open && (
+        <View style={acc.body}>
+          <View style={acc.grid}>
+            {muns.map(mun => {
+              const got = obtainedStamps.includes(mun.id);
+              return (
+                <View key={mun.id} style={acc.stampCell}>
+                  <StampShape mun={mun} size={60} obtained={got} />
+                  <Text style={[acc.stampName, { color: got ? mun.color : T.muted }]} numberOfLines={2}>
+                    {got ? mun.nombre : '· · ·'}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
 export const PasaporteScreen = () => {
   const nav = useNavigation<VisitanteNavProp>();
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { state } = useApp();
   const [stats, setStats] = useState<any>(null);
@@ -129,7 +223,6 @@ export const PasaporteScreen = () => {
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
 
-      {/* Top Bar */}
       <View style={s.topBar}>
         <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
           <Text style={s.backIcon}>‹</Text>
@@ -142,7 +235,6 @@ export const PasaporteScreen = () => {
         </View>
       </View>
 
-      {/* Page Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.tabsScroll} contentContainerStyle={s.tabsContent}>
         {PAGES.map((p, i) => (
           <TouchableOpacity
@@ -157,13 +249,10 @@ export const PasaporteScreen = () => {
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
-        {/* ── PAGE 0: PORTADA ── */}
         {activePage === 0 && (
           <View>
-            {/* Passport Cover */}
             <View style={s.coverWrap}>
               <LinearGradient colors={[T.leatherDark, T.leather, '#A0714F']} style={s.cover}>
-                {/* Embossed header */}
                 <View style={s.embossHeader}>
                   <View style={s.embossLine} />
                   <Text style={s.embossCountry}>REPÚBLICA DE COLOMBIA</Text>
@@ -172,15 +261,11 @@ export const PasaporteScreen = () => {
                 <Text style={s.embossTitle}>PASAPORTE CAFETERO</Text>
                 <Text style={s.embossSubtitle}>FERIA INTERNACIONAL DEL CAFÉ</Text>
                 <Text style={s.embossCity}>CHAPARRAL · TOLIMA · 2026</Text>
-
-                {/* Decorative coffee seal */}
                 <View style={s.seal}>
                   <Text style={s.sealEmoji}>☕</Text>
                   <View style={s.sealRing} />
                   <View style={s.sealRing2} />
                 </View>
-
-                {/* Badge */}
                 {nivelActual && (
                   <View style={[s.levelBadge, { backgroundColor: nivelActual.color }]}>
                     <Text style={s.levelBadgeEmoji}>{nivelActual.emoji}</Text>
@@ -188,12 +273,9 @@ export const PasaporteScreen = () => {
                   </View>
                 )}
               </LinearGradient>
-
-              {/* Book spine effect */}
               <View style={s.spine} />
             </View>
 
-            {/* Inside page 1: Identity */}
             <PassportPage title="IDENTIFICACIÓN DEL PORTADOR">
               <View style={s.idSection}>
                 <View style={s.idAvatar}>
@@ -209,7 +291,6 @@ export const PasaporteScreen = () => {
                 </View>
               </View>
 
-              {/* QR Code */}
               <View style={s.qrSection}>
                 <View style={s.qrBox}>
                   <Text style={s.qrPattern}>▓▓▓▓▓▓▓{'\n'}▓░░░░░▓{'\n'}▓░▓░░▓▓{'\n'}▓░░░░░▓{'\n'}▓▓▓▓▓▓▓</Text>
@@ -222,7 +303,6 @@ export const PasaporteScreen = () => {
                 </View>
               </View>
 
-              {/* Points & Progress */}
               <View style={s.progressSection}>
                 <View style={s.ptsRow}>
                   <View style={s.ptsBox}>
@@ -236,7 +316,7 @@ export const PasaporteScreen = () => {
                   </View>
                   <View style={s.ptsDiv} />
                   <View style={s.ptsBox}>
-                    <Text style={s.ptsNum}>{(38 - obtainedStamps.length)}</Text>
+                    <Text style={s.ptsNum}>{38 - obtainedStamps.length}</Text>
                     <Text style={s.ptsLabel}>PENDIENTES</Text>
                   </View>
                 </View>
@@ -253,20 +333,13 @@ export const PasaporteScreen = () => {
                 </View>
               </View>
 
-              {/* Stamp mini-overview */}
               <View style={s.miniAlbum}>
                 <Text style={s.miniAlbumTitle}>PROGRESO DEL ÁLBUM — {obtainedStamps.length} de 38 sellos</Text>
                 <View style={s.miniGrid}>
                   {MUNICIPIOS.map((mun) => {
                     const got = obtainedStamps.includes(mun.id);
                     return (
-                      <View
-                        key={mun.id}
-                        style={[
-                          s.miniCell,
-                          got && { backgroundColor: mun.color, borderColor: mun.color },
-                        ]}
-                      >
+                      <View key={mun.id} style={[s.miniCell, got && { backgroundColor: mun.color, borderColor: mun.color }]}>
                         {got && <Text style={s.miniCellText}>{mun.emoji}</Text>}
                       </View>
                     );
@@ -275,7 +348,6 @@ export const PasaporteScreen = () => {
               </View>
             </PassportPage>
 
-            {/* Info note */}
             <View style={s.infoNote}>
               <Text style={s.infoNoteIcon}>ℹ️</Text>
               <Text style={s.infoNoteText}>Cada compra en los stands de los 38 municipios cafeteros del Tolima te otorga un sello único. Colecciónalos todos para completar el álbum.</Text>
@@ -283,16 +355,15 @@ export const PasaporteScreen = () => {
           </View>
         )}
 
-        {/* ── REGION PAGES (1, 2, 3) ── */}
         {[1, 2, 3].includes(activePage) && (() => {
           const regionKey = (['Norte', 'Centro', 'Sur'] as const)[activePage - 1];
           const muns = porRegion[regionKey] ?? [];
           const obtained = muns.filter(m => obtainedStamps.includes(m.id));
           const pct = Math.round((obtained.length / muns.length) * 100);
+          const subregiones = SUBREGIONES[regionKey] ?? [];
 
           return (
             <PassportPage title={`REGIÓN ${regionKey.toUpperCase()} — ${obtained.length}/${muns.length} SELLOS`}>
-              {/* Region progress */}
               <View style={s.regionProg}>
                 <View style={s.regionProgBg}>
                   <View style={[s.regionProgFill, { width: `${pct}%` as any }]} />
@@ -306,33 +377,20 @@ export const PasaporteScreen = () => {
                 </View>
               )}
 
-              {/* Stamps grid */}
-              <View style={s.stampsGrid}>
-                {muns.map((mun) => {
-                  const got = obtainedStamps.includes(mun.id);
-                  return (
-                    <View key={mun.id} style={s.stampCell}>
-                      <StampShape mun={mun} size={72} obtained={got} />
-                      <Text
-                        style={[s.stampName, { color: got ? mun.color : T.muted }]}
-                        numberOfLines={2}
-                      >
-                        {got ? mun.nombre : '· · ·'}
-                      </Text>
-                      {got && (
-                        <View style={[s.stampRegionTag, { backgroundColor: mun.color + '20', borderColor: mun.color + '50' }]}>
-                          <Text style={[s.stampRegionTagText, { color: mun.color }]}>✓</Text>
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
+              <Text style={s.subregionHint}>Toca cada subregión para expandir o colapsar sus municipios</Text>
 
-              {/* Municipality details for obtained stamps */}
+              {subregiones.map((sub, i) => (
+                <SubregionAccordion
+                  key={i}
+                  subregion={sub}
+                  municipios={MUNICIPIOS}
+                  obtainedStamps={obtainedStamps}
+                />
+              ))}
+
               {obtained.length > 0 && (
                 <View style={s.detailSection}>
-                  <Text style={s.detailTitle}>MUNICIPIOS VISITADOS</Text>
+                  <Text style={s.detailTitle}>MUNICIPIOS VISITADOS EN {regionKey.toUpperCase()}</Text>
                   {obtained.map(mun => (
                     <View key={mun.id} style={[s.detailRow, { borderLeftColor: mun.color }]}>
                       <Text style={s.detailEmoji}>{mun.emoji}</Text>
@@ -351,7 +409,6 @@ export const PasaporteScreen = () => {
           );
         })()}
 
-        {/* ── PAGE 4: PREMIOS ── */}
         {activePage === 4 && (
           <PassportPage title="NIVELES Y PREMIOS">
             <View style={s.premiosIntro}>
@@ -363,14 +420,7 @@ export const PasaporteScreen = () => {
               const unlocked = nivelActual ? NIVELES.indexOf(nivelActual) >= idx : false;
               const isCurrent = nivelActual?.id === niv.id;
               return (
-                <View
-                  key={niv.id}
-                  style={[
-                    s.nivelCard,
-                    unlocked && { borderColor: niv.color, backgroundColor: niv.color + '08' },
-                    isCurrent && s.nivelCardCurrent,
-                  ]}
-                >
+                <View key={niv.id} style={[s.nivelCard, unlocked && { borderColor: niv.color, backgroundColor: niv.color + '08' }, isCurrent && s.nivelCardCurrent]}>
                   {isCurrent && <View style={[s.nivelCurrentBadge, { backgroundColor: niv.color }]}><Text style={s.nivelCurrentBadgeText}>TU NIVEL ACTUAL</Text></View>}
                   <View style={s.nivelTop}>
                     <View style={[s.nivelIcon, { backgroundColor: unlocked ? niv.color : T.border }]}>
@@ -401,7 +451,7 @@ export const PasaporteScreen = () => {
                 '📸 Muestra tu QR al vendedor para que escanee tu pasaporte',
                 '⭐ Por cada $1.000 COP en compras recibes 1 punto',
                 '✨ Happy Hour: puntos dobles en horarios especiales',
-                '🗺️ Bonus: completa una región para un sello especial',
+                '🗺️ Bonus: completa una subregión para un sello especial',
               ].map((t, i) => (
                 <View key={i} style={s.pointsRow}>
                   <Text style={s.pointsRowText}>{t}</Text>
@@ -418,7 +468,6 @@ export const PasaporteScreen = () => {
 
 export default PasaporteScreen;
 
-// ── Stamp inner styles ──
 const ss = StyleSheet.create({
   stampEmpty:    { borderRadius: 10, borderWidth: 1.5, borderColor: T.border, borderStyle: 'dashed', backgroundColor: T.parchment },
   stampQ:        { color: T.muted, fontWeight: '900', opacity: 0.4 },
@@ -430,7 +479,21 @@ const ss = StyleSheet.create({
   stampInk:      { position: 'absolute', bottom: 5, right: 5, width: 6, height: 6, borderRadius: 3 },
 });
 
-// ── Page styles ──
+const acc = StyleSheet.create({
+  container:  { marginBottom: 12, borderRadius: 14, borderWidth: 1, borderColor: T.border, overflow: 'hidden', backgroundColor: T.card },
+  header:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14, backgroundColor: T.parchment },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  nombre:     { fontSize: 13, fontWeight: '900', color: T.dark, flex: 1 },
+  badge:      { borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3 },
+  badgeText:  { fontSize: 11, fontWeight: '800' },
+  chevron:    { fontSize: 11, color: T.muted, fontWeight: '700' },
+  chevronOpen:{ color: T.gold },
+  body:       { padding: 12, paddingTop: 10 },
+  grid:       { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  stampCell:  { alignItems: 'center', width: (width - 100) / 4 },
+  stampName:  { fontSize: 9, fontWeight: '700', textAlign: 'center', marginTop: 4, letterSpacing: 0.3 },
+});
+
 const pg = StyleSheet.create({
   page:       { backgroundColor: T.parchment, borderRadius: 16, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: T.parchDark, shadowColor: T.dark, shadowOffset: { width: 2, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 4 },
   pageInner:  { padding: 20, paddingLeft: 28 },
@@ -440,7 +503,6 @@ const pg = StyleSheet.create({
   pageBinding:{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 8, backgroundColor: T.leather, opacity: 0.7 },
 });
 
-// ── Main screen styles ──
 const s = StyleSheet.create({
   safe:         { flex: 1, backgroundColor: T.bg },
   topBar:       { flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: T.parchDark },
@@ -458,8 +520,6 @@ const s = StyleSheet.create({
   tabText:      { fontSize: 12, fontWeight: '700', color: T.muted },
   tabTextActive:{ color: '#FFF' },
   scroll:       { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
-
-  // Cover
   coverWrap:    { position: 'relative', marginBottom: 16 },
   cover:        { borderRadius: 16, padding: 28, alignItems: 'center', minHeight: 280, justifyContent: 'center', overflow: 'hidden', shadowColor: T.dark, shadowOffset: { width: 4, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
   embossHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6, width: '80%' },
@@ -476,16 +536,12 @@ const s = StyleSheet.create({
   levelBadgeEmoji: { fontSize: 18 },
   levelBadgeName: { fontSize: 10, fontWeight: '900', color: T.dark, letterSpacing: 1 },
   spine:        { position: 'absolute', left: 0, top: 0, bottom: 0, width: 10, backgroundColor: T.leatherDark, borderTopLeftRadius: 16, borderBottomLeftRadius: 16 },
-
-  // ID Section
   idSection:    { flexDirection: 'row', gap: 14, marginBottom: 18 },
   idAvatar:     { width: 70, height: 90, borderRadius: 10, backgroundColor: T.leather, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: T.gold + '60' },
   idAvatarText: { fontSize: 32, fontWeight: '900', color: T.goldPale },
   idData:       { flex: 1 },
   idLabel:      { fontSize: 8, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 2, marginTop: 6 },
   idValue:      { fontSize: 12, fontWeight: '800', color: T.ink, letterSpacing: 0.5 },
-
-  // QR
   qrSection:    { flexDirection: 'row', gap: 14, marginBottom: 18, alignItems: 'center' },
   qrBox:        { width: 80, height: 80, backgroundColor: '#FFF', borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: T.border, padding: 6 },
   qrPattern:    { fontSize: 8.5, color: T.ink, fontWeight: '900', lineHeight: 13, letterSpacing: 0.5, fontFamily: 'monospace' },
@@ -493,78 +549,60 @@ const s = StyleSheet.create({
   qrIdLabel:    { fontSize: 7, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 4 },
   qrId:         { fontSize: 18, fontWeight: '900', color: T.ink, letterSpacing: 2, marginBottom: 4 },
   qrInstruction:{ fontSize: 10, color: T.muted, lineHeight: 14 },
-  qrDot:        { width: 8, height: 8, borderRadius: 4, marginTop: 6 },
-
-  // Progress
+  qrDot:        { width: 8, height: 8, borderRadius: 4, marginTop: 8 },
   progressSection: { marginBottom: 18 },
-  ptsRow:       { flexDirection: 'row', alignItems: 'center', marginBottom: 12, backgroundColor: T.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: T.border },
-  ptsBox:       { flex: 1, alignItems: 'center' },
-  ptsNum:       { fontSize: 24, fontWeight: '900', color: T.gold },
-  ptsLabel:     { fontSize: 8, color: T.muted, letterSpacing: 1.5, marginTop: 2 },
-  ptsDiv:       { width: 1, height: 32, backgroundColor: T.border },
-  progWrap:     {},
-  progBg:       { height: 8, backgroundColor: T.parchDark, borderRadius: 4, overflow: 'hidden', marginBottom: 4 },
+  ptsRow:       { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 14 },
+  ptsBox:       { alignItems: 'center' },
+  ptsNum:       { fontSize: 28, fontWeight: '900', color: T.gold },
+  ptsLabel:     { fontSize: 8, fontWeight: '900', color: T.muted, letterSpacing: 2, marginTop: 2 },
+  ptsDiv:       { width: 1, backgroundColor: T.border, alignSelf: 'stretch' },
+  progWrap:     { gap: 6 },
+  progBg:       { height: 8, backgroundColor: T.parchDark, borderRadius: 4, overflow: 'hidden' },
   progFill:     { height: '100%', borderRadius: 4 },
-  progLabel:    { fontSize: 10, color: T.muted, textAlign: 'center' },
-
-  // Mini album
+  progLabel:    { fontSize: 11, color: T.muted, textAlign: 'center' },
   miniAlbum:    { marginTop: 4 },
-  miniAlbumTitle: { fontSize: 8, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 10 },
+  miniAlbumTitle:{ fontSize: 9, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 10 },
   miniGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
-  miniCell:     { width: (width - 96) / 10, height: (width - 96) / 10, borderRadius: 3, borderWidth: 1, borderColor: T.border, backgroundColor: T.card, alignItems: 'center', justifyContent: 'center' },
+  miniCell:     { width: 18, height: 18, borderRadius: 4, backgroundColor: T.parchDark, borderWidth: 1, borderColor: T.border, alignItems: 'center', justifyContent: 'center' },
   miniCellText: { fontSize: 9 },
-
-  // Info note
-  infoNote:     { backgroundColor: T.goldPale, borderRadius: 12, padding: 14, flexDirection: 'row', gap: 10, alignItems: 'flex-start', marginBottom: 16, borderWidth: 1, borderColor: T.gold + '40' },
-  infoNoteIcon: { fontSize: 18 },
-  infoNoteText: { flex: 1, fontSize: 12, color: T.body, lineHeight: 18 },
-
-  // Stamps grid
-  stampsGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'space-between', marginBottom: 20 },
-  stampCell:    { width: (width - 80) / 4 - 2, alignItems: 'center' },
-  stampName:    { fontSize: 9, fontWeight: '700', textAlign: 'center', marginTop: 4, lineHeight: 12 },
-  stampRegionTag:{ marginTop: 2, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 1, borderWidth: 1 },
-  stampRegionTagText: { fontSize: 8, fontWeight: '900' },
-
-  // Region progress
-  regionProg:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
+  infoNote:     { flexDirection: 'row', gap: 8, backgroundColor: T.parchment, borderRadius: 12, padding: 14, marginTop: 4, borderWidth: 1, borderColor: T.border },
+  infoNoteIcon: { fontSize: 16 },
+  infoNoteText: { flex: 1, fontSize: 11, color: T.body, lineHeight: 16 },
+  regionProg:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
   regionProgBg: { flex: 1, height: 8, backgroundColor: T.parchDark, borderRadius: 4, overflow: 'hidden' },
-  regionProgFill: { height: '100%', backgroundColor: T.gold, borderRadius: 4 },
-  regionProgPct:  { fontSize: 14, fontWeight: '900', color: T.gold, width: 36, textAlign: 'right' },
-  regionComplete: { backgroundColor: T.goldPale, borderRadius: 10, padding: 12, alignItems: 'center', marginBottom: 14, borderWidth: 1, borderColor: T.gold + '60' },
+  regionProgFill:{ height: '100%', backgroundColor: T.gold, borderRadius: 4 },
+  regionProgPct:{ fontSize: 13, fontWeight: '900', color: T.gold, width: 38, textAlign: 'right' },
+  regionComplete:{ backgroundColor: T.goldPale, borderRadius: 10, padding: 10, marginBottom: 12, borderWidth: 1, borderColor: T.gold + '50', alignItems: 'center' },
   regionCompleteText: { fontSize: 13, fontWeight: '900', color: T.gold },
-
-  // Detail section
-  detailSection: { marginTop: 8 },
-  detailTitle:   { fontSize: 9, fontWeight: '900', color: T.muted, letterSpacing: 2, marginBottom: 10 },
-  detailRow:     { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, backgroundColor: T.card, borderRadius: 12, marginBottom: 8, borderLeftWidth: 4, borderWidth: 1, borderColor: T.border },
-  detailEmoji:   { fontSize: 22 },
-  detailInfo:    { flex: 1 },
-  detailName:    { fontSize: 14, fontWeight: '800' },
-  detailRegion:  { fontSize: 10, color: T.muted, marginTop: 2 },
-  detailSeal:    { width: 32, height: 32, borderRadius: 16, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  detailSealText:{ fontSize: 14, fontWeight: '900' },
-
-  // Premios
-  premiosIntro:  { backgroundColor: T.goldPale, borderRadius: 12, padding: 14, marginBottom: 16, borderWidth: 1, borderColor: T.gold + '50' },
-  premiosIntroText: { fontSize: 12, color: T.body, lineHeight: 18 },
-  nivelCard:     { borderRadius: 16, borderWidth: 1.5, borderColor: T.border, padding: 16, marginBottom: 12, backgroundColor: T.card },
-  nivelCardCurrent: { shadowColor: T.gold, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
-  nivelCurrentBadge: { position: 'absolute', top: -1, right: 12, borderRadius: 0, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, paddingHorizontal: 10, paddingVertical: 3 },
+  subregionHint:{ fontSize: 10, color: T.muted, textAlign: 'center', marginBottom: 12, fontStyle: 'italic' },
+  detailSection:{ marginTop: 12 },
+  detailTitle:  { fontSize: 9, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 8 },
+  detailRow:    { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8, borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 6 },
+  detailEmoji:  { fontSize: 20 },
+  detailInfo:   { flex: 1 },
+  detailName:   { fontSize: 13, fontWeight: '800' },
+  detailRegion: { fontSize: 10, color: T.muted, marginTop: 1 },
+  detailSeal:   { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  detailSealText:{ fontSize: 13, fontWeight: '900' },
+  premiosIntro: { backgroundColor: T.goldPale, borderRadius: 10, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: T.gold + '40' },
+  premiosIntroText: { fontSize: 12, color: T.body, lineHeight: 18, textAlign: 'center' },
+  nivelCard:    { borderRadius: 14, borderWidth: 1, borderColor: T.border, padding: 14, marginBottom: 12, backgroundColor: T.card },
+  nivelCardCurrent: { shadowColor: T.gold, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 4 },
+  nivelCurrentBadge: { position: 'absolute', top: -1, right: 12, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
   nivelCurrentBadgeText: { fontSize: 8, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
-  nivelTop:      { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
-  nivelIcon:     { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  nivelEmoji:    { fontSize: 22 },
-  nivelInfo:     { flex: 1 },
-  nivelName:     { fontSize: 16, fontWeight: '900' },
-  nivelRange:    { fontSize: 11, color: T.muted, marginTop: 2 },
-  nivelCheck:    { fontSize: 22, fontWeight: '900' },
-  nivelBenefs:   { gap: 6, paddingLeft: 4 },
-  nivelBenef:    { flexDirection: 'row', gap: 6 },
-  nivelBenefDot: { fontSize: 12, lineHeight: 18 },
-  nivelBenefText:{ fontSize: 12, color: T.body, lineHeight: 18 },
-  pointsExplain: { backgroundColor: T.card, borderRadius: 16, padding: 16, marginTop: 8, borderWidth: 1, borderColor: T.border },
-  pointsExplainTitle: { fontSize: 13, fontWeight: '900', color: T.dark, marginBottom: 12 },
-  pointsRow:     { paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: T.border },
-  pointsRowText: { fontSize: 12, color: T.body, lineHeight: 18 },
+  nivelTop:     { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
+  nivelIcon:    { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  nivelEmoji:   { fontSize: 22 },
+  nivelInfo:    { flex: 1 },
+  nivelName:    { fontSize: 15, fontWeight: '900' },
+  nivelRange:   { fontSize: 11, color: T.muted, marginTop: 2 },
+  nivelCheck:   { fontSize: 20, fontWeight: '900' },
+  nivelBenefs:  { gap: 4 },
+  nivelBenef:   { flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
+  nivelBenefDot:{ fontSize: 13, fontWeight: '900', lineHeight: 18 },
+  nivelBenefText:{ fontSize: 12, color: T.body, flex: 1, lineHeight: 18 },
+  pointsExplain:{ backgroundColor: T.parchment, borderRadius: 14, padding: 14, marginTop: 8, borderWidth: 1, borderColor: T.border },
+  pointsExplainTitle: { fontSize: 13, fontWeight: '900', color: T.gold, marginBottom: 10 },
+  pointsRow:    { paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: T.border },
+  pointsRowText:{ fontSize: 12, color: T.body, lineHeight: 18 },
 });

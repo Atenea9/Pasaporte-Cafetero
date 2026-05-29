@@ -177,7 +177,7 @@ export const LoginScreen = () => {
         <TouchableOpacity onLongPress={() => setShowAdmin(v => !v)} activeOpacity={1} style={s.topBarLeft}>
           <View style={s.amberDot} />
         </TouchableOpacity>
-        <LangDropdown lang={i18n.language} onSelect={lng => i18n.changeLanguage(lng)} />
+        <LangDropdown lang={i18n.language} onSelect={lng => { const { changeAndSaveLanguage } = require('../../i18n'); changeAndSaveLanguage(lng); }} />
       </View>
 
       <Animated.ScrollView

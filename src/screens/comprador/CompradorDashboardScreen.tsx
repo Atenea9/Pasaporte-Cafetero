@@ -51,6 +51,7 @@ export const CompradorDashboardScreen = () => {
     { icon: '📅', label: t('home.agenda', 'Agenda'), sub: '3 días de programa', screen: 'Agenda', grad: ['#1A237E', C.card] as [string,string] },
     { icon: '🏛️', label: t('home.sponsors', 'Auspiciadores'), sub: 'Gobernación', screen: 'Auspiciadores', grad: ['#37474F', C.card] as [string,string] },
     { icon: '🛂', label: 'Mi Pasaporte', sub: `${stampsCount}/38 sellos`, screen: 'CompradorPasaporte', grad: ['#3A2618', C.card] as [string,string] },
+    { icon: '🛍️', label: t('comprador.catalog', 'Catálogo'), sub: 'Productos de los stands', screen: 'Catalogo', grad: ['#1A4A10', C.card] as [string,string] },
   ];
 
   return (

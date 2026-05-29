@@ -1,86 +1,487 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import {
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  ActivityIndicator, Animated, Dimensions, SafeAreaView, StatusBar,
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
 import { mockDbService } from '../../services/mockDb.service';
-import { PremiumTheme } from '../../theme/PremiumTheme';
+import {
+  MUNICIPIOS, NIVELES, getNivelActual, getNivelSiguiente, getMunicipiosPorRegion
+} from '../../data/mockData';
+import { useApp } from '../../context/AppContext';
+
+const { width } = Dimensions.get('window');
+
+const T = {
+  bg:          '#FAF7F0',
+  parchment:   '#F0E8D0',
+  parchDark:   '#E8D5B0',
+  leather:     '#8B5E3C',
+  leatherDark: '#6B4226',
+  gold:        '#B8860B',
+  goldLight:   '#D4A520',
+  goldPale:    '#F5E6B0',
+  green:       '#2D5A1E',
+  greenPale:   '#E8F2E4',
+  dark:        '#2C1810',
+  body:        '#4A3728',
+  muted:       '#8A7060',
+  card:        '#FFFFFF',
+  border:      '#D4B896',
+  ink:         '#3A2818',
+};
+
+function StampShape({ mun, size = 76, obtained }: { mun: typeof MUNICIPIOS[0]; size?: number; obtained: boolean }) {
+  const baseStyle = {
+    width: size, height: size, alignItems: 'center' as const, justifyContent: 'center' as const, padding: 4,
+  };
+  if (!obtained) {
+    return (
+      <View style={[baseStyle, ss.stampEmpty]}>
+        <Text style={[ss.stampQ, { fontSize: size * 0.32 }]}>?</Text>
+        <View style={ss.stampLines}>
+          <View style={ss.stampLine} />
+          <View style={ss.stampLine} />
+        </View>
+      </View>
+    );
+  }
+  return (
+    <View style={[baseStyle, ss.stampObtained, { borderColor: mun.color }]}>
+      <LinearGradient colors={[mun.color + '22', mun.color + '08']} style={StyleSheet.absoluteFill} />
+      <View style={[ss.stampInnerRing, { borderColor: mun.color + '60' }]} />
+      <Text style={[ss.stampEmoji, { fontSize: size * 0.3 }]}>{mun.emoji}</Text>
+      <View style={[ss.stampInk, { backgroundColor: mun.color }]} />
+    </View>
+  );
+}
+
+function PassportPage({ children, title }: { children: React.ReactNode; title?: string }) {
+  return (
+    <View style={pg.page}>
+      <View style={pg.pageInner}>
+        {title && (
+          <View style={pg.pageHeader}>
+            <View style={pg.headerLine} />
+            <Text style={pg.pageTitle}>{title}</Text>
+            <View style={pg.headerLine} />
+          </View>
+        )}
+        {children}
+      </View>
+      <View style={pg.pageBinding} />
+    </View>
+  );
+}
 
 export const CompradorPasaporteScreen = () => {
+  const nav = useNavigation();
   const { user } = useAuth();
-  const navigation = useNavigation();
+  const { state } = useApp();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [activePage, setActivePage] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
 
-  useFocusEffect(
-    useCallback(() => {
-      let isActive = true;
-      mockDbService.getCompradorStats(user!.uid).then(data => {
-        if (isActive) { setStats(data); setLoading(false); }
+  useFocusEffect(useCallback(() => {
+    let alive = true;
+    if (user) {
+      mockDbService.getUserStats(user.uid).then(d => {
+        if (alive) { setStats(d); setLoading(false); }
       });
-      return () => { isActive = false; };
-    }, [user])
+    }
+    return () => { alive = false; };
+  }, [user]));
+
+  if (loading) return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: T.bg, justifyContent: 'center', alignItems: 'center' }}>
+      <ActivityIndicator size="large" color={T.gold} />
+      <Text style={{ color: T.muted, marginTop: 12, fontSize: 13 }}>Abriendo tu pasaporte...</Text>
+    </SafeAreaView>
   );
 
-  if (loading || !stats) return <ActivityIndicator style={styles.loader} color={PremiumTheme.colors.goldPrimary} />;
+  const puntos: number = stats?.points ?? 0;
+  const obtainedStamps: string[] = stats?.stamps ?? [];
+  const nivelActual = getNivelActual(puntos);
+  const nivelSig = getNivelSiguiente(puntos);
+  const progPct = nivelActual && nivelSig
+    ? Math.min(((puntos - nivelActual.minPuntos) / (nivelSig.minPuntos - nivelActual.minPuntos)) * 100, 100)
+    : nivelActual ? 100 : 0;
+  const porRegion = getMunicipiosPorRegion();
+  const nombre = state.usuario?.nombre || user?.name || 'Comprador';
+
+  const PAGES = [
+    { id: 'cover',   label: 'Portada',  icon: '📗' },
+    { id: 'norte',   label: 'Norte',    icon: '🗺️' },
+    { id: 'centro',  label: 'Centro',   icon: '🗺️' },
+    { id: 'sur',     label: 'Sur',      icon: '🗺️' },
+    { id: 'premios', label: 'Premios',  icon: '🏆' },
+  ];
 
   return (
-    <LinearGradient colors={[PremiumTheme.colors.bgDark, PremiumTheme.colors.bgMedium]} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scroll}>
+    <SafeAreaView style={s.safe}>
+      <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
 
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>← Volver al Catálogo</Text>
+      <View style={s.topBar}>
+        <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
+          <Text style={s.backIcon}>‹</Text>
+          <Text style={s.backText}>Volver</Text>
         </TouchableOpacity>
-
-        <Text style={styles.title}>PASAPORTE COMPRADOR</Text>
-        <Text style={styles.uid}>ID: {user?.uid.split('-')[2] || user?.uid}</Text>
-
-        <View style={styles.statsContainer}>
-          <View style={styles.glassCard}>
-            <Text style={styles.statValue}>{stats.activeBids}</Text>
-            <Text style={styles.statLabel}>Pujas Activas</Text>
-          </View>
-          <View style={styles.glassCard}>
-            <Text style={styles.statValue}>{stats.lotsWon}</Text>
-            <Text style={styles.statLabel}>Lotes Ganados</Text>
-          </View>
+        <Text style={s.topTitle}>Pasaporte Comprador</Text>
+        <View style={s.stampCount}>
+          <Text style={s.stampCountNum}>{obtainedStamps.length}</Text>
+          <Text style={s.stampCountOf}>/38</Text>
         </View>
+      </View>
 
-        <View style={styles.stampsContainer}>
-          <Text style={styles.stampsTitle}>INSIGNIAS DE SUBASTA</Text>
-          <View style={styles.divider} />
-          <View style={styles.stampsGrid}>
-            {stats.stamps.map((stamp: string, index: number) => (
-              <View key={index} style={styles.stampBadge}>
-                <Text style={styles.stampText}>{stamp}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.tabsScroll} contentContainerStyle={s.tabsContent}>
+        {PAGES.map((p, i) => (
+          <TouchableOpacity
+            key={p.id}
+            style={[s.tab, activePage === i && s.tabActive]}
+            onPress={() => { setActivePage(i); scrollRef.current?.scrollTo({ y: 0, animated: true }); }}
+          >
+            <Text style={[s.tabText, activePage === i && s.tabTextActive]}>{p.icon} {p.label}</Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
-    </LinearGradient>
+
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+
+        {activePage === 0 && (
+          <View>
+            <View style={s.coverWrap}>
+              <LinearGradient colors={[T.leatherDark, T.leather, '#A0714F']} style={s.cover}>
+                <View style={s.embossHeader}>
+                  <View style={s.embossLine} />
+                  <Text style={s.embossCountry}>REPÚBLICA DE COLOMBIA</Text>
+                  <View style={s.embossLine} />
+                </View>
+                <Text style={s.embossTitle}>PASAPORTE CAFETERO</Text>
+                <Text style={s.embossSubtitle}>COMPRADOR INTERNACIONAL</Text>
+                <Text style={s.embossCity}>CHAPARRAL · TOLIMA · 2026</Text>
+
+                <View style={s.seal}>
+                  <Text style={s.sealEmoji}>☕</Text>
+                  <View style={s.sealRing} />
+                  <View style={s.sealRing2} />
+                </View>
+
+                {nivelActual && (
+                  <View style={[s.levelBadge, { backgroundColor: nivelActual.color }]}>
+                    <Text style={s.levelBadgeEmoji}>{nivelActual.emoji}</Text>
+                    <Text style={s.levelBadgeName}>{nivelActual.nombre}</Text>
+                  </View>
+                )}
+              </LinearGradient>
+              <View style={s.spine} />
+            </View>
+
+            <PassportPage title="IDENTIFICACIÓN DEL PORTADOR">
+              <View style={s.idSection}>
+                <View style={s.idAvatar}>
+                  <Text style={s.idAvatarText}>{nombre.charAt(0).toUpperCase()}</Text>
+                </View>
+                <View style={s.idData}>
+                  <Text style={s.idLabel}>NOMBRE COMPLETO</Text>
+                  <Text style={s.idValue}>{nombre.toUpperCase()}</Text>
+                  <Text style={s.idLabel}>ROL</Text>
+                  <Text style={s.idValue}>COMPRADOR INTERNACIONAL</Text>
+                  <Text style={s.idLabel}>ID ÚNICO</Text>
+                  <Text style={s.idValue}>{(user?.uid?.slice(-8) || 'CI26-0000').toUpperCase()}</Text>
+                </View>
+              </View>
+
+              <View style={s.qrSection}>
+                <View style={s.qrBox}>
+                  <Text style={s.qrPattern}>▓▓▓▓▓▓▓{'\n'}▓░░░░░▓{'\n'}▓░▓░░▓▓{'\n'}▓░░░░░▓{'\n'}▓▓▓▓▓▓▓</Text>
+                </View>
+                <View style={s.qrInfo}>
+                  <Text style={s.qrIdLabel}>ID ÚNICO DE PASAPORTE</Text>
+                  <Text style={s.qrId}>{(user?.uid?.slice(-8) || 'CI26-0000').toUpperCase()}</Text>
+                  <Text style={s.qrInstruction}>Muestra este código al vendedor al realizar una compra para obtener tu sello</Text>
+                  <View style={[s.qrDot, { backgroundColor: nivelActual?.color || T.muted }]} />
+                </View>
+              </View>
+
+              <View style={s.progressSection}>
+                <View style={s.ptsRow}>
+                  <View style={s.ptsBox}>
+                    <Text style={s.ptsNum}>{puntos}</Text>
+                    <Text style={s.ptsLabel}>PUNTOS</Text>
+                  </View>
+                  <View style={s.ptsDiv} />
+                  <View style={s.ptsBox}>
+                    <Text style={s.ptsNum}>{obtainedStamps.length}</Text>
+                    <Text style={s.ptsLabel}>SELLOS</Text>
+                  </View>
+                  <View style={s.ptsDiv} />
+                  <View style={s.ptsBox}>
+                    <Text style={s.ptsNum}>{38 - obtainedStamps.length}</Text>
+                    <Text style={s.ptsLabel}>PENDIENTES</Text>
+                  </View>
+                </View>
+                <View style={s.progWrap}>
+                  <View style={s.progBg}>
+                    <View style={[s.progFill, { width: `${progPct}%` as any, backgroundColor: nivelActual?.color || T.gold }]} />
+                  </View>
+                  {nivelSig
+                    ? <Text style={s.progLabel}>{nivelSig.minPuntos - puntos} pts más para: {nivelSig.nombre} {nivelSig.emoji}</Text>
+                    : nivelActual
+                    ? <Text style={[s.progLabel, { color: T.gold }]}>🏆 Nivel máximo alcanzado</Text>
+                    : <Text style={s.progLabel}>Visita un stand y realiza una compra para ganar tu primer punto</Text>
+                  }
+                </View>
+              </View>
+
+              <View style={s.miniAlbum}>
+                <Text style={s.miniAlbumTitle}>PROGRESO DEL ÁLBUM — {obtainedStamps.length} de 38 sellos</Text>
+                <View style={s.miniGrid}>
+                  {MUNICIPIOS.map((mun) => {
+                    const got = obtainedStamps.includes(mun.id);
+                    return (
+                      <View key={mun.id} style={[s.miniCell, got && { backgroundColor: mun.color, borderColor: mun.color }]}>
+                        {got && <Text style={s.miniCellText}>{mun.emoji}</Text>}
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            </PassportPage>
+
+            <View style={s.infoNote}>
+              <Text style={s.infoNoteIcon}>ℹ️</Text>
+              <Text style={s.infoNoteText}>Cada compra en los stands de los 38 municipios cafeteros del Tolima te otorga un sello único. Colecciónalos todos para completar el álbum.</Text>
+            </View>
+          </View>
+        )}
+
+        {[1, 2, 3].includes(activePage) && (() => {
+          const regionKey = (['Norte', 'Centro', 'Sur'] as const)[activePage - 1];
+          const muns = porRegion[regionKey] ?? [];
+          const obtained = muns.filter(m => obtainedStamps.includes(m.id));
+          const pct = Math.round((obtained.length / muns.length) * 100);
+
+          return (
+            <PassportPage title={`REGIÓN ${regionKey.toUpperCase()} — ${obtained.length}/${muns.length} SELLOS`}>
+              <View style={s.regionProg}>
+                <View style={s.regionProgBg}>
+                  <View style={[s.regionProgFill, { width: `${pct}%` as any }]} />
+                </View>
+                <Text style={s.regionProgPct}>{pct}%</Text>
+              </View>
+
+              {pct === 100 && (
+                <View style={s.regionComplete}>
+                  <Text style={s.regionCompleteText}>🏆 ¡Región {regionKey} completada!</Text>
+                </View>
+              )}
+
+              <View style={s.stampsGrid}>
+                {muns.map((mun) => {
+                  const got = obtainedStamps.includes(mun.id);
+                  return (
+                    <View key={mun.id} style={s.stampCell}>
+                      <StampShape mun={mun} size={72} obtained={got} />
+                      <Text style={[s.stampName, { color: got ? mun.color : T.muted }]} numberOfLines={2}>
+                        {got ? mun.nombre : '· · ·'}
+                      </Text>
+                      {got && (
+                        <View style={[s.stampRegionTag, { backgroundColor: mun.color + '20', borderColor: mun.color + '50' }]}>
+                          <Text style={[s.stampRegionTagText, { color: mun.color }]}>✓</Text>
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+
+              {obtained.length > 0 && (
+                <View style={s.detailSection}>
+                  <Text style={s.detailTitle}>MUNICIPIOS VISITADOS</Text>
+                  {obtained.map(mun => (
+                    <View key={mun.id} style={[s.detailRow, { borderLeftColor: mun.color }]}>
+                      <Text style={s.detailEmoji}>{mun.emoji}</Text>
+                      <View style={s.detailInfo}>
+                        <Text style={[s.detailName, { color: mun.color }]}>{mun.nombre}</Text>
+                        <Text style={s.detailRegion}>Región {mun.region} · Municipio cafetero del Tolima</Text>
+                      </View>
+                      <View style={[s.detailSeal, { borderColor: mun.color }]}>
+                        <Text style={[s.detailSealText, { color: mun.color }]}>✓</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </PassportPage>
+          );
+        })()}
+
+        {activePage === 4 && (
+          <PassportPage title="NIVELES Y PREMIOS">
+            <View style={s.premiosIntro}>
+              <Text style={s.premiosIntroText}>
+                Acumula puntos comprando en los stands de la feria. Cada $1.000 COP = 1 punto.
+              </Text>
+            </View>
+            {NIVELES.map((niv, idx) => {
+              const unlocked = nivelActual ? NIVELES.indexOf(nivelActual) >= idx : false;
+              const isCurrent = nivelActual?.id === niv.id;
+              return (
+                <View key={niv.id} style={[s.nivelCard, unlocked && { borderColor: niv.color, backgroundColor: niv.color + '08' }, isCurrent && s.nivelCardCurrent]}>
+                  {isCurrent && <View style={[s.nivelCurrentBadge, { backgroundColor: niv.color }]}><Text style={s.nivelCurrentBadgeText}>TU NIVEL ACTUAL</Text></View>}
+                  <View style={s.nivelTop}>
+                    <View style={[s.nivelIcon, { backgroundColor: unlocked ? niv.color : T.border }]}>
+                      <Text style={s.nivelEmoji}>{unlocked ? niv.emoji : '🔒'}</Text>
+                    </View>
+                    <View style={s.nivelInfo}>
+                      <Text style={[s.nivelName, { color: unlocked ? niv.color : T.muted }]}>{niv.nombre}</Text>
+                      <Text style={s.nivelRange}>{niv.minPuntos} – {niv.maxPuntos > 9000 ? '601+' : niv.maxPuntos} puntos</Text>
+                    </View>
+                    {unlocked && <Text style={[s.nivelCheck, { color: niv.color }]}>✓</Text>}
+                  </View>
+                  <View style={s.nivelBenefs}>
+                    {niv.beneficios.map((b, i) => (
+                      <View key={i} style={s.nivelBenef}>
+                        <Text style={[s.nivelBenefDot, { color: unlocked ? niv.color : T.muted }]}>•</Text>
+                        <Text style={[s.nivelBenefText, !unlocked && { color: T.muted }]}>{b}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              );
+            })}
+          </PassportPage>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
 export default CompradorPasaporteScreen;
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  scroll: { padding: 25, paddingTop: 50 },
-  loader: { flex: 1, justifyContent: 'center', backgroundColor: PremiumTheme.colors.bgDark },
-  backBtn: { marginBottom: 25 },
-  backText: { color: PremiumTheme.colors.goldPrimary, fontWeight: 'bold', fontSize: 14, letterSpacing: 1 },
-  title: { fontSize: 22, fontWeight: 'bold', color: PremiumTheme.colors.textLight, letterSpacing: 2 },
-  uid: { fontSize: 10, color: PremiumTheme.colors.textMuted, marginBottom: 40, letterSpacing: 2 },
-  statsContainer: { flexDirection: 'row', justifyContent: 'space-between', gap: 15, marginBottom: 30 },
-  glassCard: { flex: 1, backgroundColor: PremiumTheme.colors.glassBg, padding: 25, borderRadius: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, alignItems: 'center', ...PremiumTheme.shadows.card },
-  statValue: { fontSize: 36, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary, marginBottom: 5 },
-  statLabel: { fontSize: 12, color: PremiumTheme.colors.textMuted, textTransform: 'uppercase', letterSpacing: 1, textAlign: 'center' },
-  stampsContainer: { backgroundColor: PremiumTheme.colors.glassBg, padding: 25, borderRadius: 15, borderWidth: 1, borderColor: PremiumTheme.colors.glassBorder, ...PremiumTheme.shadows.card },
-  stampsTitle: { fontSize: 14, fontWeight: 'bold', color: PremiumTheme.colors.goldPrimary, letterSpacing: 1 },
-  divider: { height: 1, backgroundColor: PremiumTheme.colors.glassBorder, marginVertical: 15 },
-  stampsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  stampBadge: { backgroundColor: 'transparent', borderWidth: 1, borderColor: PremiumTheme.colors.goldPrimary, paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20 },
-  stampText: { color: PremiumTheme.colors.goldLight, fontWeight: '600', fontSize: 12, letterSpacing: 1 }
+const ss = StyleSheet.create({
+  stampEmpty:    { borderRadius: 10, borderWidth: 1.5, borderColor: T.border, borderStyle: 'dashed', backgroundColor: T.parchment },
+  stampQ:        { color: T.muted, fontWeight: '900', opacity: 0.4 },
+  stampLines:    { position: 'absolute', bottom: 6, left: 6, right: 6, gap: 3 },
+  stampLine:     { height: 1, backgroundColor: T.border },
+  stampObtained: { borderRadius: 10, borderWidth: 2, overflow: 'hidden', position: 'relative' },
+  stampInnerRing:{ position: 'absolute', top: 6, left: 6, right: 6, bottom: 6, borderRadius: 6, borderWidth: 1 },
+  stampEmoji:    { zIndex: 1 },
+  stampInk:      { position: 'absolute', bottom: 5, right: 5, width: 6, height: 6, borderRadius: 3 },
+});
+
+const pg = StyleSheet.create({
+  page:       { backgroundColor: T.parchment, borderRadius: 16, marginBottom: 16, overflow: 'hidden', borderWidth: 1, borderColor: T.parchDark, shadowColor: T.dark, shadowOffset: { width: 2, height: 4 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 4 },
+  pageInner:  { padding: 20, paddingLeft: 28 },
+  pageHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 18, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: T.border },
+  headerLine: { flex: 1, height: 1, backgroundColor: T.gold + '60' },
+  pageTitle:  { fontSize: 10, fontWeight: '900', color: T.gold, letterSpacing: 2.5, textTransform: 'uppercase' },
+  pageBinding:{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 8, backgroundColor: T.leather, opacity: 0.7 },
+});
+
+const s = StyleSheet.create({
+  safe:         { flex: 1, backgroundColor: T.bg },
+  topBar:       { flexDirection: 'row', alignItems: 'center', padding: 16, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: T.parchDark },
+  backBtn:      { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 4 },
+  backIcon:     { fontSize: 28, color: T.leather, lineHeight: 32, fontWeight: '300' },
+  backText:     { fontSize: 15, color: T.leather, fontWeight: '600' },
+  topTitle:     { flex: 1, textAlign: 'center', fontSize: 15, fontWeight: '900', color: T.dark },
+  stampCount:   { flexDirection: 'row', alignItems: 'baseline', gap: 1 },
+  stampCountNum:{ fontSize: 20, fontWeight: '900', color: T.gold },
+  stampCountOf: { fontSize: 13, color: T.muted },
+  tabsScroll:   { backgroundColor: T.parchment, borderBottomWidth: 1, borderBottomColor: T.parchDark },
+  tabsContent:  { paddingHorizontal: 12, paddingVertical: 8, gap: 6 },
+  tab:          { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, backgroundColor: T.card, borderWidth: 1, borderColor: T.border },
+  tabActive:    { backgroundColor: T.leather, borderColor: T.leather },
+  tabText:      { fontSize: 12, fontWeight: '700', color: T.muted },
+  tabTextActive:{ color: '#FFF' },
+  scroll:       { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 },
+  coverWrap:    { position: 'relative', marginBottom: 16 },
+  cover:        { borderRadius: 16, padding: 28, alignItems: 'center', minHeight: 280, justifyContent: 'center', overflow: 'hidden', shadowColor: T.dark, shadowOffset: { width: 4, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
+  embossHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6, width: '80%' },
+  embossLine:   { flex: 1, height: 0.5, backgroundColor: 'rgba(255,255,255,0.4)' },
+  embossCountry:{ fontSize: 8, fontWeight: '900', color: 'rgba(255,255,255,0.7)', letterSpacing: 2.5 },
+  embossTitle:  { fontSize: 26, fontWeight: '900', color: T.goldPale, letterSpacing: 3, textAlign: 'center', marginBottom: 4 },
+  embossSubtitle:{ fontSize: 11, color: 'rgba(255,255,255,0.7)', letterSpacing: 2, textAlign: 'center', marginBottom: 2 },
+  embossCity:   { fontSize: 10, color: 'rgba(255,255,255,0.55)', letterSpacing: 3, textAlign: 'center', marginBottom: 20 },
+  seal:         { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  sealEmoji:    { fontSize: 36, zIndex: 1 },
+  sealRing:     { position: 'absolute', top: 6, left: 6, right: 6, bottom: 6, borderRadius: 34, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
+  sealRing2:    { position: 'absolute', top: 14, left: 14, right: 14, bottom: 14, borderRadius: 26, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  levelBadge:   { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center' },
+  levelBadgeEmoji: { fontSize: 18 },
+  levelBadgeName: { fontSize: 10, fontWeight: '900', color: T.dark, letterSpacing: 1 },
+  spine:        { position: 'absolute', left: 0, top: 0, bottom: 0, width: 10, backgroundColor: T.leatherDark, borderTopLeftRadius: 16, borderBottomLeftRadius: 16 },
+  idSection:    { flexDirection: 'row', gap: 14, marginBottom: 18 },
+  idAvatar:     { width: 70, height: 90, borderRadius: 10, backgroundColor: T.leather, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: T.gold + '60' },
+  idAvatarText: { fontSize: 32, fontWeight: '900', color: T.goldPale },
+  idData:       { flex: 1 },
+  idLabel:      { fontSize: 8, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 2, marginTop: 6 },
+  idValue:      { fontSize: 12, fontWeight: '800', color: T.ink, letterSpacing: 0.5 },
+  qrSection:    { flexDirection: 'row', gap: 14, marginBottom: 18, alignItems: 'center' },
+  qrBox:        { width: 80, height: 80, backgroundColor: '#FFF', borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: T.border, padding: 6 },
+  qrPattern:    { fontSize: 8.5, color: T.ink, fontWeight: '900', lineHeight: 13, letterSpacing: 0.5, fontFamily: 'monospace' },
+  qrInfo:       { flex: 1 },
+  qrIdLabel:    { fontSize: 7, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 4 },
+  qrId:         { fontSize: 18, fontWeight: '900', color: T.ink, letterSpacing: 2, marginBottom: 4 },
+  qrInstruction:{ fontSize: 10, color: T.muted, lineHeight: 14 },
+  qrDot:        { width: 8, height: 8, borderRadius: 4, marginTop: 8 },
+  progressSection: { marginBottom: 18 },
+  ptsRow:       { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 14 },
+  ptsBox:       { alignItems: 'center' },
+  ptsNum:       { fontSize: 28, fontWeight: '900', color: T.gold },
+  ptsLabel:     { fontSize: 8, fontWeight: '900', color: T.muted, letterSpacing: 2, marginTop: 2 },
+  ptsDiv:       { width: 1, backgroundColor: T.border, alignSelf: 'stretch' },
+  progWrap:     { gap: 6 },
+  progBg:       { height: 8, backgroundColor: T.parchDark, borderRadius: 4, overflow: 'hidden' },
+  progFill:     { height: '100%', borderRadius: 4 },
+  progLabel:    { fontSize: 11, color: T.muted, textAlign: 'center' },
+  miniAlbum:    { marginTop: 4 },
+  miniAlbumTitle: { fontSize: 9, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 10 },
+  miniGrid:     { flexDirection: 'row', flexWrap: 'wrap', gap: 4 },
+  miniCell:     { width: 18, height: 18, borderRadius: 4, backgroundColor: T.parchDark, borderWidth: 1, borderColor: T.border, alignItems: 'center', justifyContent: 'center' },
+  miniCellText: { fontSize: 9 },
+  infoNote:     { flexDirection: 'row', gap: 8, backgroundColor: T.parchment, borderRadius: 12, padding: 14, marginTop: 4, borderWidth: 1, borderColor: T.border },
+  infoNoteIcon: { fontSize: 16 },
+  infoNoteText: { flex: 1, fontSize: 11, color: T.body, lineHeight: 16 },
+  regionProg:   { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
+  regionProgBg: { flex: 1, height: 8, backgroundColor: T.parchDark, borderRadius: 4, overflow: 'hidden' },
+  regionProgFill: { height: '100%', backgroundColor: T.gold, borderRadius: 4 },
+  regionProgPct:{ fontSize: 13, fontWeight: '900', color: T.gold, width: 38, textAlign: 'right' },
+  regionComplete: { backgroundColor: T.goldPale, borderRadius: 10, padding: 10, marginBottom: 14, borderWidth: 1, borderColor: T.gold + '50', alignItems: 'center' },
+  regionCompleteText: { fontSize: 13, fontWeight: '900', color: T.gold },
+  stampsGrid:   { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  stampCell:    { alignItems: 'center', width: (width - 90) / 4 },
+  stampName:    { fontSize: 9, fontWeight: '700', textAlign: 'center', marginTop: 5, letterSpacing: 0.3 },
+  stampRegionTag: { marginTop: 3, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2, borderWidth: 1 },
+  stampRegionTagText: { fontSize: 9, fontWeight: '900' },
+  detailSection:{ marginTop: 8 },
+  detailTitle:  { fontSize: 9, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 8 },
+  detailRow:    { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8, borderLeftWidth: 3, paddingLeft: 10, paddingVertical: 6 },
+  detailEmoji:  { fontSize: 20 },
+  detailInfo:   { flex: 1 },
+  detailName:   { fontSize: 13, fontWeight: '800' },
+  detailRegion: { fontSize: 10, color: T.muted, marginTop: 1 },
+  detailSeal:   { width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  detailSealText: { fontSize: 13, fontWeight: '900' },
+  premiosIntro: { backgroundColor: T.goldPale, borderRadius: 10, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: T.gold + '40' },
+  premiosIntroText: { fontSize: 12, color: T.body, lineHeight: 18, textAlign: 'center' },
+  nivelCard:    { borderRadius: 14, borderWidth: 1, borderColor: T.border, padding: 14, marginBottom: 12, backgroundColor: T.card },
+  nivelCardCurrent: { shadowColor: T.gold, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 4 },
+  nivelCurrentBadge: { position: 'absolute', top: -1, right: 12, borderBottomLeftRadius: 8, borderBottomRightRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  nivelCurrentBadgeText: { fontSize: 8, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
+  nivelTop:     { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
+  nivelIcon:    { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  nivelEmoji:   { fontSize: 22 },
+  nivelInfo:    { flex: 1 },
+  nivelName:    { fontSize: 15, fontWeight: '900' },
+  nivelRange:   { fontSize: 11, color: T.muted, marginTop: 2 },
+  nivelCheck:   { fontSize: 20, fontWeight: '900' },
+  nivelBenefs:  { gap: 4 },
+  nivelBenef:   { flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
+  nivelBenefDot:{ fontSize: 13, fontWeight: '900', lineHeight: 18 },
+  nivelBenefText: { fontSize: 12, color: T.body, flex: 1, lineHeight: 18 },
 });

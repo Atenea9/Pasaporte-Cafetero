@@ -39,12 +39,25 @@ export interface Notificacion {
   leida: boolean;
 }
 
+export interface CatalogoProducto {
+  id: string;
+  nombre: string;
+  descripcion: string;
+  precio: string;
+  categoria: string;
+  caracteristicas: string[];
+  disponible: boolean;
+  standNombre?: string;
+  municipioId?: string;
+}
+
 export interface AppState {
   usuario: Usuario | null;
   transacciones: Transaccion[];
   stands: any[];
   happyHour: boolean;
   notificaciones: Notificacion[];
+  catalogoProductos: CatalogoProducto[];
 }
 
 type Action =
@@ -54,14 +67,11 @@ type Action =
   | { type: 'SUMAR_PUNTOS'; payload: number }
   | { type: 'TOGGLE_HAPPY_HOUR' }
   | { type: 'AGREGAR_NOTIF'; payload: Notificacion }
-  | { type: 'RESTORE_STATE'; payload: AppState };
-
-const DEMO_USER: Usuario = {
-  cedula: '1107654321', nombre: 'Carlos Andrés Rojas',
-  whatsapp: '3156789012', municipio: 'Chaparral',
-  departamento: 'Tolima', puntos: 320, nivel: 'Conocedor',
-  sellos: ['Ibagué', 'Planadas', 'Chaparral'], creadoEn: Date.now(),
-};
+  | { type: 'RESTORE_STATE'; payload: AppState }
+  | { type: 'AGREGAR_PRODUCTO'; payload: CatalogoProducto }
+  | { type: 'EDITAR_PRODUCTO'; payload: CatalogoProducto }
+  | { type: 'ELIMINAR_PRODUCTO'; payload: string }
+  | { type: 'TOGGLE_DISPONIBLE_PRODUCTO'; payload: string };
 
 const initialState: AppState = {
   usuario: null,
@@ -69,6 +79,7 @@ const initialState: AppState = {
   stands: STANDS,
   happyHour: false,
   notificaciones: [],
+  catalogoProductos: [],
 };
 
 function appReducer(state: AppState, action: Action): AppState {
@@ -101,8 +112,30 @@ function appReducer(state: AppState, action: Action): AppState {
         ...state,
         ...restored,
         usuario: restored.usuario ?? state.usuario,
+        catalogoProductos: restored.catalogoProductos ?? [],
       };
     }
+    case 'AGREGAR_PRODUCTO':
+      return { ...state, catalogoProductos: [...state.catalogoProductos, action.payload] };
+    case 'EDITAR_PRODUCTO':
+      return {
+        ...state,
+        catalogoProductos: state.catalogoProductos.map(p =>
+          p.id === action.payload.id ? action.payload : p
+        ),
+      };
+    case 'ELIMINAR_PRODUCTO':
+      return {
+        ...state,
+        catalogoProductos: state.catalogoProductos.filter(p => p.id !== action.payload),
+      };
+    case 'TOGGLE_DISPONIBLE_PRODUCTO':
+      return {
+        ...state,
+        catalogoProductos: state.catalogoProductos.map(p =>
+          p.id === action.payload ? { ...p, disponible: !p.disponible } : p
+        ),
+      };
     default:
       return state;
   }

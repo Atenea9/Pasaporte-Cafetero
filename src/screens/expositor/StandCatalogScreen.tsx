@@ -6,6 +6,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { ExpositorNavProp } from '../../navigation/types';
+import { useApp } from '../../context/AppContext';
+import type { CatalogoProducto } from '../../context/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const T = {
   bg: '#FAF7F0', card: '#FFFFFF', dark: '#2C1810', body: '#4A3728',
@@ -13,26 +16,20 @@ const T = {
   green: '#2D5A1E', greenPale: '#E8F2E4', border: '#E8D5B0', accent: '#C0392B',
 };
 
-interface Producto {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  precio: string;
-  categoria: string;
-  caracteristicas: string[];
-  disponible: boolean;
-}
-
 const CATEGORIAS = ['☕ Café', '🫙 Procesados', '🎨 Artesanías', '🍽️ Gastronomía', '🌿 Aromáticas', '🎁 Kits', '📦 Otros'];
 
 export default function StandCatalogScreen() {
   const nav = useNavigation<ExpositorNavProp>();
-  const [productos, setProductos] = useState<Producto[]>([]);
+  const { state, dispatch } = useApp();
+  const { user } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
-  const [editing, setEditing] = useState<Producto | null>(null);
-
+  const [editing, setEditing] = useState<CatalogoProducto | null>(null);
   const [form, setForm] = useState({ nombre: '', descripcion: '', precio: '', categoria: '☕ Café', caracteristica: '' });
   const [caracteristicas, setCaracteristicas] = useState<string[]>([]);
+
+  const misProductos = state.catalogoProductos.filter(
+    p => !p.standNombre || p.standNombre === (user?.name ?? 'Mi Stand')
+  );
 
   const openNew = () => {
     setEditing(null);
@@ -41,7 +38,7 @@ export default function StandCatalogScreen() {
     setModalOpen(true);
   };
 
-  const openEdit = (p: Producto) => {
+  const openEdit = (p: CatalogoProducto) => {
     setEditing(p);
     setForm({ nombre: p.nombre, descripcion: p.descripcion, precio: p.precio, categoria: p.categoria, caracteristica: '' });
     setCaracteristicas([...p.caracteristicas]);
@@ -60,19 +57,21 @@ export default function StandCatalogScreen() {
       Alert.alert('Campos requeridos', 'El nombre y el precio son obligatorios.');
       return;
     }
-    const producto: Producto = {
+    const producto: CatalogoProducto = {
       id: editing?.id || Date.now().toString(),
       nombre: form.nombre.trim(),
       descripcion: form.descripcion.trim(),
       precio: form.precio.trim(),
       categoria: form.categoria,
       caracteristicas,
-      disponible: true,
+      disponible: editing?.disponible ?? true,
+      standNombre: user?.name ?? 'Mi Stand',
+      municipioId: undefined,
     };
     if (editing) {
-      setProductos(ps => ps.map(p => p.id === editing.id ? producto : p));
+      dispatch({ type: 'EDITAR_PRODUCTO', payload: producto });
     } else {
-      setProductos(ps => [...ps, producto]);
+      dispatch({ type: 'AGREGAR_PRODUCTO', payload: producto });
     }
     setModalOpen(false);
   };
@@ -80,12 +79,12 @@ export default function StandCatalogScreen() {
   const deleteProducto = (id: string) => {
     Alert.alert('Eliminar producto', '¿Seguro que deseas eliminar este producto?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => setProductos(ps => ps.filter(p => p.id !== id)) },
+      { text: 'Eliminar', style: 'destructive', onPress: () => dispatch({ type: 'ELIMINAR_PRODUCTO', payload: id }) },
     ]);
   };
 
   const toggleDisponible = (id: string) => {
-    setProductos(ps => ps.map(p => p.id === id ? { ...p, disponible: !p.disponible } : p));
+    dispatch({ type: 'TOGGLE_DISPONIBLE_PRODUCTO', payload: id });
   };
 
   return (
@@ -93,7 +92,6 @@ export default function StandCatalogScreen() {
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
       <View style={s.container}>
 
-        {/* Header */}
         <View style={s.topBar}>
           <TouchableOpacity style={s.backBtn} onPress={() => nav.goBack()}>
             <Text style={s.backIcon}>‹</Text>
@@ -106,14 +104,13 @@ export default function StandCatalogScreen() {
         </View>
 
         <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-          {/* Info banner */}
           <View style={s.infoBanner}>
             <Text style={s.infoBannerText}>
               📢 Los visitantes y compradores internacionales podrán ver tu catálogo completo desde su app.
             </Text>
           </View>
 
-          {productos.length === 0 ? (
+          {misProductos.length === 0 ? (
             <View style={s.emptyState}>
               <Text style={s.emptyEmoji}>📦</Text>
               <Text style={s.emptyTitle}>Sin productos aún</Text>
@@ -123,7 +120,7 @@ export default function StandCatalogScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            productos.map((prod) => (
+            misProductos.map((prod) => (
               <View key={prod.id} style={[s.prodCard, !prod.disponible && s.prodCardInactive]}>
                 <View style={s.prodHeader}>
                   <View style={s.prodCategBadge}>
@@ -160,7 +157,6 @@ export default function StandCatalogScreen() {
           )}
         </ScrollView>
 
-        {/* Modal Form */}
         <Modal visible={modalOpen} animationType="slide" transparent>
           <View style={s.modalOverlay}>
             <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={s.modalWrap}>

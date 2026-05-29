@@ -19,6 +19,7 @@ export type VisitanteStackParamList = {
   Agenda: undefined;
   MapaFeria: undefined;
   Auspiciadores: undefined;
+  Catalogo: undefined;
 };
 
 export type ExpositorStackParamList = {
@@ -45,6 +46,7 @@ export type CompradorStackParamList = {
   Agenda: undefined;
   MapaFeria: undefined;
   Auspiciadores: undefined;
+  Catalogo: undefined;
 };
 
 export type AdminStackParamList = {
