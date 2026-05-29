@@ -9,17 +9,14 @@ import SplashScreen from './src/screens/SplashScreen';
 
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
-  const [langReady, setLangReady] = useState(false);
 
   useEffect(() => {
-    initSavedLanguage().finally(() => setLangReady(true));
+    initSavedLanguage();
   }, []);
 
   if (!splashDone) {
     return <SplashScreen onFinish={() => setSplashDone(true)} />;
   }
-
-  if (!langReady) return null;
 
   return (
     <AppProvider>

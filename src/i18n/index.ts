@@ -48,7 +48,7 @@ export async function initSavedLanguage(): Promise<void> {
   try {
     const saved = await AsyncStorage.getItem(LANG_STORAGE_KEY);
     if (saved && SUPPORTED.includes(saved as SupportedLang)) {
-      await i18n.changeLanguage(saved);
+      i18n.changeLanguage(saved);
     }
   } catch {
   }
