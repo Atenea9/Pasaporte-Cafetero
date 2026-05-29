@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { VisitanteStackParamList } from '../navigation/types';
+import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
 import CedulaScanner, { ScannedData } from '../components/CedulaScanner';
 
@@ -30,6 +31,7 @@ const T = {
 export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => void }) {
   const { dispatch, state } = useApp();
   const navigation = useNavigation<NativeStackNavigationProp<VisitanteStackParamList>>();
+  const { t } = useTranslation();
 
   const [cedula,   setCedula]   = useState('');
   const [nombre,   setNombre]   = useState('');
@@ -72,15 +74,15 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
 
   const registrar = () => {
     if (!cedula || !nombre || !whatsapp || !pais || !estado || !ciudad) {
-      Alert.alert('Campos incompletos', 'Por favor completa todos los campos para crear tu pasaporte.');
+      Alert.alert(t('registration.incomplete_fields', 'Campos incompletos'), t('registration.fill_all_fields', 'Por favor completa todos los campos para crear tu pasaporte.'));
       return;
     }
     if (!termsOk) {
-      Alert.alert('Términos requeridos', 'Debes aceptar los Términos y Condiciones para continuar.');
+      Alert.alert(t('registration.terms_required_title', 'Términos requeridos'), t('registration.terms_required', 'Debes aceptar los Términos y Condiciones para continuar.'));
       return;
     }
     if (!dataOk) {
-      Alert.alert('Autorización requerida', 'Debes autorizar el tratamiento de tus datos personales para continuar.');
+      Alert.alert(t('registration.data_required_title', 'Autorización requerida'), t('registration.data_required', 'Debes autorizar el tratamiento de tus datos personales para continuar.'));
       return;
     }
     setLoading(true);
@@ -108,18 +110,22 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
 
           {/* Back + Header */}
           <View style={s.topBar}>
-            <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+            <TouchableOpacity style={s.backBtn} onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Inicio')}>
               <Text style={s.backIcon}>‹</Text>
-              <Text style={s.backText}>Volver</Text>
+              <Text style={s.backText}>{t('common.back', '‹ Volver').replace('‹ ', '')}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Hero */}
           <LinearGradient colors={[T.green, T.greenLight, T.green]} style={s.hero}>
             <Text style={s.heroEmoji}>📗</Text>
-            <Text style={s.heroTitle}>CREA TU PASAPORTE{'\n'}CAFETERO</Text>
+            <Text style={s.heroTitle}>{t('registration.title', 'CREA TU PASAPORTE CAFETERO')}</Text>
             <View style={s.heroPills}>
-              {['Sellos', 'Puntos', 'Premios'].map(p => (
+              {[
+                t('common.stamps', 'Sellos'),
+                t('common.points', 'Puntos'),
+                t('ranking.tab_prizes', 'Premios'),
+              ].map(p => (
                 <View key={p} style={s.heroPill}><Text style={s.heroPillText}>{p}</Text></View>
               ))}
             </View>
@@ -132,10 +138,10 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
               backgroundColor: prizeShimmer.interpolate({ inputRange: [0, 1], outputRange: [T.goldPale, '#FFF8E0'] }),
               borderColor: prizeShimmer.interpolate({ inputRange: [0, 1], outputRange: [T.gold + '60', T.gold] }),
             }]}>
-              <Text style={s.prizeTop}>🏆 ¿POR QUÉ REGISTRARTE?</Text>
+              <Text style={s.prizeTop}>{t('registration.why_register', '🏆 ¿POR QUÉ REGISTRARTE?')}</Text>
               <Text style={s.prizeMain}>
-                Regístrate en <Text style={s.prizeAccent}>menos de 30 segundos</Text> y empieza a{'\n'}
-                <Text style={s.prizeHighlight}>coleccionar sellos</Text>  ·  <Text style={s.prizeHighlight}>sumar puntos</Text>  ·  <Text style={s.prizeHighlight}>ganar premios</Text>
+                {t('registration.subtitle', 'Regístrate en')} <Text style={s.prizeAccent}>{t('registration.less_30_sec', 'menos de 30 segundos')}</Text>{'\n'}
+                <Text style={s.prizeHighlight}>{t('registration.scan_button', 'Sellos')}</Text>{'  ·  '}<Text style={s.prizeHighlight}>{t('common.points', 'Puntos')}</Text>{'  ·  '}<Text style={s.prizeHighlight}>{t('ranking.tab_prizes', 'Premios')}</Text>
               </Text>
             </Animated.View>
 
@@ -145,25 +151,25 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
                 <Text style={s.scanIconBig}>📷</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={s.scanTitle}>ESCANEAR DOCUMENTO</Text>
-                <Text style={s.scanSub}>Cédula · Pasaporte · DNI · ID extranjero</Text>
-                <Text style={s.scanDetail}>Auto-completa nombre, documento, país y ciudad</Text>
+                <Text style={s.scanTitle}>{t('registration.scan_button', 'ESCANEAR DOCUMENTO')}</Text>
+                <Text style={s.scanSub}>{t('registration.scan_sub', 'Cédula · Pasaporte · DNI · ID extranjero')}</Text>
+                <Text style={s.scanDetail}>{t('registration.scan_detail', 'Auto-completa nombre, documento, país y ciudad')}</Text>
               </View>
               <Text style={s.scanArrow}>›</Text>
             </TouchableOpacity>
 
             {scannedOk && (
               <Animated.View style={[s.scannedBadge, { transform: [{ scale: scanSuccessScale }] }]}>
-                <Text style={s.scannedText}>✅ Documento leído — solo falta tu WhatsApp</Text>
+                <Text style={s.scannedText}>{t('registration.scanned_ok', '✅ Documento leído — solo falta tu WhatsApp')}</Text>
               </Animated.View>
             )}
 
-            <Text style={s.orText}>— o ingresa los datos manualmente —</Text>
+            <Text style={s.orText}>{t('registration.or_manual', '— o ingresa los datos manualmente —')}</Text>
 
             {/* Fields */}
             {[
-              { label: 'NÚMERO DE CÉDULA / DOCUMENTO / PASAPORTE', val: cedula, set: setCedula, ph: 'Ej: 1107654321 · A12345678', kb: 'default' as const },
-              { label: 'NOMBRE COMPLETO', val: nombre, set: setNombre, ph: 'Ej: Carlos Andrés Rojas', kb: 'default' as const, autoCapitalize: 'words' as const },
+              { label: t('registration.id_label', 'NÚMERO DE CÉDULA / DOCUMENTO / PASAPORTE'), val: cedula, set: setCedula, ph: t('registration.id_placeholder', 'Ej: 1107654321 · A12345678'), kb: 'default' as const },
+              { label: t('registration.name_label', 'NOMBRE COMPLETO'), val: nombre, set: setNombre, ph: t('registration.name_placeholder', 'Ej: Carlos Andrés Rojas'), kb: 'default' as const, autoCapitalize: 'words' as const },
             ].map(f => (
               <View key={f.label} style={s.fieldGroup}>
                 <Text style={s.label}>{f.label}</Text>
@@ -173,30 +179,30 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
 
             <View style={[s.fieldGroup, scannedOk && s.fieldGroupHighlight]}>
               <Text style={[s.label, scannedOk && s.labelHighlight]}>
-                {scannedOk ? '📲 WHATSAPP — ¡SOLO FALTA ESTE CAMPO!' : 'NÚMERO DE WHATSAPP (con código de país)'}
+                {scannedOk ? t('registration.whatsapp_highlight', '📲 WHATSAPP — ¡SOLO FALTA ESTE CAMPO!') : t('registration.whatsapp_label', 'NÚMERO DE WHATSAPP (con código de país)')}
               </Text>
               <TextInput
                 style={[s.input, scannedOk && s.inputHighlight]}
                 value={whatsapp}
                 onChangeText={setWhatsapp}
-                placeholder="Ej: +573156789012  /  +12025550123"
+                placeholder={t('registration.whatsapp_placeholder', 'Ej: +573156789012')}
                 placeholderTextColor={T.muted}
                 keyboardType="phone-pad"
                 autoFocus={scannedOk}
               />
-              <Text style={s.fieldHint}>Incluye el código de país · Ej: +57 Colombia, +1 EE.UU., +55 Brasil</Text>
+              <Text style={s.fieldHint}>{t('registration.whatsapp_hint', 'Incluye el código de país · Ej: +57 Colombia, +1 EE.UU., +55 Brasil')}</Text>
             </View>
 
             <View style={s.sectionDiv}>
               <View style={s.sectionLine} />
-              <Text style={s.sectionLbl}>📍 UBICACIÓN</Text>
+              <Text style={s.sectionLbl}>{t('registration.location_section', '📍 UBICACIÓN')}</Text>
               <View style={s.sectionLine} />
             </View>
 
             {[
-              { label: 'PAÍS', val: pais, set: setPais, ph: 'Ej: Colombia, México, España...' },
-              { label: 'DEPARTAMENTO / ESTADO / PROVINCIA', val: estado, set: setEstado, ph: 'Ej: Tolima, Cundinamarca, Texas...' },
-              { label: 'CIUDAD / MUNICIPIO', val: ciudad, set: setCiudad, ph: 'Ej: Chaparral, Bogotá, Miami...' },
+              { label: t('registration.country_label', 'PAÍS'), val: pais, set: setPais, ph: 'Colombia, México, España...' },
+              { label: t('registration.department_label', 'DEPARTAMENTO / ESTADO / PROVINCIA'), val: estado, set: setEstado, ph: 'Tolima, Cundinamarca, Texas...' },
+              { label: t('registration.city_label', 'CIUDAD / MUNICIPIO'), val: ciudad, set: setCiudad, ph: 'Chaparral, Bogotá, Miami...' },
             ].map(f => (
               <View key={f.label} style={s.fieldGroup}>
                 <Text style={s.label}>{f.label}</Text>
@@ -207,7 +213,7 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
             {/* Preview */}
             {nombre.length > 0 && (
               <View style={s.preview}>
-                <Text style={s.previewTitle}>VISTA PREVIA DE TU PASAPORTE</Text>
+                <Text style={s.previewTitle}>{t('registration.preview_title', 'VISTA PREVIA DE TU PASAPORTE')}</Text>
                 <View style={s.previewCard}>
                   <View style={s.previewAvatar}>
                     <Text style={s.previewAvatarText}>{nombre.charAt(0).toUpperCase()}</Text>
@@ -226,13 +232,13 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
 
             <View style={s.sectionDiv}>
               <View style={s.sectionLine} />
-              <Text style={s.sectionLbl}>📋 AUTORIZACIÓN</Text>
+              <Text style={s.sectionLbl}>{t('registration.terms_section', '📋 AUTORIZACIÓN')}</Text>
               <View style={s.sectionLine} />
             </View>
 
             {[
-              { checked: termsOk, toggle: () => setTermsOk(v => !v), text: 'Acepto los ', link: 'Términos y Condiciones', rest: ' de la Feria Internacional de Café de Chaparral, Tolima 2026.' },
-              { checked: dataOk,  toggle: () => setDataOk(v => !v),  text: 'Autorizo el tratamiento de mis datos personales conforme a la ', link: 'Ley 1581 de 2012', rest: ' (Habeas Data) de la República de Colombia.' },
+              { checked: termsOk, toggle: () => setTermsOk(v => !v), text: t('registration.terms_accept','Acepto los '), link: t('registration.terms_link','Términos y Condiciones'), rest: t('registration.terms_end',' de la Feria Internacional de Café de Chaparral, Tolima 2026.') },
+              { checked: dataOk,  toggle: () => setDataOk(v => !v),  text: t('registration.data_auth','Autorizo el tratamiento de mis datos personales conforme a la '), link: t('registration.data_link','Ley 1581 de 2012'), rest: t('registration.data_end',' (Habeas Data) de la República de Colombia.') },
             ].map((c, i) => (
               <TouchableOpacity key={i} style={s.checkRow} onPress={c.toggle} activeOpacity={0.75}>
                 <View style={[s.checkbox, c.checked && s.checkboxChecked]}>
@@ -251,7 +257,7 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
               disabled={loading}
             >
               <Text style={s.createBtnText}>
-                {loading ? '⏳ CREANDO TU PASAPORTE...' : '🎉 CREAR MI PASAPORTE CAFETERO'}
+                {loading ? t('registration.creating', '⏳ CREANDO TU PASAPORTE...') : t('registration.create_button', '🎉 CREAR MI PASAPORTE CAFETERO')}
               </Text>
             </TouchableOpacity>
 

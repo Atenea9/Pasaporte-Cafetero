@@ -89,28 +89,28 @@ export const HomeScreen = () => {
         {/* Header */}
         <View style={s.header}>
           <View style={{ flex: 1 }}>
-            <Text style={s.greeting}>¡Hola, {user?.name?.split(' ')[0] || 'Cafetero'} 👋</Text>
-            <Text style={s.headerSub}>Feria Internacional del Café · Chaparral 2026</Text>
+            <Text style={s.greeting}>{t('home.greeting', '¡Hola,')} {user?.name?.split(' ')[0] || 'Cafetero'} 👋</Text>
+            <Text style={s.headerSub}>{t('login.fair_name', 'Feria Internacional del Café')} · Chaparral 2026</Text>
           </View>
           <TouchableOpacity onPress={logout} style={s.logoutBtn}>
-            <Text style={s.logoutText}>Salir</Text>
+            <Text style={s.logoutText}>{t('home.logout', 'Salir')}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Happy Hour */}
         {stats.happyHour && (
           <LinearGradient colors={[T.amber, T.amberLight]} style={s.hhBanner}>
-            <Text style={s.hhText}>✨ HAPPY HOUR — PUNTOS DOBLES ✨</Text>
+            <Text style={s.hhText}>{t('home.happy_hour_active', '✨ HAPPY HOUR — PUNTOS DOBLES ✨')}</Text>
           </LinearGradient>
         )}
 
         {/* Stats Strip */}
         <View style={s.statsStrip}>
           {[
-            { val: stats.visitorCount, lbl: 'visitantes' },
-            { val: stats.activeStands, lbl: 'stands activos' },
-            { val: puntos,             lbl: 'puntos' },
-            { val: stampsCount,        lbl: 'sellos' },
+            { val: stats.visitorCount, lbl: t('home.visitors_label', 'visitantes') },
+            { val: stats.activeStands, lbl: t('home.stands_label', 'stands activos') },
+            { val: puntos,             lbl: t('home.pts_label', 'puntos') },
+            { val: stampsCount,        lbl: t('home.stamps_label', 'sellos') },
           ].map((item, i) => (
             <React.Fragment key={i}>
               {i > 0 && <View style={s.statDiv} />}
@@ -131,9 +131,9 @@ export const HomeScreen = () => {
             />
             <View style={s.levelRow}>
               <View style={{ flex: 1 }}>
-                <Text style={s.levelLabel}>TU NIVEL</Text>
+                <Text style={s.levelLabel}>{t('home.your_level_title', 'TU NIVEL')}</Text>
                 <Text style={[s.levelName, { color: nivelActual?.color ?? T.muted }]}>
-                  {nivelActual ? `${nivelActual.emoji}  ${nivelActual.nombre}` : '☕  ¡Haz tu primera compra!'}
+                  {nivelActual ? `${nivelActual.emoji}  ${nivelActual.nombre}` : `☕  ${t('home.no_level', '¡Haz tu primera compra!')}`}
                 </Text>
                 {nivelSig && <Text style={s.levelNext}>{nivelSig.minPuntos - puntos} pts → {nivelSig.nombre}</Text>}
               </View>
@@ -145,7 +145,7 @@ export const HomeScreen = () => {
             <View style={s.progBg}>
               <View style={[s.progFill, { width: `${progressPct}%` as any, backgroundColor: nivelActual?.color ?? T.amber }]} />
             </View>
-            <Text style={s.progExpl}>$1.000 COP = 1 punto</Text>
+            <Text style={s.progExpl}>{t('home.pts_explain', '$1.000 COP = 1 punto')}</Text>
           </View>
         </Animated.View>
 
@@ -154,10 +154,10 @@ export const HomeScreen = () => {
           <LinearGradient colors={[T.coffeeDark, T.coffee, '#A0663C']} style={StyleSheet.absoluteFill} />
           <View style={{ flex: 1 }}>
             <View style={s.passBadge}>
-              <Text style={s.passBadgeText}>✦ PASAPORTE</Text>
+              <Text style={s.passBadgeText}>{t('home.passport_badge', '✦ PASAPORTE')}</Text>
             </View>
             <Text style={s.passStamps}>{stampsCount} / 38</Text>
-            <Text style={s.passSub}>municipios cafeteros del Tolima</Text>
+            <Text style={s.passSub}>{t('home.municipalities_label', 'municipios cafeteros del Tolima')}</Text>
           </View>
           <View style={s.miniGrid}>
             {Array.from({ length: 15 }).map((_, i) => (
@@ -172,12 +172,12 @@ export const HomeScreen = () => {
           <View style={s.prizeRow}>
             <View style={[s.prizeCard, { borderColor: T.amber }]}>
               <LinearGradient colors={[T.amberPale, T.card]} style={StyleSheet.absoluteFill} />
-              <Text style={s.prizeLbl}>🏆 TU PREMIO</Text>
+              <Text style={s.prizeLbl}>{t('home.prize_yours', '🏆 TU PREMIO')}</Text>
               <Text style={s.prizeVal}>{PREMIO_LABEL[nivelActual.premioKey]}</Text>
             </View>
             {nivelSig && (
               <View style={[s.prizeCard, { borderColor: T.border }]}>
-                <Text style={[s.prizeLbl, { color: T.muted }]}>⬆ PRÓXIMO</Text>
+                <Text style={[s.prizeLbl, { color: T.muted }]}>{t('home.prize_next', '⬆ PRÓXIMO')}</Text>
                 <Text style={[s.prizeVal, { color: T.muted }]}>{PREMIO_LABEL[nivelSig.premioKey]}</Text>
               </View>
             )}
@@ -186,7 +186,7 @@ export const HomeScreen = () => {
 
         {/* Top Stands */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>STANDS MÁS VISITADOS</Text>
+          <Text style={s.sectionTitle}>{t('home.top_stands', 'STANDS MÁS VISITADOS')}</Text>
           {topStands.map((stand, idx) => {
             const max = topStands[0].ventas ?? 1;
             const pct = ((stand.ventas ?? 0) / max) * 100;
@@ -196,7 +196,7 @@ export const HomeScreen = () => {
                 <View style={{ flex: 1 }}>
                   <View style={s.standNameRow}>
                     <Text style={s.standName} numberOfLines={1}>{stand.nombre}</Text>
-                    <Text style={s.standSales}>{stand.ventas} ventas</Text>
+                    <Text style={s.standSales}>{stand.ventas} {t('home.sales', 'ventas')}</Text>
                   </View>
                   <View style={s.barBg}>
                     <View style={[s.barFill, { width: `${pct}%` as any, backgroundColor: idx === 0 ? T.amber : T.coffee }]} />
@@ -208,7 +208,7 @@ export const HomeScreen = () => {
         </View>
 
         {/* Explore Grid */}
-        <Text style={[s.sectionTitle, { marginBottom: 12 }]}>EXPLORAR LA FERIA</Text>
+        <Text style={[s.sectionTitle, { marginBottom: 12 }]}>{t('home.explore', 'EXPLORAR LA FERIA')}</Text>
         <View style={s.tileGrid}>
           {TILES.map(tile => (
             <TouchableOpacity key={tile.screen} style={s.tile} onPress={() => nav.navigate(tile.screen)} activeOpacity={0.8}>

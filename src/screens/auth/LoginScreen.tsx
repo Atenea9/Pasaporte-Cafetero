@@ -36,10 +36,10 @@ const LANGUAGES = [
   { code: 'it', label: 'Italiano',  native: 'IT' },
 ];
 
-const ROLES = [
-  { key: 'visitor',   credential: 'visitor@demo.com',   label: 'Visitante',  c1: '#5C3520', c2: '#7B4A2A' },
-  { key: 'expositor', credential: 'expositor@demo.com', label: 'Expositor',  c1: '#8B6308', c2: '#C8960C' },
-  { key: 'buyer',     credential: 'buyer@demo.com',     label: 'Comprador',  c1: '#3D2000', c2: '#5C3520' },
+const ROLE_CONFIGS = [
+  { key: 'visitor',   credential: 'visitor@demo.com',   tKey: 'login.roles.visitor.title',   c1: '#5C3520', c2: '#7B4A2A' },
+  { key: 'expositor', credential: 'expositor@demo.com', tKey: 'login.roles.expositor.title', c1: '#8B6308', c2: '#C8960C' },
+  { key: 'buyer',     credential: 'buyer@demo.com',     tKey: 'login.roles.buyer.title',     c1: '#3D2000', c2: '#5C3520' },
 ];
 
 function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) => void }) {
@@ -79,8 +79,9 @@ function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) 
   );
 }
 
+type RoleItem = { key: string; credential: string; tKey: string; c1: string; c2: string; label: string };
 function RoleCard({ role, loading, disabled, onPress, delay }: {
-  role: typeof ROLES[0]; loading: boolean; disabled: boolean; onPress: () => void; delay: number;
+  role: RoleItem; loading: boolean; disabled: boolean; onPress: () => void; delay: number;
 }) {
   const scale    = useRef(new Animated.Value(1)).current;
   const entrance = useRef(new Animated.Value(1)).current;
@@ -177,7 +178,7 @@ export const LoginScreen = () => {
         <TouchableOpacity onLongPress={() => setShowAdmin(v => !v)} activeOpacity={1} style={s.topBarLeft}>
           <View style={s.amberDot} />
         </TouchableOpacity>
-        <LangDropdown lang={i18n.language} onSelect={lng => { const { changeAndSaveLanguage } = require('../../i18n'); changeAndSaveLanguage(lng); }} />
+        <LangDropdown lang={i18n.language} onSelect={(lng: string) => { const { changeAndSaveLanguage } = require('../../i18n'); changeAndSaveLanguage(lng); }} />
       </View>
 
       <Animated.ScrollView
@@ -216,22 +217,25 @@ export const LoginScreen = () => {
         {/* ── SECTION DIVIDER ── */}
         <View style={s.sectionRow}>
           <View style={s.sectionLine} />
-          <Text style={s.sectionText}>SELECCIONA TU PERFIL</Text>
+          <Text style={s.sectionText}>{t('login.select_profile', 'SELECCIONA TU PERFIL')}</Text>
           <View style={s.sectionLine} />
         </View>
 
         {/* ── ROLE CARDS ── */}
         <View style={s.cards}>
-          {ROLES.map((r, i) => (
-            <RoleCard
-              key={r.key}
-              role={r}
-              loading={loadingRole === r.key}
-              disabled={isLoading}
-              delay={i * 80}
-              onPress={() => handleLogin(r.credential, r.key)}
-            />
-          ))}
+          {ROLE_CONFIGS.map((r, i) => {
+            const role: RoleItem = { ...r, label: t(r.tKey) };
+            return (
+              <RoleCard
+                key={r.key}
+                role={role}
+                loading={loadingRole === r.key}
+                disabled={isLoading}
+                delay={i * 80}
+                onPress={() => handleLogin(r.credential, r.key)}
+              />
+            );
+          })}
         </View>
 
         {/* ── ADMIN TRIGGER ── */}
@@ -256,7 +260,7 @@ export const LoginScreen = () => {
           </View>
         ) : (
           <TouchableOpacity style={s.adminTrigger} onPress={() => setShowAdmin(true)} activeOpacity={0.6}>
-            <Text style={s.adminTriggerText}>ACCESO ADMINISTRATIVO</Text>
+            <Text style={s.adminTriggerText}>{t('login.admin_access', 'ACCESO ADMINISTRATIVO')}</Text>
           </TouchableOpacity>
         )}
 

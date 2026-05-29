@@ -1,34 +1,40 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import type { ExpositorNavProp } from '../../navigation/types';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../contexts/AuthContext';
+import LangSelector from '../../components/LangSelector';
 
 export default function ExpositorHomeScreen() {
   const navigation = useNavigation<ExpositorNavProp>();
   const { dispatch } = useApp();
   const { logout } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.topBar}>
+        <LangSelector />
+      </View>
       <View style={styles.header}>
-        <Text style={styles.title}>☕ PANEL EXPOSITOR</Text>
-        <Text style={styles.subtitle}>Gestiona tu stand</Text>
+        <Text style={styles.title}>{t('expositor.panel_title', '☕ PANEL EXPOSITOR')}</Text>
+        <Text style={styles.subtitle}>{t('expositor.manage_stand_sub', 'Gestiona tu stand')}</Text>
       </View>
 
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>VENTAS HOY</Text>
+          <Text style={styles.statLabel}>{t('expositor.sales_today_label', 'VENTAS HOY')}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>CLIENTES</Text>
+          <Text style={styles.statLabel}>{t('expositor.customers_label', 'CLIENTES')}</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statNumber}>0</Text>
-          <Text style={styles.statLabel}>PUNTOS DADOS</Text>
+          <Text style={styles.statLabel}>{t('expositor.points_given_label', 'PUNTOS DADOS')}</Text>
         </View>
       </View>
 
@@ -37,19 +43,17 @@ export default function ExpositorHomeScreen() {
         onPress={() => navigation.navigate('Scanner')}
       >
         <Text style={styles.scanIcon}>📷</Text>
-        <Text style={styles.scanBtnText}>ESCANEAR CLIENTE</Text>
-        <Text style={styles.scanBtnSub}>Registra compras y otorga puntos</Text>
+        <Text style={styles.scanBtnText}>{t('expositor.scan_customer_btn', 'ESCANEAR CLIENTE')}</Text>
+        <Text style={styles.scanBtnSub}>{t('expositor.scan_customer_sub_text', 'Registra compras y otorga puntos')}</Text>
       </TouchableOpacity>
 
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>🔧 PANTALLA EN DESARROLLO</Text>
+        <Text style={styles.infoTitle}>{t('expositor.in_development', '🔧 MÓDULO EN DESARROLLO')}</Text>
         <Text style={styles.infoText}>
-          Este módulo incluirá:{'\n'}
-          • Gestión de productos del stand{'\n'}
-          • Historial de ventas del día{'\n'}
-          • Estadísticas en tiempo real{'\n'}
-          • Escáner de QR integrado{'\n'}
-          • Control de inventario
+          {t('expositor.my_stand', 'Mi Stand')}{'\n'}
+          {t('expositor.my_products', 'Mis Productos')}{'\n'}
+          {t('expositor.stand_stats', 'Estadísticas del Stand')}{'\n'}
+          {t('expositor.scan_to_register', 'Escanea el QR del cliente')}
         </Text>
       </View>
 
@@ -57,7 +61,7 @@ export default function ExpositorHomeScreen() {
         style={styles.logoutBtn}
         onPress={() => logout()}
       >
-        <Text style={styles.logoutText}>Cerrar sesión</Text>
+        <Text style={styles.logoutText}>{t('expositor.logout', 'Cerrar sesión')}</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -65,7 +69,8 @@ export default function ExpositorHomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0D0800', padding: 20 },
-  header: { alignItems: 'center', paddingVertical: 30 },
+  topBar: { position: 'absolute', top: 48, right: 16, zIndex: 10 },
+  header: { alignItems: 'center', paddingTop: 30, paddingBottom: 24, marginTop: 20 },
   title: { fontSize: 22, fontWeight: '900', color: '#C8860A', letterSpacing: 2 },
   subtitle: { fontSize: 14, color: '#888', marginTop: 4 },
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 },

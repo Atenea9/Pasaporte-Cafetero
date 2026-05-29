@@ -5,8 +5,10 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import type { CompradorNavProp } from '../../navigation/types';
 import { useApp } from '../../context/AppContext';
+import LangSelector from '../../components/LangSelector';
 
 const T = {
   bg:         '#FBF7ED',
@@ -26,6 +28,7 @@ const T = {
 export default function CompradorWelcomeScreen() {
   const nav = useNavigation<CompradorNavProp>();
   const { state } = useApp();
+  const { t } = useTranslation();
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
 
@@ -37,9 +40,22 @@ export default function CompradorWelcomeScreen() {
     ]).start();
   }, [state.usuario]);
 
+  const features = [
+    t('welcomeScreen.feature_1', '🏆 Catálogo de microlotes y análisis SCA'),
+    t('welcomeScreen.feature_2', '💰 Subasta en tiempo real con pujas en USD'),
+    t('welcomeScreen.feature_3', '📊 Perfiles detallados de cada finca cafetera'),
+    t('welcomeScreen.feature_4', '🗺️ Mapa de stands y agenda del evento'),
+  ];
+
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={T.blue} />
+
+      {/* Language selector */}
+      <View style={s.topBar}>
+        <LangSelector />
+      </View>
+
       <Animated.View style={[s.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
         {/* Hero — international blue + amber badge */}
@@ -48,19 +64,19 @@ export default function CompradorWelcomeScreen() {
             <Text style={s.heroBadgeText}>☕ SPECIALTY COFFEE AUCTION</Text>
           </LinearGradient>
           <Text style={s.heroEmoji}>🌍</Text>
-          <Text style={s.heroTitle}>COMPRADOR{'\n'}INTERNACIONAL</Text>
-          <Text style={s.heroSub}>Subasta Internacional de Café{'\n'}Chaparral, Tolima · Colombia 2026</Text>
+          <Text style={s.heroTitle}>{t('welcomeScreen.comprador_title', 'COMPRADOR\nINTERNACIONAL')}</Text>
+          <Text style={s.heroSub}>{t('welcomeScreen.comprador_sub', 'Subasta Internacional de Café\nCharrarral, Tolima · Colombia 2026')}</Text>
         </LinearGradient>
 
         <View style={s.body}>
-          <Text style={s.bodyTitle}>¿Cómo deseas ingresar?</Text>
+          <Text style={s.bodyTitle}>{t('welcomeScreen.how_to_enter', '¿Cómo deseas ingresar?')}</Text>
 
           <TouchableOpacity style={s.optCard} onPress={() => nav.navigate('Login')} activeOpacity={0.85}>
             <LinearGradient colors={['#1565C0', '#0D47A1']} style={s.optGrad}>
               <View style={s.optIcon}><Text style={s.optEmoji}>🪪</Text></View>
               <View style={s.optText}>
-                <Text style={s.optTitle}>Ya tengo acceso</Text>
-                <Text style={s.optSub}>Ingresa con tu cédula o teléfono</Text>
+                <Text style={s.optTitle}>{t('welcomeScreen.have_access', 'Ya tengo acceso')}</Text>
+                <Text style={s.optSub}>{t('welcomeScreen.login_sub', 'Ingresa con tu cédula o teléfono')}</Text>
               </View>
               <Text style={s.optArrow}>›</Text>
             </LinearGradient>
@@ -70,23 +86,18 @@ export default function CompradorWelcomeScreen() {
             <View style={s.optGradOutline}>
               <View style={[s.optIcon, s.optIconOutline]}><Text style={s.optEmoji}>📝</Text></View>
               <View style={s.optText}>
-                <Text style={[s.optTitle, { color: T.dark }]}>Registrarme como comprador</Text>
-                <Text style={[s.optSub, { color: T.muted }]}>Accede a los catálogos y subastas</Text>
+                <Text style={[s.optTitle, { color: T.dark }]}>{t('welcomeScreen.register_as_buyer', 'Registrarme como comprador')}</Text>
+                <Text style={[s.optSub, { color: T.muted }]}>{t('welcomeScreen.buyer_sub', 'Accede a los catálogos y subastas')}</Text>
               </View>
               <Text style={[s.optArrow, { color: T.amber }]}>›</Text>
             </View>
           </TouchableOpacity>
 
           <View style={s.infoBox}>
-            <Text style={s.infoTitle}>Acceso exclusivo a:</Text>
-            {[
-              '🏆 Catálogo de microlotes y análisis SCA',
-              '💰 Subasta en tiempo real con pujas en USD',
-              '📊 Perfiles detallados de cada finca cafetera',
-              '🗺️ Mapa de stands y agenda del evento',
-            ].map((t, i) => (
+            <Text style={s.infoTitle}>{t('welcomeScreen.exclusive_access', 'Acceso exclusivo a:')}</Text>
+            {features.map((f, i) => (
               <View key={i} style={s.infoRow}>
-                <Text style={s.infoText}>{t}</Text>
+                <Text style={s.infoText}>{f}</Text>
               </View>
             ))}
           </View>
@@ -99,7 +110,8 @@ export default function CompradorWelcomeScreen() {
 const s = StyleSheet.create({
   safe:            { flex: 1, backgroundColor: T.bg },
   container:       { flex: 1 },
-  hero:            { paddingTop: 44, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
+  topBar:          { position: 'absolute', top: 48, right: 16, zIndex: 10 },
+  hero:            { paddingTop: 56, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
   heroBadge:       { borderRadius: 30, paddingHorizontal: 16, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(200,150,12,0.3)', marginBottom: 4 },
   heroBadgeText:   { color: T.coffeeDark, fontSize: 9, fontWeight: '900', letterSpacing: 2 },
   heroEmoji:       { fontSize: 50 },

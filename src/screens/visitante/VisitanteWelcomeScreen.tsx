@@ -5,8 +5,10 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import type { VisitanteNavProp } from '../../navigation/types';
 import { useApp } from '../../context/AppContext';
+import LangSelector from '../../components/LangSelector';
 
 const T = {
   bg:         '#FBF7ED',
@@ -26,6 +28,7 @@ const T = {
 export default function VisitanteWelcomeScreen() {
   const nav = useNavigation<VisitanteNavProp>();
   const { state } = useApp();
+  const { t } = useTranslation();
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
 
@@ -40,6 +43,12 @@ export default function VisitanteWelcomeScreen() {
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
+
+      {/* Language selector */}
+      <View style={s.topBar}>
+        <LangSelector style={s.langBtn} light />
+      </View>
+
       <Animated.View style={[s.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
         {/* Hero — rich coffee gradient */}
@@ -48,7 +57,7 @@ export default function VisitanteWelcomeScreen() {
             <Text style={s.heroBadgeText}>✦ PASAPORTE CAFETERO ✦</Text>
           </LinearGradient>
           <Text style={s.heroEmoji}>🌿</Text>
-          <Text style={s.heroTitle}>VISITANTE</Text>
+          <Text style={s.heroTitle}>{t('login.roles.visitor.title', 'VISITANTE').toUpperCase()}</Text>
           <Text style={s.heroSub}>Feria Internacional del Café{'\n'}Chaparral, Tolima 2026</Text>
           <View style={s.heroDecor}>
             <Text style={s.heroDecorText}>14 · 15 · 16 AGO 2026</Text>
@@ -56,7 +65,7 @@ export default function VisitanteWelcomeScreen() {
         </LinearGradient>
 
         <View style={s.body}>
-          <Text style={s.bodyTitle}>¿Cómo deseas ingresar?</Text>
+          <Text style={s.bodyTitle}>{t('welcomeScreen.how_to_enter', '¿Cómo deseas ingresar?')}</Text>
 
           {/* Login */}
           <TouchableOpacity style={s.optCard} onPress={() => nav.navigate('Login')} activeOpacity={0.85}>
@@ -65,8 +74,8 @@ export default function VisitanteWelcomeScreen() {
                 <Text style={s.optEmoji}>🪪</Text>
               </View>
               <View style={s.optText}>
-                <Text style={s.optTitle}>Ya tengo pasaporte</Text>
-                <Text style={s.optSub}>Ingresa con tu cédula o teléfono</Text>
+                <Text style={s.optTitle}>{t('welcomeScreen.have_passport', 'Ya tengo pasaporte')}</Text>
+                <Text style={s.optSub}>{t('welcomeScreen.login_sub', 'Ingresa con tu cédula o teléfono')}</Text>
               </View>
               <Text style={s.optArrow}>›</Text>
             </LinearGradient>
@@ -79,8 +88,8 @@ export default function VisitanteWelcomeScreen() {
                 <Text style={s.optEmoji}>📝</Text>
               </View>
               <View style={s.optText}>
-                <Text style={[s.optTitle, { color: T.dark }]}>Crear mi pasaporte</Text>
-                <Text style={[s.optSub, { color: T.muted }]}>Regístrate gratis en 30 segundos</Text>
+                <Text style={[s.optTitle, { color: T.dark }]}>{t('welcomeScreen.create_passport', 'Crear mi pasaporte')}</Text>
+                <Text style={[s.optSub, { color: T.muted }]}>{t('welcomeScreen.register_sub', 'Regístrate gratis en 30 segundos')}</Text>
               </View>
               <Text style={[s.optArrow, { color: T.amber }]}>›</Text>
             </View>
@@ -88,15 +97,15 @@ export default function VisitanteWelcomeScreen() {
 
           {/* Benefits */}
           <View style={s.benefitsBox}>
-            <Text style={s.benefitsTitle}>¿Qué ganas con el pasaporte?</Text>
+            <Text style={s.benefitsTitle}>{t('welcomeScreen.benefits_title', '¿Qué ganas con el pasaporte?')}</Text>
             {[
-              { icon: '🗺️', text: 'Visita los 38 municipios cafeteros y colecciona sellos' },
-              { icon: '⭐', text: 'Acumula puntos por cada compra en los stands' },
-              { icon: '🏆', text: 'Gana premios: café especial, kits, cursos y visitas a fincas' },
+              { icon: '🗺️', key: 'welcomeScreen.benefit_stamps', fallback: 'Visita los 38 municipios cafeteros y colecciona sellos' },
+              { icon: '⭐', key: 'welcomeScreen.benefit_points', fallback: 'Acumula puntos por cada compra en los stands' },
+              { icon: '🏆', key: 'welcomeScreen.benefit_prizes', fallback: 'Gana premios: café especial, kits, cursos y visitas a fincas' },
             ].map((b, i) => (
               <View key={i} style={s.benefitItem}>
                 <Text style={s.benefitIcon}>{b.icon}</Text>
-                <Text style={s.benefitText}>{b.text}</Text>
+                <Text style={s.benefitText}>{t(b.key, b.fallback)}</Text>
               </View>
             ))}
           </View>
@@ -109,8 +118,10 @@ export default function VisitanteWelcomeScreen() {
 const s = StyleSheet.create({
   safe:             { flex: 1, backgroundColor: T.bg },
   container:        { flex: 1 },
+  topBar:           { position: 'absolute', top: 48, right: 16, zIndex: 10 },
+  langBtn:          {},
 
-  hero:             { paddingTop: 44, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
+  hero:             { paddingTop: 56, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
   heroBadge:        { borderRadius: 30, paddingHorizontal: 16, paddingVertical: 6, borderWidth: 1, borderColor: T.border + '80', marginBottom: 4 },
   heroBadgeText:    { color: T.coffeeDark, fontSize: 9, fontWeight: '900', letterSpacing: 3 },
   heroEmoji:        { fontSize: 50 },
