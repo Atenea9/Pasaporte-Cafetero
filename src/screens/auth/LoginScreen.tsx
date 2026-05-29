@@ -83,8 +83,8 @@ function RoleCard({ role, loading, disabled, onPress, delay }: {
   role: typeof ROLES[0]; loading: boolean; disabled: boolean; onPress: () => void; delay: number;
 }) {
   const scale    = useRef(new Animated.Value(1)).current;
-  const entrance = useRef(new Animated.Value(0)).current;
-  const entranceY = useRef(new Animated.Value(20)).current;
+  const entrance = useRef(new Animated.Value(1)).current;
+  const entranceY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -132,9 +132,9 @@ export const LoginScreen = () => {
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const [showAdmin,   setShowAdmin]   = useState(false);
 
-  const fadeAnim    = useRef(new Animated.Value(0)).current;
-  const heroOpacity = useRef(new Animated.Value(0)).current;
-  const heroY       = useRef(new Animated.Value(-16)).current;
+  const fadeAnim    = useRef(new Animated.Value(1)).current;
+  const heroOpacity = useRef(new Animated.Value(1)).current;
+  const heroY       = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.parallel([

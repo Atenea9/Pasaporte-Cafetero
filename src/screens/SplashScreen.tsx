@@ -20,6 +20,13 @@ export default function SplashScreen({ onFinish }: Props) {
   const screenOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; onFinish(); } };
+
+    // Hard fallback — guarantees the app continues even if the animation
+    // callback never fires (a known issue on Expo Web with useNativeDriver:false)
+    const fallback = setTimeout(finish, 3500);
+
     Animated.sequence([
       // 1. Everything fades in + logo scales up
       Animated.parallel([
@@ -39,7 +46,9 @@ export default function SplashScreen({ onFinish }: Props) {
       Animated.timing(screenOpacity, { toValue: 1, duration: 800, useNativeDriver: false }),
       // 6. Fade out
       Animated.timing(screenOpacity, { toValue: 0, duration: 450, useNativeDriver: false }),
-    ]).start(() => onFinish());
+    ]).start(() => { clearTimeout(fallback); finish(); });
+
+    return () => clearTimeout(fallback);
   }, []);
 
   return (

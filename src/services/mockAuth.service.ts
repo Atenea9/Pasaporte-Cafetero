@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
 
 export type UserRole = 'visitante' | 'expositor' | 'comprador' | 'admin' | 'ceo';
 
@@ -22,9 +21,11 @@ const DEMO_ACCOUNTS: Record<string, { role: UserRole; name: string }> = {
   'stevenpolania23@outlook.com': { role: 'ceo', name: 'Steven Polania'      },
 };
 
+// In-memory session cache — avoids relying on AsyncStorage in the critical path
+let _sessionCache: UserProfile | null = null;
+
 export const mockAuthService = {
   async login(identifier: string, type: 'phone' | 'email'): Promise<UserProfile> {
-    // No artificial delay — setTimeout freezes in Expo web iframe
     const normalizedId = identifier.toLowerCase().trim();
     let role: UserRole = 'visitante';
     let name: string | undefined;
@@ -47,20 +48,36 @@ export const mockAuthService = {
       ...(type === 'phone' ? { phone: identifier } : { email: identifier }),
     };
 
-    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(mockUser));
+    // Store in memory immediately — fire-and-forget AsyncStorage (can hang in web iframe)
+    _sessionCache = mockUser;
+    AsyncStorage.setItem(SESSION_KEY, JSON.stringify(mockUser)).catch(() => {});
+
     return mockUser;
   },
 
   async checkSession(): Promise<UserProfile | null> {
+    // Return in-memory cache instantly if available (e.g. after login in same session)
+    if (_sessionCache) return _sessionCache;
+
     try {
-      const session = await AsyncStorage.getItem(SESSION_KEY);
-      return session ? JSON.parse(session) : null;
+      // Race AsyncStorage against a 800ms timeout to avoid hanging in web iframe
+      const session = await Promise.race([
+        AsyncStorage.getItem(SESSION_KEY),
+        new Promise<null>(resolve => setTimeout(() => resolve(null), 800)),
+      ]);
+      if (session) {
+        _sessionCache = JSON.parse(session);
+        return _sessionCache;
+      }
+      return null;
     } catch {
       return null;
     }
   },
 
   async logout(): Promise<void> {
-    await AsyncStorage.removeItem(SESSION_KEY);
+    _sessionCache = null;
+    // Fire-and-forget — don't block logout on AsyncStorage
+    AsyncStorage.removeItem(SESSION_KEY).catch(() => {});
   },
 };

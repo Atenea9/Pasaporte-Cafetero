@@ -20,9 +20,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadSession = async () => {
     try {
-      // Direct call — no setTimeout race (freezes in Expo web iframe)
-      const sessionUser = await mockAuthService.checkSession();
-      setUser(sessionUser);
+      // Race against a 1.5s timeout — AsyncStorage.getItem can hang
+      // indefinitely in Expo web iframe, keeping isLoading=true forever
+      const result = await Promise.race([
+        mockAuthService.checkSession(),
+        new Promise<null>(resolve => setTimeout(() => resolve(null), 1500)),
+      ]);
+      setUser(result);
     } catch {
       setUser(null);
     } finally {
