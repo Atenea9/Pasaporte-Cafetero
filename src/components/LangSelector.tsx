@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { changeAndSaveLanguage } from '../i18n';
 
 const LANGUAGES = [
-  { code: 'es', native: 'ES', label: 'Español' },
-  { code: 'en', native: 'EN', label: 'English' },
-  { code: 'fr', native: 'FR', label: 'Français' },
-  { code: 'de', native: 'DE', label: 'Deutsch' },
-  { code: 'zh', native: '中文', label: '中文' },
-  { code: 'pt', native: 'PT', label: 'Português' },
-  { code: 'it', native: 'IT', label: 'Italiano' },
+  { code: 'es', native: 'ES',  label: 'Español'   },
+  { code: 'en', native: 'EN',  label: 'English'   },
+  { code: 'fr', native: 'FR',  label: 'Français'  },
+  { code: 'de', native: 'DE',  label: 'Deutsch'   },
+  { code: 'zh', native: '中文', label: '中文'       },
+  { code: 'pt', native: 'PT',  label: 'Português' },
+  { code: 'it', native: 'IT',  label: 'Italiano'  },
 ];
 
 interface Props {

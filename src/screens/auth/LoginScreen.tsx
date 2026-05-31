@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ActivityIndicator,
-  Animated, Easing, Dimensions, Modal, SafeAreaView,
+  Animated, Dimensions, Modal, SafeAreaView,
   StatusBar, Platform, Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
+import { changeAndSaveLanguage } from '../../i18n';
 
 const { width } = Dimensions.get('window');
 const CARD_W = Math.min(width - 40, 420);
@@ -33,13 +34,13 @@ const C = {
 };
 
 const LANGUAGES = [
-  { code: 'es', label: 'Español',   native: 'ES', flag: '🇨🇴' },
-  { code: 'en', label: 'English',   native: 'EN', flag: '🇺🇸' },
-  { code: 'fr', label: 'Français',  native: 'FR', flag: '🇫🇷' },
-  { code: 'de', label: 'Deutsch',   native: 'DE', flag: '🇩🇪' },
-  { code: 'zh', label: '中文',       native: '中文',flag: '🇨🇳' },
-  { code: 'pt', label: 'Português', native: 'PT', flag: '🇧🇷' },
-  { code: 'it', label: 'Italiano',  native: 'IT', flag: '🇮🇹' },
+  { code: 'es', label: 'Español',   native: 'ES' },
+  { code: 'en', label: 'English',   native: 'EN' },
+  { code: 'fr', label: 'Français',  native: 'FR' },
+  { code: 'de', label: 'Deutsch',   native: 'DE' },
+  { code: 'zh', label: '中文',       native: '中文' },
+  { code: 'pt', label: 'Português', native: 'PT' },
+  { code: 'it', label: 'Italiano',  native: 'IT' },
 ];
 
 const LOGO_IMG = require('../../../assets/logo-feria.png');
@@ -78,13 +79,13 @@ const ROLE_CONFIGS = [
 ];
 
 // ── Language selector ──────────────────────────────────────────────────────────
-function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) => void }) {
+function LangDropdown() {
+  const { i18n } = useTranslation();
   const [open, setOpen] = useState(false);
-  const current = LANGUAGES.find(l => l.code === lang) ?? LANGUAGES[0];
+  const current = LANGUAGES.find(l => l.code === i18n.language) ?? LANGUAGES[0];
   return (
     <View>
       <TouchableOpacity style={dd.trigger} onPress={() => setOpen(true)} activeOpacity={0.8}>
-        <Text style={dd.flagText}>{current.flag}</Text>
         <Text style={dd.triggerText}>{current.native}</Text>
         <Text style={dd.chevron}>▾</Text>
       </TouchableOpacity>
@@ -94,15 +95,14 @@ function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) 
             <View style={dd.menuInner}>
               <Text style={dd.menuTitle}>IDIOMA / LANGUAGE</Text>
               {LANGUAGES.map(l => {
-                const active = l.code === lang;
+                const active = l.code === i18n.language;
                 return (
                   <TouchableOpacity
                     key={l.code}
                     style={[dd.option, active && dd.optionActive]}
-                    onPress={() => { onSelect(l.code); setOpen(false); }}
+                    onPress={() => { changeAndSaveLanguage(l.code); setOpen(false); }}
                     activeOpacity={0.75}
                   >
-                    <Text style={dd.optFlag}>{l.flag}</Text>
                     <Text style={[dd.optNative, active && dd.optNativeActive]}>{l.native}</Text>
                     <Text style={[dd.optLabel, active && dd.optLabelActive]}>{l.label}</Text>
                     {active && <Text style={dd.check}>✓</Text>}
@@ -241,13 +241,7 @@ export const LoginScreen = () => {
         >
           <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.gold, opacity: 0.4 }} />
         </TouchableOpacity>
-        <LangDropdown
-          lang={i18n.language}
-          onSelect={(lng: string) => {
-            const { changeAndSaveLanguage } = require('../../i18n');
-            changeAndSaveLanguage(lng);
-          }}
-        />
+        <LangDropdown />
       </View>
 
       {/* Content */}
@@ -336,17 +330,15 @@ export default LoginScreen;
 // ── Language dropdown styles ───────────────────────────────────────────────────
 const dd = StyleSheet.create({
   trigger:         { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,255,255,0.65)', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 7, borderWidth: 1, borderColor: C.border },
-  flagText:        { fontSize: 16 },
   triggerText:     { color: C.dark, fontSize: 13, fontWeight: '800', letterSpacing: 1 },
   chevron:         { color: C.gold, fontSize: 10 },
   backdrop:        { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-start', alignItems: 'flex-end', paddingTop: 80, paddingRight: 20 },
-  menu:            { width: 210, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: C.border },
+  menu:            { width: 200, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: C.border },
   menuInner:       { backgroundColor: '#FFFDF4', paddingVertical: 8 },
   menuTitle:       { fontSize: 9, fontWeight: '900', color: C.muted, letterSpacing: 2.5, paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.border },
-  option:          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 11, gap: 8 },
+  option:          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 11, gap: 10 },
   optionActive:    { backgroundColor: '#FBF0C8' },
-  optFlag:         { fontSize: 18 },
-  optNative:       { fontSize: 13, fontWeight: '800', color: C.muted, width: 30 },
+  optNative:       { fontSize: 13, fontWeight: '800', color: C.muted, width: 36 },
   optNativeActive: { color: C.gold },
   optLabel:        { flex: 1, fontSize: 13, color: C.muted, fontWeight: '500' },
   optLabelActive:  { color: C.dark },

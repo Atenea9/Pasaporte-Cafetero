@@ -5,7 +5,6 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import './src/i18n';
 import { initSavedLanguage } from './src/i18n';
 import RootNavigator from './src/navigation/RootNavigator';
-import SplashScreen from './src/screens/SplashScreen';
 import VideoIntroScreen from './src/screens/VideoIntroScreen';
 
 const linking = {
@@ -42,7 +41,7 @@ const linking = {
   },
 };
 
-type Stage = 'video' | 'splash' | 'app';
+type Stage = 'video' | 'app';
 
 export default function App() {
   const [stage, setStage] = useState<Stage>('video');
@@ -52,11 +51,7 @@ export default function App() {
   }, []);
 
   if (stage === 'video') {
-    return <VideoIntroScreen onFinish={() => setStage('splash')} />;
-  }
-
-  if (stage === 'splash') {
-    return <SplashScreen onFinish={() => setStage('app')} />;
+    return <VideoIntroScreen onFinish={() => setStage('app')} />;
   }
 
   return (
