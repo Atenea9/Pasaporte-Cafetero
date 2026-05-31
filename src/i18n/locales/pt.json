@@ -11,7 +11,29 @@
       "buyer":     { "title": "Comprador",   "desc": "Leilão internacional e análise SCA CVA" }
     },
     "select_profile": "SELECIONE SEU PERFIL",
-    "admin_access": "ACESSO ADMINISTRATIVO"
+    "admin_access": "ACESSO ADMINISTRATIVO",
+    "sign_in": "Entrar",
+    "subtitle_visitor": "Entre com seu documento ou telefone registrado",
+    "subtitle_buyer": "Entre com seu documento ou telefone como comprador internacional",
+    "cedula_tab": "Documento",
+    "phone_tab": "Telefone",
+    "cedula_label": "NÚMERO DO DOCUMENTO / CPF",
+    "phone_label": "NÚMERO DE TELEFONE / WHATSAPP",
+    "cedula_placeholder": "Ex.: 1107654321",
+    "phone_placeholder": "Ex.: +5511987654321",
+    "buyer_cedula_label": "CPF / PASSAPORTE / DOCUMENTO",
+    "buyer_id_placeholder": "Ex.: A12345678 · 1107654321",
+    "buyer_phone_placeholder": "Ex.: +12025550123",
+    "enter_passport": "ENTRAR NO MEU PASSAPORTE",
+    "enter_btn": "ENTRAR",
+    "no_passport": "Não tem passaporte?",
+    "create_free": "📝 Criar meu passaporte grátis",
+    "no_buyer": "Novo comprador?",
+    "register_buyer": "📝 Registrar como comprador",
+    "required_field_msg": "Por favor, informe seu documento ou número de telefone.",
+    "not_found_visitor": "Passaporte não encontrado. Deseja criar um?",
+    "not_found_buyer": "Perfil não encontrado. Deseja se registrar?",
+    "field_error_buyer": "Por favor, informe sua identificação ou número de telefone."
   },
   "welcomeScreen": {
     "how_to_enter": "Como deseja entrar?",
@@ -147,7 +169,9 @@
     "stands_ranking": "RANKING DE STANDS",
     "hourly_traffic": "TRÁFEGO POR HORA",
     "municipalities": "MUNICÍPIOS CAFEEIROS",
-    "today_agenda": "AGENDA DE HOJE"
+    "today_agenda": "AGENDA DE HOJE",
+    "passport_levels": "OS 4 NÍVEIS DO PASSAPORTE",
+    "mascot_tip": "Toque em mim! ☕"
   },
   "passport": {
     "my_passport": "MEU PASSAPORTE",

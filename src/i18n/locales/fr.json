@@ -11,7 +11,29 @@
       "buyer":     { "title": "Acheteur",    "desc": "Enchères internationales et analyse SCA CVA" }
     },
     "select_profile": "SÉLECTIONNEZ VOTRE PROFIL",
-    "admin_access": "ACCÈS ADMINISTRATIF"
+    "admin_access": "ACCÈS ADMINISTRATIF",
+    "sign_in": "Se connecter",
+    "subtitle_visitor": "Entrez avec votre document ou téléphone enregistré",
+    "subtitle_buyer": "Entrez avec votre ID ou téléphone en tant qu'acheteur international",
+    "cedula_tab": "Document",
+    "phone_tab": "Téléphone",
+    "cedula_label": "NUMÉRO DE DOCUMENT / PIÈCE D'IDENTITÉ",
+    "phone_label": "NUMÉRO DE TÉLÉPHONE / WHATSAPP",
+    "cedula_placeholder": "Ex : 1107654321",
+    "phone_placeholder": "Ex : +33612345678",
+    "buyer_cedula_label": "PIÈCE D'IDENTITÉ / PASSEPORT / DOCUMENT",
+    "buyer_id_placeholder": "Ex : A12345678 · 1107654321",
+    "buyer_phone_placeholder": "Ex : +12025550123",
+    "enter_passport": "ACCÉDER À MON PASSEPORT",
+    "enter_btn": "SE CONNECTER",
+    "no_passport": "Pas encore de passeport ?",
+    "create_free": "📝 Créer mon passeport gratuitement",
+    "no_buyer": "Nouvel acheteur ?",
+    "register_buyer": "📝 S'inscrire comme acheteur",
+    "required_field_msg": "Veuillez saisir votre document ou numéro de téléphone.",
+    "not_found_visitor": "Passeport introuvable. Voulez-vous en créer un ?",
+    "not_found_buyer": "Profil introuvable. Voulez-vous vous inscrire ?",
+    "field_error_buyer": "Veuillez saisir votre identifiant ou numéro de téléphone."
   },
   "welcomeScreen": {
     "how_to_enter": "Comment souhaitez-vous entrer ?",
@@ -147,7 +169,9 @@
     "stands_ranking": "CLASSEMENT DES STANDS",
     "hourly_traffic": "TRAFIC PAR HEURE",
     "municipalities": "COMMUNES CAFÉ",
-    "today_agenda": "AGENDA D'AUJOURD'HUI"
+    "today_agenda": "AGENDA D'AUJOURD'HUI",
+    "passport_levels": "LES 4 NIVEAUX DU PASSEPORT",
+    "mascot_tip": "Touchez-moi ! ☕"
   },
   "passport": {
     "my_passport": "MON PASSEPORT",

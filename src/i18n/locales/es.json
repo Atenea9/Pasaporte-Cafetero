@@ -11,7 +11,29 @@
       "buyer":     { "title": "Comprador",  "desc": "Subasta internacional y análisis SCA CVA" }
     },
     "select_profile": "SELECCIONA TU PERFIL",
-    "admin_access": "ACCESO ADMINISTRATIVO"
+    "admin_access": "ACCESO ADMINISTRATIVO",
+    "sign_in": "Iniciar sesión",
+    "subtitle_visitor": "Ingresa con tu cédula o teléfono registrado",
+    "subtitle_buyer": "Ingresa con tu cédula o teléfono como comprador internacional",
+    "cedula_tab": "Cédula",
+    "phone_tab": "Teléfono",
+    "cedula_label": "NÚMERO DE CÉDULA / DOCUMENTO",
+    "phone_label": "NÚMERO DE TELÉFONO / WHATSAPP",
+    "cedula_placeholder": "Ej: 1107654321",
+    "phone_placeholder": "Ej: +573156789012",
+    "buyer_cedula_label": "CÉDULA / PASAPORTE / DOCUMENTO",
+    "buyer_id_placeholder": "Ej: A12345678 · 1107654321",
+    "buyer_phone_placeholder": "Ej: +12025550123",
+    "enter_passport": "INGRESAR AL PASAPORTE",
+    "enter_btn": "INGRESAR",
+    "no_passport": "¿No tienes pasaporte?",
+    "create_free": "📝 Crear mi pasaporte gratis",
+    "no_buyer": "¿Nuevo comprador?",
+    "register_buyer": "📝 Registrarme como comprador",
+    "required_field_msg": "Ingresa tu cédula o número de teléfono.",
+    "not_found_visitor": "No encontramos tu pasaporte. ¿Deseas crear uno nuevo?",
+    "not_found_buyer": "No encontramos tu perfil. ¿Deseas registrarte?",
+    "field_error_buyer": "Ingresa tu identificación o número de teléfono."
   },
   "placeholder": "Teléfono o Correo Electrónico",
   "enter": "Ingresar a la Experiencia",
@@ -155,7 +177,9 @@
     "happy_hour_active_label": "HAPPY HOUR ACTIVO",
     "next_happy_hour": "PRÓXIMO HAPPY HOUR",
     "municipalities": "MUNICIPIOS CAFETEROS",
-    "today_agenda": "AGENDA DE HOY"
+    "today_agenda": "AGENDA DE HOY",
+    "passport_levels": "LOS 4 NIVELES DEL PASAPORTE",
+    "mascot_tip": "¡Tócame! ☕"
   },
   "passport": {
     "my_passport": "MI PASAPORTE",

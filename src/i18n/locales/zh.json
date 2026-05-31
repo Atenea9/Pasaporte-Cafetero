@@ -11,7 +11,29 @@
       "buyer":     { "title": "买家",   "desc": "国际拍卖和SCA CVA分析" }
     },
     "select_profile": "选择您的身份",
-    "admin_access": "管理员入口"
+    "admin_access": "管理员入口",
+    "sign_in": "登录",
+    "subtitle_visitor": "请输入您已注册的证件号或手机号",
+    "subtitle_buyer": "请以国际买家身份输入您的证件号或手机号",
+    "cedula_tab": "证件",
+    "phone_tab": "手机",
+    "cedula_label": "证件号 / 身份证号",
+    "phone_label": "手机号 / WhatsApp",
+    "cedula_placeholder": "例：1107654321",
+    "phone_placeholder": "例：+8613912345678",
+    "buyer_cedula_label": "证件 / 护照 / 身份文件",
+    "buyer_id_placeholder": "例：A12345678 · 1107654321",
+    "buyer_phone_placeholder": "例：+12025550123",
+    "enter_passport": "进入我的护照",
+    "enter_btn": "登录",
+    "no_passport": "还没有护照？",
+    "create_free": "📝 免费创建我的护照",
+    "no_buyer": "新买家？",
+    "register_buyer": "📝 注册为买家",
+    "required_field_msg": "请输入证件号或手机号。",
+    "not_found_visitor": "未找到您的护照，是否创建新护照？",
+    "not_found_buyer": "未找到您的档案，是否注册？",
+    "field_error_buyer": "请输入您的身份证件号或手机号。"
   },
   "placeholder": "电话或邮箱",
   "enter": "进入体验",
@@ -150,7 +172,9 @@
     "stands_ranking": "摊位排名",
     "hourly_traffic": "每小时人流",
     "municipalities": "咖啡产区",
-    "today_agenda": "今日议程"
+    "today_agenda": "今日议程",
+    "passport_levels": "护照的4个等级",
+    "mascot_tip": "点我! ☕"
   },
   "passport": {
     "my_passport": "我的护照",

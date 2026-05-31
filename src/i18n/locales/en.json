@@ -11,7 +11,29 @@
       "buyer":     { "title": "Buyer",      "desc": "International auction and SCA CVA analysis" }
     },
     "select_profile": "SELECT YOUR PROFILE",
-    "admin_access": "ADMINISTRATIVE ACCESS"
+    "admin_access": "ADMINISTRATIVE ACCESS",
+    "sign_in": "Sign in",
+    "subtitle_visitor": "Enter with your registered ID or phone",
+    "subtitle_buyer": "Enter with your ID or phone as an international buyer",
+    "cedula_tab": "ID Card",
+    "phone_tab": "Phone",
+    "cedula_label": "ID / DOCUMENT NUMBER",
+    "phone_label": "PHONE / WHATSAPP NUMBER",
+    "cedula_placeholder": "E.g.: 1107654321",
+    "phone_placeholder": "E.g.: +13125550100",
+    "buyer_cedula_label": "ID / PASSPORT / DOCUMENT",
+    "buyer_id_placeholder": "E.g.: A12345678 · 1107654321",
+    "buyer_phone_placeholder": "E.g.: +12025550123",
+    "enter_passport": "ENTER MY PASSPORT",
+    "enter_btn": "SIGN IN",
+    "no_passport": "Don't have a passport?",
+    "create_free": "📝 Create my passport for free",
+    "no_buyer": "New buyer?",
+    "register_buyer": "📝 Register as a buyer",
+    "required_field_msg": "Please enter your ID or phone number.",
+    "not_found_visitor": "We couldn't find your passport. Would you like to create one?",
+    "not_found_buyer": "We couldn't find your profile. Would you like to register?",
+    "field_error_buyer": "Please enter your ID or phone number."
   },
   "placeholder": "Phone or Email",
   "enter": "Enter Experience",
@@ -150,7 +172,9 @@
     "stands_ranking": "STANDS RANKING",
     "hourly_traffic": "HOURLY TRAFFIC",
     "municipalities": "COFFEE MUNICIPALITIES",
-    "today_agenda": "TODAY'S AGENDA"
+    "today_agenda": "TODAY'S AGENDA",
+    "passport_levels": "THE 4 PASSPORT LEVELS",
+    "mascot_tip": "Tap me! ☕"
   },
   "passport": {
     "my_passport": "MY PASSPORT",

@@ -11,7 +11,29 @@
       "buyer":     { "title": "Käufer",      "desc": "Internationale Auktion und SCA CVA Analyse" }
     },
     "select_profile": "PROFIL AUSWÄHLEN",
-    "admin_access": "ADMINISTRATIVER ZUGANG"
+    "admin_access": "ADMINISTRATIVER ZUGANG",
+    "sign_in": "Anmelden",
+    "subtitle_visitor": "Geben Sie Ihre ID oder registrierte Telefonnummer ein",
+    "subtitle_buyer": "Geben Sie Ihre ID oder Telefonnummer als internationaler Käufer ein",
+    "cedula_tab": "Ausweis",
+    "phone_tab": "Telefon",
+    "cedula_label": "AUSWEIS- / DOKUMENTNUMMER",
+    "phone_label": "TELEFON- / WHATSAPP-NUMMER",
+    "cedula_placeholder": "Bsp.: 1107654321",
+    "phone_placeholder": "Bsp.: +4917612345678",
+    "buyer_cedula_label": "AUSWEIS / REISEPASS / DOKUMENT",
+    "buyer_id_placeholder": "Bsp.: A12345678 · 1107654321",
+    "buyer_phone_placeholder": "Bsp.: +12025550123",
+    "enter_passport": "ZUM PASS EINTRETEN",
+    "enter_btn": "EINLOGGEN",
+    "no_passport": "Noch keinen Pass?",
+    "create_free": "📝 Meinen Pass kostenlos erstellen",
+    "no_buyer": "Neuer Käufer?",
+    "register_buyer": "📝 Als Käufer registrieren",
+    "required_field_msg": "Bitte Ausweis oder Telefonnummer eingeben.",
+    "not_found_visitor": "Pass nicht gefunden. Möchten Sie einen erstellen?",
+    "not_found_buyer": "Profil nicht gefunden. Möchten Sie sich registrieren?",
+    "field_error_buyer": "Bitte Identifikation oder Telefonnummer eingeben."
   },
   "welcomeScreen": {
     "how_to_enter": "Wie möchten Sie eintreten?",
@@ -147,7 +169,9 @@
     "stands_ranking": "STAND-RANGLISTE",
     "hourly_traffic": "STÜNDLICHER VERKEHR",
     "municipalities": "KAFFEEGEMEINDEN",
-    "today_agenda": "TAGESAGENDA"
+    "today_agenda": "TAGESAGENDA",
+    "passport_levels": "DIE 4 PASS-STUFEN",
+    "mascot_tip": "Tippen! ☕"
   },
   "passport": {
     "my_passport": "MEIN REISEPASS",

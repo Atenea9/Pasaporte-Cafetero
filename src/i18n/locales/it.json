@@ -11,7 +11,29 @@
       "buyer":     { "title": "Acquirente",  "desc": "Asta internazionale e analisi SCA CVA" }
     },
     "select_profile": "SELEZIONA IL TUO PROFILO",
-    "admin_access": "ACCESSO AMMINISTRATIVO"
+    "admin_access": "ACCESSO AMMINISTRATIVO",
+    "sign_in": "Accedi",
+    "subtitle_visitor": "Accedi con il tuo documento o telefono registrato",
+    "subtitle_buyer": "Accedi con il tuo documento o telefono come acquirente internazionale",
+    "cedula_tab": "Documento",
+    "phone_tab": "Telefono",
+    "cedula_label": "NUMERO DOCUMENTO / CODICE FISCALE",
+    "phone_label": "NUMERO DI TELEFONO / WHATSAPP",
+    "cedula_placeholder": "Es.: 1107654321",
+    "phone_placeholder": "Es.: +393312345678",
+    "buyer_cedula_label": "DOCUMENTO / PASSAPORTO / ID",
+    "buyer_id_placeholder": "Es.: A12345678 · 1107654321",
+    "buyer_phone_placeholder": "Es.: +12025550123",
+    "enter_passport": "ACCEDI AL MIO PASSAPORTO",
+    "enter_btn": "ACCEDI",
+    "no_passport": "Non hai un passaporto?",
+    "create_free": "📝 Crea il mio passaporto gratis",
+    "no_buyer": "Nuovo acquirente?",
+    "register_buyer": "📝 Registrati come acquirente",
+    "required_field_msg": "Inserisci il tuo documento o numero di telefono.",
+    "not_found_visitor": "Passaporto non trovato. Vuoi crearne uno?",
+    "not_found_buyer": "Profilo non trovato. Vuoi registrarti?",
+    "field_error_buyer": "Inserisci il tuo documento o numero di telefono."
   },
   "welcomeScreen": {
     "how_to_enter": "Come desideri entrare?",
@@ -147,7 +169,9 @@
     "stands_ranking": "CLASSIFICA STAND",
     "hourly_traffic": "TRAFFICO ORARIO",
     "municipalities": "COMUNI CAFEICOLTORI",
-    "today_agenda": "AGENDA DI OGGI"
+    "today_agenda": "AGENDA DI OGGI",
+    "passport_levels": "I 4 LIVELLI DEL PASSAPORTO",
+    "mascot_tip": "Toccami! ☕"
   },
   "passport": {
     "my_passport": "IL MIO PASSAPORTO",

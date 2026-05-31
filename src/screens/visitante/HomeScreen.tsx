@@ -10,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { mockDbService } from '../../services/mockDb.service';
 import { NIVELES, getTopStands, getNivelActual, getNivelSiguiente } from '../../data/mockData';
 import type { VisitanteNavProp } from '../../navigation/types';
+import BearMascot from '../../components/BearMascot';
 
 const T = {
   bg:         '#FBF7ED',
@@ -91,10 +92,14 @@ export const HomeScreen = () => {
           <View style={{ flex: 1 }}>
             <Text style={s.greeting}>{t('home.greeting', '¡Hola,')} {user?.name?.split(' ')[0] || 'Cafetero'} 👋</Text>
             <Text style={s.headerSub}>{t('login.fair_name', 'Feria Internacional del Café')} · Chaparral 2026</Text>
+            <TouchableOpacity onPress={logout} style={s.logoutBtn}>
+              <Text style={s.logoutText}>{t('home.logout', 'Salir')} ↩</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={logout} style={s.logoutBtn}>
-            <Text style={s.logoutText}>{t('home.logout', 'Salir')}</Text>
-          </TouchableOpacity>
+          <View style={s.bearWrap}>
+            <BearMascot size={88} />
+            <Text style={s.bearTip}>{t('home.mascot_tip', '¡Tócame! ☕')}</Text>
+          </View>
         </View>
 
         {/* Happy Hour */}
@@ -223,7 +228,7 @@ export const HomeScreen = () => {
 
         {/* Levels */}
         <View style={s.section}>
-          <Text style={s.sectionTitle}>LOS 4 NIVELES DEL PASAPORTE</Text>
+          <Text style={s.sectionTitle}>{t('home.passport_levels', 'LOS 4 NIVELES DEL PASAPORTE')}</Text>
           {NIVELES.map(niv => {
             const isCurrent = nivelActual?.id === niv.id;
             return (
@@ -250,11 +255,13 @@ const s = StyleSheet.create({
   safe:         { flex: 1, backgroundColor: T.bg },
   scroll:       { padding: 20, paddingTop: 16, paddingBottom: 40 },
 
-  header:       { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 18 },
+  header:       { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
   greeting:     { fontSize: 22, fontWeight: '900', color: T.dark, letterSpacing: 0.2 },
   headerSub:    { fontSize: 10, color: T.muted, marginTop: 3, letterSpacing: 0.4 },
-  logoutBtn:    { backgroundColor: T.card, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: T.border, marginLeft: 10 },
-  logoutText:   { fontSize: 12, color: T.danger, fontWeight: '700' },
+  logoutBtn:    { alignSelf: 'flex-start', marginTop: 10, backgroundColor: T.card, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: T.border },
+  logoutText:   { fontSize: 11, color: T.danger, fontWeight: '700' },
+  bearWrap:     { alignItems: 'center', marginLeft: 8 },
+  bearTip:      { fontSize: 8, color: T.muted, marginTop: 2, fontWeight: '600' },
 
   hhBanner:     { padding: 12, borderRadius: 12, alignItems: 'center', marginBottom: 16 },
   hhText:       { color: T.dark, fontWeight: '900', fontSize: 13, letterSpacing: 1 },
