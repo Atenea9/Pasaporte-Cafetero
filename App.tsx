@@ -6,6 +6,7 @@ import './src/i18n';
 import { initSavedLanguage } from './src/i18n';
 import RootNavigator from './src/navigation/RootNavigator';
 import SplashScreen from './src/screens/SplashScreen';
+import VideoIntroScreen from './src/screens/VideoIntroScreen';
 
 const linking = {
   prefixes: [],
@@ -41,15 +42,21 @@ const linking = {
   },
 };
 
+type Stage = 'video' | 'splash' | 'app';
+
 export default function App() {
-  const [splashDone, setSplashDone] = useState(false);
+  const [stage, setStage] = useState<Stage>('video');
 
   useEffect(() => {
     initSavedLanguage();
   }, []);
 
-  if (!splashDone) {
-    return <SplashScreen onFinish={() => setSplashDone(true)} />;
+  if (stage === 'video') {
+    return <VideoIntroScreen onFinish={() => setStage('splash')} />;
+  }
+
+  if (stage === 'splash') {
+    return <SplashScreen onFinish={() => setStage('app')} />;
   }
 
   return (
