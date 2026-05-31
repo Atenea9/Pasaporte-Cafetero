@@ -42,6 +42,12 @@ const LANGUAGES = [
   { code: 'it', label: 'Italiano',  native: 'IT', flag: '🇮🇹' },
 ];
 
+const ANIMAL_IMAGES = {
+  visitor:   require('../../../assets/animal-visitante.png'),
+  expositor: require('../../../assets/animal-expositor.png'),
+  buyer:     require('../../../assets/animal-comprador.png'),
+};
+
 const ROLE_CONFIGS = [
   {
     key:        'visitor',
@@ -49,7 +55,6 @@ const ROLE_CONFIGS = [
     tKey:       'login.roles.visitor.title',
     cardBg1:    '#3D2008',
     cardBg2:    '#5C3218',
-    animal:     '🐻',
     animalBg:   '#4A2810',
   },
   {
@@ -58,7 +63,6 @@ const ROLE_CONFIGS = [
     tKey:       'login.roles.expositor.title',
     cardBg1:    '#7A5000',
     cardBg2:    '#C8960C',
-    animal:     '🐆',
     animalBg:   '#6B4400',
   },
   {
@@ -67,7 +71,6 @@ const ROLE_CONFIGS = [
     tKey:       'login.roles.buyer.title',
     cardBg1:    '#2C3A10',
     cardBg2:    '#4A5E20',
-    animal:     '🦜',
     animalBg:   '#304018',
   },
 ];
@@ -116,7 +119,7 @@ function LangDropdown({ lang, onSelect }: { lang: string; onSelect: (l: string) 
 type RoleItem = {
   key: string; credential: string; tKey: string;
   cardBg1: string; cardBg2: string;
-  animal: string; animalBg: string;
+  animalBg: string;
   label: string;
 };
 
@@ -168,7 +171,11 @@ function RoleCard({ role, loading, disabled, onPress, delay }: {
         >
           {/* Animal thumbnail */}
           <View style={[s.animalBox, { backgroundColor: role.animalBg }]}>
-            <Text style={s.animalEmoji}>{role.animal}</Text>
+            <Image
+              source={ANIMAL_IMAGES[role.key as keyof typeof ANIMAL_IMAGES]}
+              style={s.animalImage}
+              resizeMode="cover"
+            />
           </View>
 
           {/* Role label */}
@@ -469,15 +476,17 @@ const s = StyleSheet.create({
     minHeight: 80,
   },
   animalBox: {
-    width: 88,
+    width: 90,
     height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
     borderTopLeftRadius: 18,
     borderBottomLeftRadius: 18,
     marginRight: 18,
   },
-  animalEmoji: { fontSize: 44 },
+  animalImage: {
+    width: 90,
+    height: 80,
+  },
   cardTitle: {
     flex: 1,
     fontSize: 20,
