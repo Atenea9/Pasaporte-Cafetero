@@ -42,6 +42,8 @@ const LANGUAGES = [
   { code: 'it', label: 'Italiano',  native: 'IT', flag: '🇮🇹' },
 ];
 
+const LOGO_IMG = require('../../../assets/logo-feria.png');
+
 const ANIMAL_IMAGES = {
   visitor:   require('../../../assets/animal-visitante.png'),
   expositor: require('../../../assets/animal-expositor.png'),
@@ -126,15 +128,7 @@ type RoleItem = {
 function RoleCard({ role, loading, disabled, onPress, delay }: {
   role: RoleItem; loading: boolean; disabled: boolean; onPress: () => void; delay: number;
 }) {
-  const entrance = useRef(new Animated.Value(0)).current;
-  const scale    = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.timing(entrance, {
-      toValue: 1, duration: 480, delay,
-      easing: Easing.out(Easing.exp), useNativeDriver: false,
-    }).start();
-  }, []);
+  const scale = useRef(new Animated.Value(1)).current;
 
   const pressIn  = () => Animated.spring(scale, { toValue: 0.972, useNativeDriver: false, friction: 8 }).start();
   const pressOut = () => Animated.spring(scale, { toValue: 1,     useNativeDriver: false, friction: 6 }).start();
@@ -142,8 +136,7 @@ function RoleCard({ role, loading, disabled, onPress, delay }: {
   return (
     <Animated.View
       style={{
-        opacity: entrance,
-        transform: [{ scale }, { translateY: entrance.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }],
+        transform: [{ scale }],
         marginBottom: 14,
         width: CARD_W,
         alignSelf: 'center',
@@ -202,15 +195,8 @@ export const LoginScreen = () => {
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const [showAdmin,   setShowAdmin]   = useState(false);
 
-  const fadeIn = useRef(new Animated.Value(0)).current;
-  const heroY  = useRef(new Animated.Value(20)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeIn, { toValue: 1, duration: 600, easing: Easing.out(Easing.exp), useNativeDriver: false }),
-      Animated.timing(heroY,  { toValue: 0, duration: 600, easing: Easing.out(Easing.exp), useNativeDriver: false }),
-    ]).start();
-  }, []);
+  const fadeIn = useRef(new Animated.Value(1)).current;
+  const heroY  = useRef(new Animated.Value(0)).current;
 
   const handleLogin = async (credential: string, roleKey: string) => {
     setIsLoading(true);
@@ -273,10 +259,9 @@ export const LoginScreen = () => {
         {/* ── HERO ── */}
         <Animated.View style={[s.hero, { transform: [{ translateY: heroY }] }]}>
 
-          {/* Coffee bean / drop logo */}
+          {/* Official Feria logo */}
           <View style={s.logoWrap}>
-            <View style={s.logoDrop1} />
-            <View style={s.logoDrop2} />
+            <Image source={LOGO_IMG} style={s.logoImg} resizeMode="contain" />
           </View>
 
           <Text style={s.heroTitle}>FERIA INTERNACIONAL{'\n'}DE CAFÉ</Text>
@@ -405,30 +390,15 @@ const s = StyleSheet.create({
   // ── Hero ────────────────────────────────────────────────────────────────────
   hero: { alignItems: 'center', marginBottom: 32, width: '100%' },
 
-  // Coffee bean logo: two teardrop shapes forming the official-style bean icon
+  // Official Feria logo
   logoWrap: {
-    width: 70, height: 80,
+    width: 100, height: 106,
     alignItems: 'center', justifyContent: 'center',
-    marginBottom: 20,
-    position: 'relative',
+    marginBottom: 16,
   },
-  logoDrop1: {
-    position: 'absolute',
-    width: 32, height: 46,
-    borderRadius: 16,
-    borderWidth: 2.5,
-    borderColor: C.brown2,
-    top: 0, left: 4,
-    transform: [{ rotate: '-18deg' }],
-  },
-  logoDrop2: {
-    position: 'absolute',
-    width: 32, height: 46,
-    borderRadius: 16,
-    borderWidth: 2.5,
-    borderColor: C.brown2,
-    bottom: 0, right: 4,
-    transform: [{ rotate: '18deg' }],
+  logoImg: {
+    width: 100,
+    height: 106,
   },
 
   heroTitle: {
@@ -473,19 +443,19 @@ const s = StyleSheet.create({
     paddingVertical: 0,
     paddingRight: 20,
     paddingLeft: 0,
-    minHeight: 80,
+    minHeight: 92,
   },
   animalBox: {
-    width: 90,
-    height: 80,
+    width: 100,
+    height: 92,
     overflow: 'hidden',
     borderTopLeftRadius: 18,
     borderBottomLeftRadius: 18,
     marginRight: 18,
   },
   animalImage: {
-    width: 90,
-    height: 80,
+    width: 100,
+    height: 92,
   },
   cardTitle: {
     flex: 1,

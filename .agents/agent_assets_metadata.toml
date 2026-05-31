@@ -5,16 +5,16 @@ outputs = []
 id = "VzjBvmBXchUGsWXVra1g2"
 uri = "file://assets/animal-visitante.png"
 type = "image"
-title = "andean bear visitante"
+title = "bear engraving visitante"
 
 [[generated]]
 id = "zPS_wMACMbi66Z101-SIq"
 uri = "file://assets/animal-expositor.png"
 type = "image"
-title = "jaguar expositor"
+title = "jaguar engraving expositor"
 
 [[generated]]
 id = "csjV5iDEhm2q7C9d-fPaI"
 uri = "file://assets/animal-comprador.png"
 type = "image"
-title = "hummingbird comprador"
+title = "hummingbird engraving comprador"
