@@ -1,7 +1,8 @@
 /**
  * DocumentScanner.tsx
  * Full-screen Modal OCR scanner for identity documents.
- * Uses documentScanner.ts (Tesseract.js pipeline) — no AI calls.
+ * Primary engine: Gemini 2.0 Flash AI (requires EXPO_PUBLIC_GEMINI_API_KEY)
+ * Fallback engine: Tesseract.js local OCR
  */
 import React, { useState, useRef } from 'react';
 import {
@@ -10,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { scanDocument, DocumentScanResult, Confidence } from '../utils/documentScanner';
+import { isGeminiAvailable } from '../utils/geminiOcr';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -167,8 +169,17 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
     <View style={s.centeredBox}>
       <Text style={s.bigIcon}>🪪</Text>
       <Text style={s.idleTitle}>ESCANEAR DOCUMENTO</Text>
+      {isGeminiAvailable() ? (
+        <View style={s.aiBadge}>
+          <Text style={s.aiBadgeTxt}>✨ Gemini AI · Alta precisión</Text>
+        </View>
+      ) : (
+        <View style={[s.aiBadge, s.aiBadgeFallback]}>
+          <Text style={[s.aiBadgeTxt, { color: C.warn }]}>🔧 OCR local (Tesseract)</Text>
+        </View>
+      )}
       <Text style={s.idleSub}>
-        Cédula · Pasaporte · DNI · Licencia{'\n'}Extracción automática con OCR
+        Cédula · Pasaporte · DNI · Licencia{'\n'}Extracción automática con IA
       </Text>
 
       {previewUri && (
@@ -208,38 +219,52 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
   );
 
   // ── Render: processing ───────────────────────────────────────────────────
-  const renderProcessing = () => (
-    <View style={s.centeredBox}>
-      <ActivityIndicator size="large" color={C.gold} style={{ marginBottom: 16 }} />
-      <Text style={s.procTitle}>
-        {pct < 85 ? 'Extrayendo texto del documento…' : 'Identificando campos…'}
-      </Text>
-      <Text style={s.procSub}>{stage}</Text>
-
-      <View style={s.progressTrack}>
-        <View style={[s.progressBar, { width: `${pct}%` as any }]} />
-      </View>
-      <Text style={s.progressPct}>{pct}%</Text>
-
-      <View style={s.stepList}>
-        {[
+  const renderProcessing = () => {
+    const gemini = isGeminiAvailable();
+    const steps = gemini
+      ? [
+          { label: 'Procesando imagen',          threshold: 5  },
+          { label: 'Enviando a Gemini AI…',       threshold: 20 },
+          { label: 'Analizando con IA…',          threshold: 50 },
+          { label: 'Extrayendo campos del doc…',  threshold: 80 },
+        ]
+      : [
           { label: 'Procesando imagen',      threshold: 10 },
-          { label: 'Extrayendo texto',        threshold: 85 },
-          { label: 'Identificando campos',    threshold: 90 },
+          { label: 'Extrayendo texto',        threshold: 40 },
+          { label: 'Identificando campos',    threshold: 85 },
           { label: 'Calculando confianza',    threshold: 98 },
-        ].map((step, i) => (
-          <View key={i} style={s.stepRow}>
-            <Text style={[s.stepDot, pct >= step.threshold && { color: C.success }]}>
-              {pct >= step.threshold ? '✓' : '·'}
-            </Text>
-            <Text style={[s.stepTxt, pct >= step.threshold && { color: C.text }]}>
-              {step.label}
-            </Text>
+        ];
+
+    return (
+      <View style={s.centeredBox}>
+        <ActivityIndicator size="large" color={gemini ? C.goldLight : C.gold} style={{ marginBottom: 16 }} />
+        {gemini && (
+          <View style={s.aiBadge}>
+            <Text style={s.aiBadgeTxt}>✨ Gemini AI procesando…</Text>
           </View>
-        ))}
+        )}
+        <Text style={s.procTitle}>{stage || 'Analizando documento…'}</Text>
+
+        <View style={s.progressTrack}>
+          <View style={[s.progressBar, { width: `${pct}%` as any }]} />
+        </View>
+        <Text style={s.progressPct}>{pct}%</Text>
+
+        <View style={s.stepList}>
+          {steps.map((step, i) => (
+            <View key={i} style={s.stepRow}>
+              <Text style={[s.stepDot, pct >= step.threshold && { color: C.success }]}>
+                {pct >= step.threshold ? '✓' : '·'}
+              </Text>
+              <Text style={[s.stepTxt, pct >= step.threshold && { color: C.text }]}>
+                {step.label}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   // ── Render: result ───────────────────────────────────────────────────────
   const renderResult = () => {
@@ -253,6 +278,11 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
           <View style={{ flex: 1 }}>
             <Text style={s.resultTitle}>DATOS EXTRAÍDOS</Text>
             <Text style={s.resultSub}>{result.tipo_documento}</Text>
+            {isGeminiAvailable() && (
+              <View style={[s.aiBadge, { marginTop: 4, alignSelf: 'flex-start' }]}>
+                <Text style={s.aiBadgeTxt}>✨ Gemini AI</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -327,7 +357,11 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
         <View style={s.header}>
           <View>
             <Text style={s.headerTitle}>ESCANEAR DOCUMENTO</Text>
-            <Text style={s.headerSub}>Cédula · Pasaporte · DNI · ID — OCR automático</Text>
+            <Text style={s.headerSub}>
+              {isGeminiAvailable()
+                ? '✨ Gemini AI · Cédula · Pasaporte · DNI'
+                : 'Cédula · Pasaporte · DNI · ID — OCR local'}
+            </Text>
           </View>
           <TouchableOpacity onPress={handleClose} style={s.closeBtn}>
             <Text style={s.closeBtnTxt}>✕</Text>
@@ -400,4 +434,8 @@ const s = StyleSheet.create({
 
   cancelBtn:    { paddingVertical: 10 },
   cancelBtnTxt: { fontSize: 12, color: C.muted, fontWeight: '600', textAlign: 'center' },
+
+  aiBadge:        { backgroundColor: '#1A2A10', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 1, borderColor: C.gold + '60' },
+  aiBadgeFallback:{ backgroundColor: '#1A1A0A', borderColor: C.warn + '60' },
+  aiBadgeTxt:     { fontSize: 10, fontWeight: '800', color: C.goldLight, letterSpacing: 0.5 },
 });
