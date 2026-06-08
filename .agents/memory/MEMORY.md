@@ -2,3 +2,4 @@
 - [SDK52 install flags](sdk52-install.md) — All npm installs require --legacy-peer-deps; expo-* versions must match SDK 52 range.
 - [Architecture overview](architecture.md) — Multi-role navigator structure: role detected from usuario.rol, each role gets its own Stack navigator.
 - [Web preview setTimeout freeze](settimeout-web-freeze.md) — setTimeout freezes in Expo web preview iframe when unfocused; remove delays from critical init paths.
+- [LoginScreen art style](login-art-style.md) — Parchment/rustic reference design; colour tokens, shadow helpers, and pattern to apply across all new screens.
