@@ -27,6 +27,7 @@ export interface DocumentScanResult {
     Confidence
   >;
   _raw_text: string;
+  _engine?: 'gemini' | 'tesseract';
 }
 
 // ─── STEP 1: Image preprocessing ─────────────────────────────────────────────
@@ -237,9 +238,12 @@ function extractFields(raw: string, tipo: string): Extracted {
     if (docNum.length >= 5) { res.numero_documento = { value: docNum, conf: 'high' }; }
   }
   if (!res.numero_documento.value) {
-    // near NUIP / No.
-    const nuipM = raw.match(/NUIP[:\s]*(\d{5,12})/i);
-    if (nuipM) { res.numero_documento = { value: nuipM[1], conf: 'high' }; }
+    // NUIP on new Colombian cédula — can have dots: "1.999.999.999"
+    const nuipM = raw.match(/NUIP[:\s]*([\d.]{6,15})/i);
+    if (nuipM) {
+      const cleaned = nuipM[1].replace(/\./g, '');
+      res.numero_documento = { value: cleaned, conf: 'high' };
+    }
   }
   if (!res.numero_documento.value) {
     const noM = raw.match(/No\.?\s*(\d{5,12})/i);
@@ -272,6 +276,11 @@ function extractFields(raw: string, tipo: string): Extracted {
     }
   }
   if (!res.nombres.value) {
+    // New Colombian cédula: "Nombres GERONIMO" on one line (label + value same line)
+    const m = raw.match(/Nombres?\s+([A-ZÁÉÍÓÚÑ][A-Za-záéíóúñÁÉÍÓÚÑ ]{1,39}?)(?:\s*\n|\s{2,}|$)/i);
+    if (m) { res.nombres = { value: m[1].trim(), conf: 'high' }; }
+  }
+  if (!res.nombres.value) {
     const m = raw.match(/Nombres?\s*[:\n\r]+\s*([A-ZÁÉÍÓÚÑ ]{2,40})/i);
     if (m) { res.nombres = { value: m[1].trim(), conf: 'medium' }; }
   }
@@ -298,6 +307,11 @@ function extractFields(raw: string, tipo: string): Extracted {
       const v = lines[ai + 1].replace(/[^A-Za-záéíóúñÁÉÍÓÚÑ ]/g, '').trim();
       if (v.length > 1) { res.apellidos = { value: v, conf: 'high' }; }
     }
+  }
+  if (!res.apellidos.value) {
+    // New Colombian cédula: "Apellidos VELEZ RUIZ" on one line (label + value same line)
+    const m = raw.match(/Apellidos?\s+([A-ZÁÉÍÓÚÑ][A-Za-záéíóúñÁÉÍÓÚÑ ]{1,39}?)(?:\s*\n|\s{2,}|$)/i);
+    if (m) { res.apellidos = { value: m[1].trim(), conf: 'high' }; }
   }
   if (!res.apellidos.value) {
     const m = raw.match(/Apellidos?\s*[:\n\r]+\s*([A-ZÁÉÍÓÚÑ ]{2,40})/i);
@@ -466,6 +480,10 @@ export async function scanDocument(
   const tipo   = detectDocumentType(text);
   const fields = extractFields(text, tipo);
 
+  // Debug log so we can see what Tesseract actually read
+  console.log('[Tesseract] raw text:', text.slice(0, 600));
+  console.log('[Tesseract] extracted:', { tipo, ...Object.fromEntries(Object.entries(fields).map(([k,v]) => [k, (v as any).value])) });
+
   onProgress?.('Listo', 100);
 
   return {
@@ -487,5 +505,6 @@ export async function scanDocument(
       municipio_ciudad:    fields.municipio_ciudad.conf,
     },
     _raw_text: text,
+    _engine: 'tesseract' as const,
   };
 }

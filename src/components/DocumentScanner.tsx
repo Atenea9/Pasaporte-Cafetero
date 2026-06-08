@@ -282,9 +282,13 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
           <View style={{ flex: 1 }}>
             <Text style={s.resultTitle}>DATOS EXTRAÍDOS</Text>
             <Text style={s.resultSub}>{result.tipo_documento}</Text>
-            {isGeminiAvailable() && (
+            {result._engine === 'gemini' ? (
               <View style={[s.aiBadge, { marginTop: 4, alignSelf: 'flex-start' }]}>
                 <Text style={s.aiBadgeTxt}>✨ Gemini AI</Text>
+              </View>
+            ) : (
+              <View style={[s.aiBadge, s.aiBadgeFallback, { marginTop: 4, alignSelf: 'flex-start' }]}>
+                <Text style={[s.aiBadgeTxt, { color: C.warn }]}>🔧 OCR local</Text>
               </View>
             )}
           </View>
