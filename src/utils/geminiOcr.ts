@@ -36,16 +36,29 @@ Confidence guidelines:
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 async function blobToBase64(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Strip "data:image/...;base64," prefix
-      resolve(result.split(',')[1]);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
+  // Primary: FileReader (works in all browsers)
+  try {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (e) => reject(new Error(`FileReader error: ${(e as any)?.target?.error?.message ?? 'unknown'}`));
+      reader.readAsDataURL(blob);
+    });
+    const base64 = dataUrl.split(',')[1];
+    if (!base64) throw new Error('FileReader returned empty base64');
+    return base64;
+  } catch (err) {
+    // Fallback: arrayBuffer → manual base64 encode
+    console.warn('[Gemini] FileReader failed, using arrayBuffer fallback:', err);
+    const buffer = await blob.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+  }
 }
 
 function getMimeType(blob: Blob): string {
@@ -96,11 +109,16 @@ export async function scanWithGemini(
 
   onProgress?.('Analizando documento con IA…', 50);
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+  let response: Response;
+  try {
+    response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch (networkErr) {
+    throw new Error(`Gemini network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`);
+  }
 
   if (!response.ok) {
     const errText = await response.text().catch(() => 'unknown error');

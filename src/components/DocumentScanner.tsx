@@ -130,7 +130,11 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
     setStage('Extrayendo texto del documento…');
     try {
       const data = await scanDocument(file, (s, p) => { setStage(s); setPct(p); });
-      if (data._raw_text.trim().length < 20) {
+      // For Gemini, _raw_text is the JSON response (always substantial if successful).
+      // For Tesseract, it's the OCR output — reject if nothing was read.
+      const hasData = data.numero_documento || data.nombres || data.apellidos || data.pais_emision;
+      const hasRawText = data._raw_text.trim().length >= 20;
+      if (!hasData && !hasRawText) {
         setPhase('error');
         return;
       }

@@ -415,22 +415,31 @@ export async function scanDocument(
 ): Promise<DocumentScanResult> {
   onProgress?.('Procesando imagen…', 5);
 
-  // ── Preprocess image (shared by both engines) ─────────────────────────────
+  // ── Primary: Gemini 2.0 Flash (original image — no preprocessing needed) ──
+  if (isGeminiAvailable()) {
+    try {
+      // Convert source to Blob for Gemini without preprocessing
+      // (Gemini's vision model works best on the original colour image)
+      const originalBlob: Blob =
+        source instanceof Blob
+          ? source
+          : await fetch(source).then(r => r.blob());
+      return await scanWithGemini(originalBlob, onProgress);
+    } catch (geminiErr) {
+      console.warn(
+        '[DocumentScanner] Gemini failed, falling back to Tesseract:',
+        geminiErr instanceof Error ? geminiErr.message : geminiErr,
+      );
+      onProgress?.('Cambiando a motor OCR local…', 14);
+    }
+  }
+
+  // ── Preprocess image for Tesseract (grayscale + contrast helps Tesseract) ─
   let processedBlob: Blob;
   try {
     processedBlob = await preprocessImage(source);
   } catch {
     processedBlob = source as Blob;
-  }
-
-  // ── Primary: Gemini 2.0 Flash ─────────────────────────────────────────────
-  if (isGeminiAvailable()) {
-    try {
-      return await scanWithGemini(processedBlob, onProgress);
-    } catch (geminiErr) {
-      console.warn('[DocumentScanner] Gemini failed, falling back to Tesseract:', geminiErr);
-      onProgress?.('Cambiando a motor OCR local…', 14);
-    }
   }
 
   // ── Fallback: Tesseract.js ────────────────────────────────────────────────
