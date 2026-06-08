@@ -106,6 +106,8 @@
     "scan_button": "DOKUMENT SCANNEN",
     "scan_sub": "Personalausweis · Reisepass · Führerschein",
     "scan_detail": "Füllt Name, Dokument, Land und Stadt automatisch aus",
+    "birthdate_label": "GEBURTSDATUM (optional)",
+    "birthdate_hint": "Wird beim Scannen Ihres Dokuments automatisch extrahiert",
     "scanned_ok": "✅ Dokument gelesen — geben Sie Ihr WhatsApp ein",
     "or_manual": "— oder Daten manuell eingeben —",
     "create_button": "🎉 MEINEN KAFFEEPASS ERSTELLEN",

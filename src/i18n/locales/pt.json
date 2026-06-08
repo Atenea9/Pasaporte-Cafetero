@@ -106,6 +106,8 @@
     "scan_button": "ESCANEAR DOCUMENTO",
     "scan_sub": "RG · Passaporte · CNH · ID estrangeiro",
     "scan_detail": "Preenche automaticamente nome, documento, país e cidade",
+    "birthdate_label": "DATA DE NASCIMENTO (opcional)",
+    "birthdate_hint": "Extraída automaticamente ao escanear seu documento",
     "scanned_ok": "✅ Documento lido — insira seu WhatsApp",
     "or_manual": "— ou insira os dados manualmente —",
     "create_button": "🎉 CRIAR MEU PASSAPORTE DO CAFÉ",

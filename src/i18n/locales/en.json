@@ -109,6 +109,8 @@
     "scan_button": "SCAN DOCUMENT",
     "scan_sub": "ID · Passport · Driver's License · Foreign ID",
     "scan_detail": "Auto-fills name, document, country and city",
+    "birthdate_label": "DATE OF BIRTH (optional)",
+    "birthdate_hint": "Extracted automatically when you scan your document",
     "scanned_ok": "✅ Document read — just enter your WhatsApp",
     "or_manual": "— or enter details manually —",
     "create_button": "🎉 CREATE MY COFFEE PASSPORT",

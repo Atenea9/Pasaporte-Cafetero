@@ -109,6 +109,8 @@
     "scan_button": "ESCANEAR DOCUMENTO",
     "scan_sub": "Cédula · Pasaporte · DNI · ID extranjero",
     "scan_detail": "Auto-completa nombre, documento, país y ciudad",
+    "birthdate_label": "FECHA DE NACIMIENTO (opcional)",
+    "birthdate_hint": "Se extrae automáticamente al escanear tu documento",
     "scanned_ok": "✅ Documento leído — solo falta tu WhatsApp",
     "or_manual": "— o ingresa los datos manualmente —",
     "create_button": "🎉 CREAR MI PASAPORTE CAFETERO",

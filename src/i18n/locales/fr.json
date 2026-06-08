@@ -106,6 +106,8 @@
     "scan_button": "SCANNER LE DOCUMENT",
     "scan_sub": "Pièce d'identité · Passeport · Permis · ID étranger",
     "scan_detail": "Remplit automatiquement nom, document, pays et ville",
+    "birthdate_label": "DATE DE NAISSANCE (facultatif)",
+    "birthdate_hint": "Extraite automatiquement lors du scan de votre document",
     "scanned_ok": "✅ Document lu — entrez votre WhatsApp",
     "or_manual": "— ou entrez les données manuellement —",
     "create_button": "🎉 CRÉER MON PASSEPORT CAFÉ",

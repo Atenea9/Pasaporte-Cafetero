@@ -106,6 +106,8 @@
     "scan_button": "SCANSIONA DOCUMENTO",
     "scan_sub": "Carta d'identità · Passaporto · Patente · ID straniero",
     "scan_detail": "Compila automaticamente nome, documento, paese e città",
+    "birthdate_label": "DATA DI NASCITA (facoltativo)",
+    "birthdate_hint": "Estratta automaticamente durante la scansione del documento",
     "scanned_ok": "✅ Documento letto — inserisci il tuo WhatsApp",
     "or_manual": "— o inserisci i dati manualmente —",
     "create_button": "🎉 CREA IL MIO PASSAPORTO DEL CAFFÈ",

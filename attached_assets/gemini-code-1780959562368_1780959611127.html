@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementación Completa OCR Extendido - Gemini & Replit</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #2d3748;
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            background-color: #f7fafc;
+        }
+        h1 {
+            color: #1a365d;
+            border-bottom: 3px solid #3182ce;
+            padding-bottom: 12px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #2c5282;
+            margin-top: 40px;
+            border-left: 5px solid #4299e1;
+            padding-left: 12px;
+            font-size: 22px;
+        }
+        pre {
+            background-color: #1a202c;
+            color: #edf2f7;
+            padding: 18px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            font-size: 14px;
+            border: 1px solid #4a5568;
+        }
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            background-color: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #9b2c2c;
+            font-size: 14px;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .container-box {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            margin-bottom: 25px;
+        }
+        .badge {
+            background-color: #3182ce;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .alert-success {
+            background-color: #f0fff4;
+            border-left: 4px solid #38a169;
+            color: #276749;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Guía de Integración OCR Extendido: Cédula de Ciudadanía Digital</h1>
+    <p>Este documento contiene todo el código fuente estructurado necesario para que <strong>Gemini 2.5 Flash</strong> realice un escaneo integral de la cédula colombiana (basado en la estructura de <code>imagen.png</code>) y auto-llene completamente el formulario en tu app de Replit.</p>
+
+    <div class="alert-success">
+        <strong>Campos mapeados automáticamente:</strong> Cédula (NUIP), Nombres, Apellidos, Fecha de nacimiento, País, Región (Departamento) y Ciudad (Municipio).
+    </div>
+
+    <!-- SECCIÓN 1: BACKEND -->
+    <h2>1. Backend: Servicio de Extracción Estructurada (Node.js)</h2>
+    <p>Actualiza la lógica de tu backend en Replit. El objeto de configuración fuerza a Gemini a responder en un JSON limpio mediante el <code>responseSchema</code>.</p>
+    
+    <div class="container-box">
+        <span class="badge">geminiService.js</span>
+        <pre><code>import { GoogleGenAI, Type } from '@google/genai';
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+export async function extraerDatosCompletosCedula(base64Image) {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: base64Image
+          }
+        },
+        'Analiza la cédula de Colombia y extrae de forma exacta: NUIP (como cedula), apellidos, nombres, convierte la fecha de nacimiento a formato YYYY-MM-DD, expande nacionalidad a nombre del país, y desglosa el lugar de nacimiento extrayendo el municipio como ciudad y el departamento dentro de los paréntesis como region.'
+      ],
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            cedula: { type: Type.STRING, description: 'Número de NUIP con o sin puntos' },
+            nombres: { type: Type.STRING, description: 'Nombres de la persona en mayúsculas' },
+            apellidos: { type: Type.STRING, description: 'Apellidos de la persona en mayúsculas' },
+            fecha_nacimiento: { type: Type.STRING, description: 'Fecha de nacimiento mapeada a formato YYYY-MM-DD' },
+            pais: { type: Type.STRING, description: 'País completo de la nacionalidad (ej: COL -> Colombia)' },
+            region: { type: Type.STRING, description: 'Departamento del lugar de nacimiento (ej: CUNDINAMARCA)' },
+            ciudad: { type: Type.STRING, description: 'Municipio del lugar de nacimiento (ej: BOGOTA D.C.)' }
+          },
+          required: ['cedula', 'nombres', 'apellidos', 'ciudad', 'region'],
+        },
+      },
+    });
+
+    return JSON.parse(response.text);
+  } catch (error) {
+    console.error("Error crítico en extracción OCR con Gemini:", error);
+    return null;
+  }
+}</code></pre>
+    </div>
+
+    <!-- SECCIÓN 2: FRONTEND - ESTADO -->
+    <h2>2. Frontend: Interfaz y Estado en <code>RegistroScreen.tsx</code></h2>
+    <p>Debes extender la interfaz <code>FormState</code> y el hook <code>useState</code> para dar soporte a los nuevos campos de geolocalización.</p>
+
+    <div class="container-box">
+        <span class="badge">RegistroScreen.tsx (Estado)</span>
+        <pre><code>interface FormState {
+  cedula: string;
+  nombres: string;
+  apellidos: string;
+  fecha_nacimiento?: string;
+  pais?: string;
+  region?: string;
+  ciudad?: string;
+  whatsapp?: string; 
+}
+
+const [formData, setFormData] = useState<FormState>({
+  cedula: '',
+  nombres: '',
+  apellidos: '',
+  fecha_nacimiento: '',
+  pais: '',
+  region: '',
+  ciudad: '',
+  whatsapp: '',
+});</code></pre>
+    </div>
+
+    <!-- SECCIÓN 3: FRONTEND - MAPEO -->
+    <h2>3. Frontend: Función de Auto-llenado Continuo</h2>
+    <p>Actualiza la lógica de la función receptora <code>handleScanned</code> encargada de escuchar el evento del escáner OCR.</p>
+
+    <div class="container-box">
+        <span class="badge">RegistroScreen.tsx (handleScanned)</span>
+        <pre><code>const handleScanned = (data: any) => {
+  if (data) {
+    setFormData(prevState => ({
+      ...prevState,
+      cedula: data.cedula || prevState.cedula,
+      nombres: data.nombres || prevState.nombres,
+      apellidos: data.apellidos || prevState.apellidos,
+      fecha_nacimiento: data.fecha_nacimiento || prevState.fecha_nacimiento,
+      pais: data.pais || prevState.pais,
+      region: data.region || prevState.region,
+      ciudad: data.ciudad || prevState.ciudad,
+    }));
+  }
+};</code></pre>
+    </div>
+
+    <!-- SECCIÓN 4: FRONTEND - RENDER UI -->
+    <h2>4. Frontend: Nuevos Componentes de Entrada en la UI</h2>
+    <p>Añade estos bloques visuales en el árbol de renderizado de tu formulario.</p>
+
+    <div class="container-box">
+        <span class="badge">RegistroScreen.tsx (Formulario UI)</span>
+        <pre><code>&lt;View style={styles.formSection}&gt;
+  
+  &lt;View style={styles.inputContainer}&gt;
+    &lt;Text style={styles.label}&gt;País de Nacionalidad&lt;/Text&gt;
+    &lt;TextInput
+      value={formData.pais}
+      onChangeText={(text) => setFormData({ ...formData, pais: text })}
+      style={styles.input}
+      placeholder="Ej. Colombia"
+    /&gt;
+  &lt;/View&gt;
+
+  &lt;View style={styles.inputContainer}&gt;
+    &lt;Text style={styles.label}&gt;Región / Departamento&lt;/Text&gt;
+    &lt;TextInput
+      value={formData.region}
+      onChangeText={(text) => setFormData({ ...formData, region: text })}
+      style={styles.input}
+      placeholder="Ej. Cundinamarca"
+    /&gt;
+  &lt;/View&gt;
+
+  &lt;View style={styles.inputContainer}&gt;
+    &lt;Text style={styles.label}&gt;Ciudad / Municipio&lt;/Text&gt;
+    &lt;TextInput
+      value={formData.ciudad}
+      onChangeText={(text) => setFormData({ ...formData, ciudad: text })}
+      style={styles.input}
+      placeholder="Ej. Bogotá D.C."
+    /&gt;
+  &lt;/View&gt;
+
+&lt;/View&gt;</code></pre>
+    </div>
+
+    <!-- SECCIÓN 5: ACCION DISPATCH -->
+    <h2>5. Envío de Datos al Estado Global (<code>AppContext.tsx</code>)</h2>
+    <p>Envía la información extendida a través de tu acción <code>SET_USUARIO</code>.</p>
+
+    <div class="container-box">
+        <span class="badge">RegistroScreen.tsx (handleSubmit)</span>
+        <pre><code>const handleSubmit = async () => {
+  const usuarioCompleto = {
+    ...formData,
+    nombres: formData.nombres ? formData.nombres.trim() : '',
+    apellidos: formData.apellidos ? formData.apellidos.trim() : '',
+  };
+
+  dispatch({ type: 'SET_USUARIO', payload: usuarioCompleto });
+  alert('¡Usuario registrado exitosamente!');
+};</code></pre>
+    </div>
+
+</body>
+</html>

@@ -1,14 +1,12 @@
 /**
  * documentScanner.ts
  * Full OCR pipeline for identity documents.
- * Step 1 — Canvas preprocessing (grayscale, contrast, brightness, sharpen)
- * Step 2 — Tesseract.js OCR (spa+eng)
- * Step 3 — Document-type detection
- * Step 4 — Structured field extraction with regex / positional logic
- * Step 5 — Confidence scoring
+ * Primary  — Gemini 2.0 Flash vision API (requires EXPO_PUBLIC_GEMINI_API_KEY)
+ * Fallback — Tesseract.js (spa+eng) + canvas preprocessing + regex extraction
  */
 
 import Tesseract from 'tesseract.js';
+import { scanWithGemini, isGeminiAvailable } from './geminiOcr';
 
 // ─── Output types ────────────────────────────────────────────────────────────
 
@@ -417,6 +415,7 @@ export async function scanDocument(
 ): Promise<DocumentScanResult> {
   onProgress?.('Procesando imagen…', 5);
 
+  // ── Preprocess image (shared by both engines) ─────────────────────────────
   let processedBlob: Blob;
   try {
     processedBlob = await preprocessImage(source);
@@ -424,6 +423,17 @@ export async function scanDocument(
     processedBlob = source as Blob;
   }
 
+  // ── Primary: Gemini 2.0 Flash ─────────────────────────────────────────────
+  if (isGeminiAvailable()) {
+    try {
+      return await scanWithGemini(processedBlob, onProgress);
+    } catch (geminiErr) {
+      console.warn('[DocumentScanner] Gemini failed, falling back to Tesseract:', geminiErr);
+      onProgress?.('Cambiando a motor OCR local…', 14);
+    }
+  }
+
+  // ── Fallback: Tesseract.js ────────────────────────────────────────────────
   onProgress?.('Extrayendo texto del documento…', 15);
 
   const { data: { text } } = await Tesseract.recognize(

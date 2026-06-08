@@ -109,6 +109,8 @@
     "scan_button": "扫描证件",
     "scan_sub": "身份证 · 护照 · 驾照 · 外国证件",
     "scan_detail": "自动填写姓名、证件号、国家和城市",
+    "birthdate_label": "出生日期（可选）",
+    "birthdate_hint": "扫描证件时自动提取",
     "scanned_ok": "✅ 证件已读取 — 请输入您的WhatsApp",
     "or_manual": "— 或手动输入信息 —",
     "create_button": "🎉 创建我的咖啡护照",
