@@ -5,8 +5,8 @@ import {
   Alert, KeyboardAvoidingView, Platform, Animated, Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { VisitanteStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
@@ -32,8 +32,12 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
   const { dispatch, state } = useApp();
   const navigation = useNavigation<NativeStackNavigationProp<VisitanteStackParamList>>();
   const { t } = useTranslation();
+  const route = useRoute<NativeStackScreenProps<VisitanteStackParamList, 'Registro'>['route']>();
+  const routeParams = (route?.params ?? {}) as { cedula?: string; fromLogin?: boolean };
 
-  const [cedula,   setCedula]   = useState('');
+  const fromLogin = routeParams.fromLogin ?? false;
+
+  const [cedula,   setCedula]   = useState(routeParams.cedula ?? '');
   const [nombre,   setNombre]   = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [pais,     setPais]     = useState('');
@@ -115,6 +119,17 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
               <Text style={s.backText}>{t('common.back', '‹ Volver').replace('‹ ', '')}</Text>
             </TouchableOpacity>
           </View>
+
+          {/* "Not found" banner — shown when arriving from login with no match */}
+          {fromLogin && (
+            <View style={s.notFoundBanner}>
+              <Text style={s.notFoundIcon}>⚠️</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={s.notFoundTitle}>Pasaporte no encontrado</Text>
+                <Text style={s.notFoundSub}>Tu cédula no está registrada. Crea tu pasaporte ahora — ¡es gratis y toma menos de 30 segundos!</Text>
+              </View>
+            </View>
+          )}
 
           {/* Hero */}
           <LinearGradient colors={[T.green, T.greenLight, T.green]} style={s.hero}>
@@ -272,6 +287,11 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
 const s = StyleSheet.create({
   safe:              { flex: 1, backgroundColor: T.bg },
   scroll:            { flex: 1, backgroundColor: T.bg },
+
+  notFoundBanner:    { flexDirection: 'row', alignItems: 'flex-start', gap: 12, backgroundColor: '#FDECEA', borderRadius: 14, padding: 14, marginHorizontal: 16, marginTop: 12, borderWidth: 1, borderColor: '#E57373' },
+  notFoundIcon:      { fontSize: 24 },
+  notFoundTitle:     { fontSize: 14, fontWeight: '900', color: '#C0392B', marginBottom: 3 },
+  notFoundSub:       { fontSize: 11, color: '#8B3A3A', lineHeight: 16 },
 
   topBar:            { padding: 16, paddingBottom: 0 },
   backBtn:           { flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start', padding: 4, marginLeft: -4 },

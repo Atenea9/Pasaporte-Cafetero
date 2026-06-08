@@ -11,7 +11,7 @@ export type RootStackParamList = {
 export type VisitanteStackParamList = {
   Welcome: undefined;
   Login: undefined;
-  Registro: undefined;
+  Registro: { cedula?: string; fromLogin?: boolean } | undefined;
   Inicio: undefined;
   Pasaporte: undefined;
   Ranking: undefined;
