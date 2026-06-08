@@ -110,6 +110,8 @@
     "or_manual": "— ou entrez les données manuellement —",
     "create_button": "🎉 CRÉER MON PASSEPORT CAFÉ",
     "creating": "⏳ CRÉATION DE VOTRE PASSEPORT...",
+    "not_found_banner_title": "Passeport introuvable",
+    "not_found_banner_sub": "Votre identifiant n'est pas enregistré. Créez votre passeport — c'est gratuit et prend moins de 30 secondes !",
     "incomplete_fields": "Champs incomplets",
     "fill_all_fields": "Veuillez remplir tous les champs.",
     "already_registered": "Vous avez déjà un passeport enregistré",

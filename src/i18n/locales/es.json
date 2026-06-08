@@ -113,6 +113,8 @@
     "or_manual": "— o ingresa los datos manualmente —",
     "create_button": "🎉 CREAR MI PASAPORTE CAFETERO",
     "creating": "⏳ CREANDO TU PASAPORTE...",
+    "not_found_banner_title": "Pasaporte no encontrado",
+    "not_found_banner_sub": "Tu cédula no está registrada. Crea tu pasaporte — ¡es gratis y toma menos de 30 segundos!",
     "incomplete_fields": "Campos incompletos",
     "fill_all_fields": "Por favor completa todos los campos para crear tu pasaporte.",
     "already_registered": "Ya tienes un pasaporte registrado",

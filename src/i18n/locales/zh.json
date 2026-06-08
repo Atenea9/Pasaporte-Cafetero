@@ -113,6 +113,8 @@
     "or_manual": "— 或手动输入信息 —",
     "create_button": "🎉 创建我的咖啡护照",
     "creating": "⏳ 正在创建您的护照...",
+    "not_found_banner_title": "未找到通行证",
+    "not_found_banner_sub": "您的证件尚未注册。立即创建您的通行证——免费，不超过30秒！",
     "incomplete_fields": "字段不完整",
     "fill_all_fields": "请填写所有字段以创建您的护照。",
     "already_registered": "您已拥有注册护照",

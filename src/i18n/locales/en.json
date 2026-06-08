@@ -113,6 +113,8 @@
     "or_manual": "— or enter details manually —",
     "create_button": "🎉 CREATE MY COFFEE PASSPORT",
     "creating": "⏳ CREATING YOUR PASSPORT...",
+    "not_found_banner_title": "Passport not found",
+    "not_found_banner_sub": "Your ID is not registered. Create your passport — it's free and takes less than 30 seconds!",
     "incomplete_fields": "Incomplete fields",
     "fill_all_fields": "Please fill in all fields to create your passport.",
     "already_registered": "You already have a registered passport",

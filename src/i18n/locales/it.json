@@ -110,6 +110,8 @@
     "or_manual": "— o inserisci i dati manualmente —",
     "create_button": "🎉 CREA IL MIO PASSAPORTO DEL CAFFÈ",
     "creating": "⏳ CREAZIONE DEL PASSAPORTO...",
+    "not_found_banner_title": "Passaporto non trovato",
+    "not_found_banner_sub": "Il tuo documento non è registrato. Crea il tuo passaporto — è gratuito e richiede meno di 30 secondi!",
     "incomplete_fields": "Campi incompleti",
     "fill_all_fields": "Compila tutti i campi per creare il passaporto.",
     "already_registered": "Hai già un passaporto registrato",

@@ -53,10 +53,6 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
   const prizeShimmer     = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (state.usuario) navigation.navigate('Inicio');
-  }, [state.usuario]);
-
-  useEffect(() => {
     Animated.loop(
       Animated.sequence([
         Animated.timing(prizeShimmer, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
@@ -125,8 +121,8 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
             <View style={s.notFoundBanner}>
               <Text style={s.notFoundIcon}>⚠️</Text>
               <View style={{ flex: 1 }}>
-                <Text style={s.notFoundTitle}>Pasaporte no encontrado</Text>
-                <Text style={s.notFoundSub}>Tu cédula no está registrada. Crea tu pasaporte ahora — ¡es gratis y toma menos de 30 segundos!</Text>
+                <Text style={s.notFoundTitle}>{t('registration.not_found_banner_title', 'Pasaporte no encontrado')}</Text>
+                <Text style={s.notFoundSub}>{t('registration.not_found_banner_sub', 'Tu cédula no está registrada. Crea tu pasaporte — ¡es gratis y toma menos de 30 segundos!')}</Text>
               </View>
             </View>
           )}

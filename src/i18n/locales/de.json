@@ -110,6 +110,8 @@
     "or_manual": "— oder Daten manuell eingeben —",
     "create_button": "🎉 MEINEN KAFFEEPASS ERSTELLEN",
     "creating": "⏳ IHREN PASS WIRD ERSTELLT...",
+    "not_found_banner_title": "Reisepass nicht gefunden",
+    "not_found_banner_sub": "Ihre ID ist nicht registriert. Erstellen Sie Ihren Pass — kostenlos und in weniger als 30 Sekunden!",
     "incomplete_fields": "Felder unvollständig",
     "fill_all_fields": "Bitte alle Felder ausfüllen.",
     "already_registered": "Sie haben bereits einen registrierten Pass",
