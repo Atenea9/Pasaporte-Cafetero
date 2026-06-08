@@ -10,7 +10,7 @@ import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-n
 import type { VisitanteStackParamList } from '../navigation/types';
 import { useTranslation } from 'react-i18next';
 import { useApp } from '../context/AppContext';
-import CedulaScanner, { ScannedData } from '../components/CedulaScanner';
+import DocumentScanner, { DocumentScanResult } from '../components/DocumentScanner';
 
 const T = {
   bg:         '#FAF7F0',
@@ -61,12 +61,13 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
     ).start();
   }, []);
 
-  const handleScanned = (data: ScannedData) => {
-    setCedula(data.cedula);
-    setNombre(data.nombre);
-    setPais(data.pais);
-    setEstado(data.estado);
-    setCiudad(data.ciudad);
+  const handleScanned = (data: DocumentScanResult) => {
+    if (data.numero_documento)    setCedula(data.numero_documento);
+    const fullName = [data.nombres, data.apellidos].filter(Boolean).join(' ').trim();
+    if (fullName)                 setNombre(fullName);
+    if (data.pais_emision)        setPais(data.pais_emision);
+    if (data.region_departamento) setEstado(data.region_departamento);
+    if (data.municipio_ciudad)    setCiudad(data.municipio_ciudad);
     setScannedOk(true);
     scanSuccessScale.setValue(0);
     Animated.spring(scanSuccessScale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
@@ -104,7 +105,7 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
-      <CedulaScanner visible={scannerOpen} onScanned={handleScanned} onClose={() => setScannerOpen(false)} />
+      <DocumentScanner visible={scannerOpen} onDataExtracted={handleScanned} onClose={() => setScannerOpen(false)} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView style={s.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 

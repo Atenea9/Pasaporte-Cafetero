@@ -1,0 +1,131 @@
+Add a document scanning / OCR feature to this app that extracts structured identity data from any country's ID document (Colombian cédula, passport, driver's license, DNI, etc.) using ONLY Tesseract.js — no AI API calls.
+
+Requirements:
+
+1. DEPENDENCIES
+Install: tesseract.js
+
+2. CREATE FILE: src/utils/documentScanner.ts (or .js)
+
+This utility must do everything with pure OCR + regex/string parsing logic:
+
+STEP 1 — IMAGE PREPROCESSING (using HTML Canvas):
+- Load the image into a canvas element
+- Apply grayscale filter
+- Increase contrast to 1.5x and brightness to 1.2x
+- Sharpen edges by running a convolution kernel
+- Return the processed canvas as a blob/dataURL for Tesseract
+
+STEP 2 — OCR WITH TESSERACT.JS:
+- Run Tesseract.recognize(image, 'spa+eng')
+- Extract the full raw text string
+- Also extract the word-level bounding box data (hocr or tsv output) for positional parsing
+
+STEP 3 — DOCUMENT TYPE DETECTION:
+Detect document type from keywords in raw text:
+- Contains "CÉDULA" or "CEDULA" or "NUIP" → tipo = "Cédula de Ciudadanía (Colombia)"
+- Contains "PASAPORTE" or "PASSPORT" → tipo = "Pasaporte"
+- Contains "LICENCIA DE CONDUCCIÓN" or "CONDUCCION" or "MINISTERIO DE TRANSPORTE" → tipo = "Licencia de Conducción (Colombia)"
+- Contains "IDENTIFICACIÓN PERSONAL" → tipo = "Cédula de Ciudadanía antigua (Colombia)"
+- Contains "DNI" → tipo = "DNI"
+- Otherwise → tipo = "Documento de identidad"
+
+STEP 4 — FIELD EXTRACTION using regex and positional logic:
+
+A) numero_documento:
+- For cédulas colombianas: look for pattern /\b\d{5,12}\b/ near the word "NUIP" or "No\." or in the top-right area of the bounding box data
+- For licencias: look for pattern after "No\." → /No\.?\s*([\d]+)/i
+- For pasaportes: parse the MRZ lines (last 2 lines of text, 44 chars each). The document number is chars 1–9 of line 2
+- Fallback: find the longest numeric sequence /\b\d{6,12}\b/ in the whole text
+
+B) nombres:
+- For cédulas nuevas: look for text after "Nombres" label → /Nombres?\s*\n?([A-ZÁÉÍÓÚÑ ]+)/i
+- For cédulas antiguas: look after "NOMBRES" label
+- For licencias: the full name is after "NOMBRE" → split by spaces, last 2 tokens = apellidos, rest = nombres
+- For pasaportes: use MRZ line 2 chars 14–29 cleaned of filler chars (<), split by "<<"  where part after "<<" = nombres
+- Fallback: find lines in ALL CAPS with 2+ words that are not country/institution names
+
+C) apellidos:
+- For cédulas nuevas: look for text after "Apellidos" label → /Apellidos?\s*\n?([A-ZÁÉÍÓÚÑ ]+)/i
+- For pasaportes: MRZ line 2, part before "<<" starting at char 6 = apellidos
+- For licencias: last 2 words of the full name line
+- Fallback: line immediately before the nombres line in ALL CAPS
+
+D) fecha_nacimiento:
+- Regex patterns to try in order:
+  /(\d{2})[\/\-\s]([A-Z]{3})[\/\-\s](\d{4})/i  → day-MON-year (e.g. 12 MAR 2000)
+  /(\d{2})[\/\-](\d{2})[\/\-](\d{4})/            → dd/mm/yyyy
+  /(\d{4})[\/\-](\d{2})[\/\-](\d{2})/            → yyyy-mm-dd
+  /(\d{2})([A-Z]{3})(\d{4})/i                     → MRZ format (e.g. 00MAR12)
+- Convert month abbreviations: ENE=01, FEB=02, MAR=03, ABR=04, MAY=05, JUN=06,
+  JUL=07, AGO=08, SEP=09, OCT=10, NOV=11, DIC=12
+- Output always as YYYY-MM-DD
+
+E) pais_emision:
+- If "COLOMBIA" or "REPÚBLICA DE COLOMBIA" found → "Colombia"
+- If "ESPAÑA" or "REINO DE ESPAÑA" → "España"  
+- If "MÉXICO" or "ESTADOS UNIDOS MEXICANOS" → "México"
+- If "PERÚ" → "Perú"
+- If "ARGENTINA" → "Argentina"
+- If "CHILE" → "Chile"
+- If "VENEZUELA" → "Venezuela"
+- If "ECUADOR" → "Ecuador"
+- If "ESTADOS UNIDOS" or "UNITED STATES" → "Estados Unidos"
+- Fallback: look for text near "Nationality" or "Nacionalidad" field
+- Default: null
+
+F) region_departamento:
+- Look for text after "Lugar de nacimiento" or "Lugar de expedición" labels
+- Colombian departments list to match against (normalize to uppercase, ignore accents):
+  AMAZONAS, ANTIOQUIA, ARAUCA, ATLANTICO, BOGOTA, BOLIVAR, BOYACA, CALDAS, CAQUETA,
+  CASANARE, CAUCA, CESAR, CHOCO, CORDOBA, CUNDINAMARCA, GUAINIA, GUAVIARE, HUILA,
+  LA GUAJIRA, MAGDALENA, META, NARIÑO, NORTE DE SANTANDER, PUTUMAYO, QUINDIO,
+  RISARALDA, SAN ANDRES, SANTANDER, SUCRE, TOLIMA, VALLE DEL CAUCA, VAUPES, VICHADA
+- If any department name found anywhere in text → region = that department name (properly capitalized)
+- For passports: look in "Place of birth" or "Lugar de nacimiento" field
+- Fallback: null
+
+G) municipio_ciudad:
+- Look for text before the department name on the same line or preceding line
+- For licencias: extract city from "ORGANISMO DE TRÁNSITO EXPEDIDOR" field (last word or words before known dept)
+- For pasaportes: city is typically before the department in "Lugar de nacimiento"
+- Common pattern: "CIUDAD (DEPARTAMENTO)" → extract CIUDAD
+- Fallback: null
+
+STEP 5 — CONFIDENCE SCORING:
+Return a confidence object alongside the data:
+{
+  numero_documento: 'high' | 'medium' | 'low',
+  nombres: 'high' | 'medium' | 'low',
+  ...
+}
+Rules:
+- high: field was found with a labeled anchor (e.g. "Nombres: JUAN")
+- medium: field was inferred from position or pattern
+- low: field was guessed from fallback logic
+
+Return final object:
+{
+  tipo_documento, numero_documento, nombres, apellidos,
+  fecha_nacimiento, pais_emision, region_departamento, municipio_ciudad,
+  _confidence: { ... },
+  _raw_text: string
+}
+
+3. CREATE COMPONENT: src/components/DocumentScanner.tsx (or .jsx)
+
+UI must include:
+- File input accepting jpg, png, webp + camera capture (capture="environment" for mobile)
+- Image preview after selection
+- Progress indicator with two stages: "Extrayendo texto del documento..." → "Identificando campos..."
+- Result card showing all extracted fields as editable inputs labeled in Spanish
+- Each field shows a confidence indicator dot: green = high, yellow = medium, red = low
+- "Usar estos datos" button calling onDataExtracted(data) prop with the final corrected values
+- "Volver a escanear" button to reset
+- If OCR returns very little text (less than 20 chars): show error "No se pudo leer el documento. Asegúrese de que la imagen sea nítida y bien iluminada."
+
+4. INTEGRATION
+Render <DocumentScanner onDataExtracted={(data) => { /* populate form fields */ }} /> in the registration/form section of this app.
+
+Keep all existing functionality intact. Only add this new feature.
+Use .js and .jsx extensions if this project is not TypeScript.
