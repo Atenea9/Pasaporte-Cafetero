@@ -32,67 +32,27 @@ export interface DocumentScanResult {
 
 // ─── STEP 1: Image preprocessing ─────────────────────────────────────────────
 
-export async function preprocessImage(source: File | Blob | string): Promise<Blob> {
+// STEP 1: 3x upscaling + CSS filter (grayscale, contrast, brightness) for Tesseract
+export async function preprocessImage(source: File | Blob | string): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = typeof source === 'string' ? source : URL.createObjectURL(source as Blob);
 
     img.onload = () => {
       const canvas = document.createElement('canvas');
-      const MAX = 1800;
-      const scale = Math.min(1, MAX / Math.max(img.width, img.height));
-      canvas.width  = Math.round(img.width  * scale);
-      canvas.height = Math.round(img.height * scale);
+      canvas.width  = img.naturalWidth  * 3;
+      canvas.height = img.naturalHeight * 3;
       const ctx = canvas.getContext('2d')!;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
 
+      // Draw image directly with filter applied (safe — avoids self-draw undefined behaviour)
+      ctx.filter = 'grayscale(1) contrast(2) brightness(1.3)';
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-      // Grayscale
-      const id = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const d  = id.data;
-      for (let i = 0; i < d.length; i += 4) {
-        const gray = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-        d[i] = d[i + 1] = d[i + 2] = gray;
-      }
-
-      // Contrast 1.5x + brightness 1.2x
-      const contrast   = 1.5;
-      const brightness = 1.2;
-      const factor = (259 * (contrast * 255 + 259)) / (259 * (259 - contrast * 255));
-      for (let i = 0; i < d.length; i += 4) {
-        const v = d[i] * brightness;
-        d[i] = d[i + 1] = d[i + 2] = Math.min(255, Math.max(0, factor * (v - 128) + 128));
-      }
-      ctx.putImageData(id, 0, 0);
-
-      // Sharpen via convolution kernel
-      const kernel = [
-         0, -1,  0,
-        -1,  5, -1,
-         0, -1,  0,
-      ];
-      const src2 = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const dst2 = ctx.createImageData(canvas.width, canvas.height);
-      const w = canvas.width, h = canvas.height;
-      const sd = src2.data, dd = dst2.data;
-      for (let y = 1; y < h - 1; y++) {
-        for (let x = 1; x < w - 1; x++) {
-          let r = 0;
-          for (let ky = -1; ky <= 1; ky++) {
-            for (let kx = -1; kx <= 1; kx++) {
-              const px = ((y + ky) * w + (x + kx)) * 4;
-              r += sd[px] * kernel[(ky + 1) * 3 + (kx + 1)];
-            }
-          }
-          const pi = (y * w + x) * 4;
-          dd[pi] = dd[pi + 1] = dd[pi + 2] = Math.min(255, Math.max(0, r));
-          dd[pi + 3] = 255;
-        }
-      }
-      ctx.putImageData(dst2, 0, 0);
+      ctx.filter = 'none';
 
       if (typeof source !== 'string') URL.revokeObjectURL(url);
-      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob failed')), 'image/png');
+      resolve(canvas);
     };
     img.onerror = reject;
     img.src = url;
@@ -448,21 +408,23 @@ export async function scanDocument(
     }
   }
 
-  // ── Preprocess image for Tesseract (grayscale + contrast helps Tesseract) ─
-  let processedBlob: Blob;
+  // ── STEP 1: 3x upscale + CSS filter preprocessing for Tesseract ─────────
+  let processedCanvas: HTMLCanvasElement | null = null;
   try {
-    processedBlob = await preprocessImage(source);
-  } catch {
-    processedBlob = source as Blob;
+    processedCanvas = await preprocessImage(source);
+  } catch (e) {
+    console.warn('[Tesseract] preprocessing failed, using original source:', e);
   }
+  const tesseractInput: any = processedCanvas ?? source;
 
-  // ── Fallback: Tesseract.js ────────────────────────────────────────────────
+  // ── STEP 2: Tesseract.js with PSM 6 (single uniform block) ───────────────
   onProgress?.('Extrayendo texto del documento…', 15);
 
-  const { data: { text } } = await Tesseract.recognize(
-    processedBlob as any,
+  const { data } = await Tesseract.recognize(
+    tesseractInput,
     'spa+eng',
     {
+      tessedit_pageseg_mode: '6',
       logger: (m: any) => {
         if (m.status === 'recognizing text') {
           onProgress?.('Extrayendo texto del documento…', 15 + Math.round(m.progress * 70));
@@ -472,39 +434,100 @@ export async function scanDocument(
           onProgress?.('Cargando modelos de idioma…', 12);
         }
       },
-    }
+    } as any,
   );
+
+  const text: string = data.text;
 
   onProgress?.('Identificando campos…', 90);
 
-  const tipo   = detectDocumentType(text);
-  const fields = extractFields(text, tipo);
+  const tipo = detectDocumentType(text);
 
-  // Debug log so we can see what Tesseract actually read
+  // ── STEP 3: Extract fields with patterns ordered for Colombian cédula ────
+
+  let numero_documento:    string | null = null;
+  let apellidos:           string | null = null;
+  let nombres:             string | null = null;
+  let fecha_nacimiento:    string | null = null;
+  let municipio_ciudad:    string | null = null;
+  let region_departamento: string | null = null;
+  let pais_emision:        string | null = null;
+
+  // NUIP — new cédula prints "NUIP 1.999.999.999" (dots as thousands sep)
+  const nuipMatch = text.match(/NUIP\s+([\d\.]+)/i);
+  if (nuipMatch) numero_documento = nuipMatch[1].replace(/\./g, '');
+
+  // Apellidos — label then value on next line OR same line
+  const apellidosMatch = text.match(/Apellidos?\s*\n?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]+)/i);
+  if (apellidosMatch) apellidos = apellidosMatch[1].trim();
+
+  // Nombres — label then value on next line OR same line
+  const nombresMatch = text.match(/Nombres?\s*\n?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]+)/i);
+  if (nombresMatch) nombres = nombresMatch[1].trim();
+
+  // Fecha de nacimiento — "12 MAR 2000" or "12MAR2000"
+  const fechaMatch = text.match(/(\d{1,2})\s*(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)\s*(\d{4})/i);
+  if (fechaMatch) {
+    const months: Record<string, string> = {
+      ENE:'01', FEB:'02', MAR:'03', ABR:'04', MAY:'05', JUN:'06',
+      JUL:'07', AGO:'08', SEP:'09', OCT:'10', NOV:'11', DIC:'12',
+    };
+    fecha_nacimiento = `${fechaMatch[3]}-${months[fechaMatch[2].toUpperCase()]}-${fechaMatch[1].padStart(2,'0')}`;
+  }
+
+  // Lugar de nacimiento — "BOGOTA D.C. (CUNDINAMARCA)"
+  const lugarMatch = text.match(/([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\.]+)\s*\(([A-ZÁÉÍÓÚÑ\s]+)\)/);
+  if (lugarMatch) {
+    municipio_ciudad    = lugarMatch[1].trim();
+    region_departamento = lugarMatch[2].trim();
+  }
+
+  // País — always Colombia if header present
+  if (/COLOMBIA/i.test(text)) pais_emision = 'Colombia';
+
+  // ── STEP 4: Bounding-box fallback for nombres / apellidos ─────────────────
+  const words: Array<{ text: string; bbox: { x0: number; y0: number; x1: number; y1: number } }> =
+    (data as any).words ?? [];
+
+  const wordsInZone = (yMin: number, yMax: number): string =>
+    words
+      .filter(w => w.bbox.y0 >= yMin && w.bbox.y0 <= yMax && /^[A-ZÁÉÍÓÚÑ]{2,}$/i.test(w.text))
+      .map(w => w.text)
+      .join(' ');
+
+  if (!apellidos) { const v = wordsInZone(120, 160); if (v) apellidos = v; }
+  if (!nombres)   { const v = wordsInZone(160, 210); if (v) nombres   = v; }
+
+  // Debug
   console.log('[Tesseract] raw text:', text.slice(0, 600));
-  console.log('[Tesseract] extracted:', { tipo, ...Object.fromEntries(Object.entries(fields).map(([k,v]) => [k, (v as any).value])) });
+  console.log('[Tesseract] extracted:', {
+    tipo, numero_documento, nombres, apellidos,
+    fecha_nacimiento, pais_emision, region_departamento, municipio_ciudad,
+  });
+
+  const confFor = (v: string | null): Confidence => (v ? 'high' : 'low');
 
   onProgress?.('Listo', 100);
 
   return {
     tipo_documento:      tipo,
-    numero_documento:    fields.numero_documento.value,
-    nombres:             fields.nombres.value,
-    apellidos:           fields.apellidos.value,
-    fecha_nacimiento:    fields.fecha_nacimiento.value,
-    pais_emision:        fields.pais_emision.value,
-    region_departamento: fields.region_departamento.value,
-    municipio_ciudad:    fields.municipio_ciudad.value,
+    numero_documento,
+    nombres,
+    apellidos,
+    fecha_nacimiento,
+    pais_emision,
+    region_departamento,
+    municipio_ciudad,
     _confidence: {
-      numero_documento:    fields.numero_documento.conf,
-      nombres:             fields.nombres.conf,
-      apellidos:           fields.apellidos.conf,
-      fecha_nacimiento:    fields.fecha_nacimiento.conf,
-      pais_emision:        fields.pais_emision.conf,
-      region_departamento: fields.region_departamento.conf,
-      municipio_ciudad:    fields.municipio_ciudad.conf,
+      numero_documento:    confFor(numero_documento),
+      nombres:             confFor(nombres),
+      apellidos:           confFor(apellidos),
+      fecha_nacimiento:    confFor(fecha_nacimiento),
+      pais_emision:        confFor(pais_emision),
+      region_departamento: confFor(region_departamento),
+      municipio_ciudad:    confFor(municipio_ciudad),
     },
     _raw_text: text,
-    _engine: 'tesseract' as const,
+    _engine:   'tesseract' as const,
   };
 }

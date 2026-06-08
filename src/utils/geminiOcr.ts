@@ -10,12 +10,14 @@ import { DocumentScanResult, Confidence } from './documentScanner';
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
-// Try models in order — gemini-1.5-flash has the most generous free-tier quota.
-// If a model returns 429 (quota) or 503, we fall through to the next one.
+// Try models in order — lite models have the most generous free-tier quota.
+// Includes API version per model since 1.5 models only exist on v1beta under some keys.
+// If a model returns 429 (quota) or 404 (not found) or 5xx, we fall through to the next.
 const GEMINI_MODELS = [
-  'gemini-1.5-flash',
-  'gemini-2.0-flash-lite',
-  'gemini-2.0-flash',
+  { name: 'gemini-2.0-flash-lite',   version: 'v1beta' },
+  { name: 'gemini-2.0-flash',        version: 'v1beta' },
+  { name: 'gemini-1.5-flash-latest', version: 'v1beta' },
+  { name: 'gemini-1.5-flash-latest', version: 'v1'     },
 ];
 
 const EXTRACTION_PROMPT = `You are an OCR expert specializing in identity documents. Analyze this document image and extract the following fields as a JSON object.
@@ -114,26 +116,27 @@ export async function scanWithGemini(
 
   onProgress?.('Analizando documento con IA…', 50);
 
-  // Try each model in order; skip to next on quota (429) or server errors (5xx).
+  // Try each model in order; skip to next on quota (429), not found (404), or server errors (5xx).
   let response: Response | null = null;
   let lastErr = '';
-  for (const model of GEMINI_MODELS) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  for (const { name, version } of GEMINI_MODELS) {
+    const url = `https://generativelanguage.googleapis.com/${version}/models/${name}:generateContent?key=${apiKey}`;
     try {
       const r = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (r.status === 429 || r.status >= 500) {
-        lastErr = `model ${model} returned ${r.status}`;
+      if (r.status === 429 || r.status === 404 || r.status >= 500) {
+        lastErr = `model ${name} (${version}) returned ${r.status}`;
         console.warn(`[Gemini] ${lastErr}, trying next model…`);
         continue;
       }
       response = r;
+      console.log(`[Gemini] using model: ${name} (${version})`);
       break;
     } catch (networkErr) {
-      lastErr = `model ${model} network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`;
+      lastErr = `model ${name} network error: ${networkErr instanceof Error ? networkErr.message : String(networkErr)}`;
       console.warn(`[Gemini] ${lastErr}, trying next model…`);
     }
   }
