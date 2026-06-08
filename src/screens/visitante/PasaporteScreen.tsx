@@ -201,6 +201,14 @@ export const PasaporteScreen = () => {
   const porRegion = getMunicipiosPorRegion();
   const nombre = state.usuario?.nombre || user?.name || 'Cafetero';
 
+  const formatearFecha = (fecha?: string): string => {
+    if (!fecha) return 'No registrada';
+    const partes = fecha.split('-');
+    if (partes.length !== 3) return fecha;
+    const [año, mes, día] = partes;
+    return `${día}/${mes}/${año}`;
+  };
+
   const PAGES = [
     { id: 'cover',   label: 'Portada',  icon: '📗' },
     { id: 'norte',   label: 'Norte',    icon: '🗺️' },
@@ -276,6 +284,8 @@ export const PasaporteScreen = () => {
                   <Text style={s.idValue}>{nombre.toUpperCase()}</Text>
                   <Text style={s.idLabel}>DOCUMENTO</Text>
                   <Text style={s.idValue}>{state.usuario?.cedula || user?.uid?.slice(-8).toUpperCase() || '—'}</Text>
+                  <Text style={s.idLabel}>FECHA DE NACIMIENTO</Text>
+                  <Text style={s.idValue}>{formatearFecha(state.usuario?.fechaNacimiento)}</Text>
                   <Text style={s.idLabel}>ORIGEN</Text>
                   <Text style={s.idValue}>{[state.usuario?.ciudad, state.usuario?.pais].filter(Boolean).join(' · ') || '—'}</Text>
                 </View>

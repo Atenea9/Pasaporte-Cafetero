@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implementación de Fecha de Nacimiento - Pasaporte Digital</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        h1 {
+            color: #1a365d;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2c5282;
+            margin-top: 30px;
+            border-left: 4px solid #3182ce;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #4a5568;
+        }
+        pre {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 14px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        code {
+            font-family: "Courier New", Courier, monospace;
+            background-color: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #ca1c1c;
+            font-size: 14px;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            font-size: inherit;
+        }
+        .note {
+            background-color: #ebf8ff;
+            border-left: 4px solid #3182ce;
+            color: #2b6cb0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .warning {
+            background-color: #fffaf0;
+            border-left: 4px solid #dd6b20;
+            color: #9c4221;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        ul {
+            padding-left: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Guía de Implementación: Campo <code>fecha_nacimiento</code></h1>
+    <p>Esta guía contiene el código completo y estructurado listo para copiar y pegar en tu entorno de <strong>Replit</strong> tanto para el Backend (Integración con la API de Gemini) como para el Frontend (<code>RegistroScreen.tsx</code> y visualización del Pasaporte Digital).</p>
+
+    <div class="note">
+        <strong>Requisito previo en Replit:</strong> Recuerda ir a la sección de <strong>Secrets (icono de candado)</strong> en Replit, añadir una variable llamada <code>GEMINI_API_KEY</code> y pegar allí tu clave generada en Google AI Studio. Asegúrate de instalar el SDK ejecutando <code>npm install @google/genai</code> en la consola.
+    </div>
+
+    <h2>1. Backend: Servicio de Extracción con Gemini (Node.js)</h2>
+    <p>Crea o añade esto en tu archivo de servidor en Replit (por ejemplo, <code>geminiService.js</code> o dentro de tus funciones de API). Este código procesa la foto de la cédula en Base64, utiliza el modelo multimodal <code>gemini-2.5-flash</code> y fuerza una respuesta estructurada en formato JSON garantizando el formato <code>YYYY-MM-DD</code>.</p>
+
+    <pre><code>import { GoogleGenAI, Type } from '@google/genai';
+
+// Inicializa el SDK usando la variable de entorno configurada en Replit Secrets
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
+/**
+ * Procesa la imagen de una cédula y extrae los datos clave usando Gemini OCR estructurado.
+ * @param {string} base64Image - Cadena de la imagen en Base64 (sin el prefijo 'data:image/jpeg;base64,')
+ */
+export async function extraerDatosCedula(base64Image) {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          inlineData: {
+            mimeType: 'image/jpeg',
+            data: base64Image
+          }
+        },
+        'Extrae de manera precisa el número de documento (cédula), nombres, apellidos y la fecha de nacimiento de esta identificación.'
+      ],
+      config: {
+        // Obliga a Gemini a responder única y estrictamente en un JSON válido
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            cedula: { type: Type.STRING },
+            nombres: { type: Type.STRING },
+            apellidos: { type: Type.STRING },
+            // Requerimiento de formato estandarizado
+            fecha_nacimiento: { 
+              type: Type.STRING, 
+              description: 'Fecha de nacimiento extraída estrictamente en formato YYYY-MM-DD' 
+            },
+          },
+          // Se deja fecha_nacimiento por fuera de required para que si la foto está borrosa o no se lee bien, la IA no falle y devuelva el resto de datos.
+          required: ['cedula', 'nombres', 'apellidos'], 
+        },
+      },
+    });
+
+    return JSON.parse(response.text);
+  } catch (error) {
+    console.error("Error en la extracción con Gemini:", error);
+    return null;
+  }
+}</code></pre>
+
+    <h2>2. Frontend: Modificaciones en <code>RegistroScreen.tsx</code></h2>
+    <p>A continuación se presentan los bloques de código que debes integrar o actualizar en tu archivo de pantalla de registro de React Native / TypeScript.</p>
+
+    <h3>A. Definición del Estado del Formulario</h3>
+    <p>Se añade <code>fecha_nacimiento</code> como una propiedad opcional (<code>?</code>) con string vacío por defecto, cumpliendo con el <strong>Requerimiento 3</strong> para registros manuales.</p>
+    <pre><code>// 1. Definición de la interfaz del estado del formulario
+interface FormState {
+  cedula: string;
+  nombres: string;
+  apellidos: string;
+  fecha_nacimiento?: string; // Guardará el formato YYYY-MM-DD
+}
+
+// 2. Inicialización del estado en tu componente
+const [formData, setFormData] = useState<FormState>({
+  cedula: '',
+  nombres: '',
+  apellidos: '',
+  fecha_nacimiento: '', 
+});</code></pre>
+
+    <h3>B. Mapeo en la Función de Escaneo (<code>onDataExtracted</code>)</h3>
+    <p>Actualiza la función que recibe la respuesta del Backend/Gemini para mapear directamente la fecha (<strong>Requerimiento 1.3</strong>).</p>
+    <pre><code>// Función encargada de actualizar los campos cuando la IA extrae los datos correctamente
+const onDataExtracted = (extractedData: any) => {
+  if (extractedData) {
+    setFormData(prevState => ({
+      ...prevState,
+      cedula: extractedData.cedula || prevState.cedula,
+      nombres: extractedData.nombres || prevState.nombres,
+      apellidos: extractedData.apellidos || prevState.apellidos,
+      // REQUERIMIENTO 1.3: Mapeo directo fecha_nacimiento -> fecha_nacimiento
+      fecha_nacimiento: extractedData.fecha_nacimiento || prevState.fecha_nacimiento,
+    }));
+  }
+};</code></pre>
+
+    <h3>C. Componente Input en la Interfaz de Usuario (UI)</h3>
+    <p>Añade el elemento visual dentro del formulario de renderizado (<strong>Requerimiento 1.2</strong>). Al no añadir validaciones restrictivas de obligatoriedad, se mantiene opcional.</p>
+    <pre><code>{/* REQUERIMIENTO 1.2: Input de fecha de nacimiento en la UI */}
+&lt;View style={styles.inputContainer}&gt;
+  &lt;Text style={styles.label}&gt;Fecha de nacimiento&lt;/Text&gt;
+  &lt;input
+    type="date"
+    value={formData.fecha_nacimiento || ''}
+    onChange={(e) => setFormData({ ...formData, fecha_nacimiento: e.target.value })}
+    style={styles.webInput} 
+  /&gt;
+&lt;/View&gt;</code></pre>
+    <div class="warning">
+        <strong>Nota de plataforma:</strong> El tag <code>&lt;input type="date" /&gt;</code> es idóneo si estás ejecutando tu proyecto en Replit apuntando a entorno Web (React Native para Web / Expo Web). Si estás compilando para dispositivos móviles nativos, sustituye este bloque por un componente de fecha como <code>@react-native-community/datetimepicker</code>.
+    </div>
+
+    <h3>D. Persistencia de Datos (Envío / Guardado)</h3>
+    <p>Asegúrate de incluir el estado completo en el objeto final que se despacha hacia el almacenamiento local o base de datos (<strong>Requerimiento 1.4</strong>).</p>
+    <pre><code>// REQUERIMIENTO 1.4: Guardar incluyendo la fecha de nacimiento en AsyncStorage o Firebase
+const handleSubmit = async () => {
+  try {
+    const dataToSave = {
+      ...formData,
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Opción con AsyncStorage:
+    await AsyncStorage.setItem('@visitor_passport', JSON.stringify(dataToSave));
+    
+    // Opción alternada si usas Firebase/Firestore:
+    // await db.collection('visitantes').add(dataToSave);
+
+    alert('¡Registro de visitante completado con éxito!');
+  } catch (error) {
+    console.error("Error al persistir los datos de registro:", error);
+    alert('Ocurrió un error al guardar el registro.');
+  }
+};</code></pre>
+
+    <h2>3. Frontend: Visualización en el Pasaporte Digital</h2>
+    <p>Para cumplir rigurosamente con el <strong>Requerimiento 2</strong>, la fecha debe guardarse como <code>YYYY-MM-DD</code> pero mostrarse de cara al usuario en formato legible <code>DD/MM/YYYY</code>.</p>
+
+    <h3>A. Función Auxiliar de Formateo</h3>
+    <p>Añade esta función en tu componente del Pasaporte o tarjeta digital:</p>
+    <pre><code>/**
+ * Transforma un string de fecha de YYYY-MM-DD a formato legible DD/MM/YYYY
+ * @param {string} fechaInput 
+ * @returns {string} fecha formateada o mensaje por defecto
+ */
+const formatearFecha = (fechaInput?: string): string => {
+  if (!fechaInput) return 'No registrada';
+  
+  const partes = fechaInput.split('-'); // Divide la cadena [YYYY, MM, DD]
+  if (partes.length !== 3) return fechaInput; // Retorno de seguridad por si ya viene formateada
+  
+  const [año, mes, día] = partes;
+  return `${día}/${mes}/${año}`; // Retorna en formato DD/MM/YYYY
+};</code></pre>
+
+    <h3>B. Renderizado del Pasaporte</h3>
+    <p>Añade la etiqueta "Fecha de nacimiento" apuntando a la función transformadora dentro de la vista final:</p>
+    <pre><code>{/* REQUERIMIENTO 2: Despliegue en el Pasaporte Digital */}
+&lt;View style={styles.passportCard}&gt;
+  &lt;Text style={styles.passportTitle}&gt;PASAPORTE DIGITAL DE VISITANTE&lt;/Text&gt;
+  
+  &lt;Text style={styles.infoText}&gt;&lt;Text style={styles.bold}&gt;Nombre:&lt;/Text&gt; {visitor.nombres} {visitor.apellidos}&lt;/Text&gt;
+  &lt;Text style={styles.infoText}&gt;&lt;Text style={styles.bold}&gt;Documento:&lt;/Text&gt; {visitor.cedula}&lt;/Text&gt;
+  
+  {/* Renderizado con etiqueta obligatoria y formato DD/MM/YYYY */}
+  &lt;Text style={styles.infoText}&gt;
+    &lt;Text style={styles.bold}&gt;Fecha de nacimiento:&lt;/Text&gt; {formatearFecha(visitor.fecha_nacimiento)}
+  &lt;/Text&gt;
+&lt;/View&gt;</code></pre>
+
+</body>
+</html>

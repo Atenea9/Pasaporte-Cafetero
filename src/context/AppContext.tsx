@@ -13,6 +13,7 @@ export interface Usuario {
   ciudad: string;
   municipio?: string;
   departamento?: string;
+  fechaNacimiento?: string;
   puntos: number;
   nivel: string;
   sellos: string[];

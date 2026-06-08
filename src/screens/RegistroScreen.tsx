@@ -37,12 +37,13 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
 
   const fromLogin = routeParams.fromLogin ?? false;
 
-  const [cedula,   setCedula]   = useState(routeParams.cedula ?? '');
-  const [nombre,   setNombre]   = useState('');
-  const [whatsapp, setWhatsapp] = useState('');
-  const [pais,     setPais]     = useState('');
-  const [estado,   setEstado]   = useState('');
-  const [ciudad,   setCiudad]   = useState('');
+  const [cedula,          setCedula]          = useState(routeParams.cedula ?? '');
+  const [nombre,          setNombre]          = useState('');
+  const [whatsapp,        setWhatsapp]        = useState('');
+  const [pais,            setPais]            = useState('');
+  const [estado,          setEstado]          = useState('');
+  const [ciudad,          setCiudad]          = useState('');
+  const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [termsOk,  setTermsOk]  = useState(false);
   const [dataOk,   setDataOk]   = useState(false);
   const [loading,  setLoading]  = useState(false);
@@ -68,6 +69,7 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
     if (data.pais_emision)        setPais(data.pais_emision);
     if (data.region_departamento) setEstado(data.region_departamento);
     if (data.municipio_ciudad)    setCiudad(data.municipio_ciudad);
+    if (data.fecha_nacimiento)    setFechaNacimiento(data.fecha_nacimiento);
     setScannedOk(true);
     scanSuccessScale.setValue(0);
     Animated.spring(scanSuccessScale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
@@ -90,7 +92,7 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
     setTimeout(() => {
       dispatch({
         type: 'SET_USUARIO',
-        payload: { cedula, nombre, whatsapp, pais, estado, ciudad, puntos: 0, nivel: 'Visitante', sellos: [], creadoEn: Date.now() },
+        payload: { cedula, nombre, whatsapp, pais, estado, ciudad, fechaNacimiento: fechaNacimiento || undefined, puntos: 0, nivel: 'Visitante', sellos: [], creadoEn: Date.now() },
       });
       dispatch({
         type: 'AGREGAR_NOTIF',
@@ -188,6 +190,38 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
                 <TextInput style={[s.input, scannedOk && s.inputFilled]} value={f.val} onChangeText={f.set} placeholder={f.ph} placeholderTextColor={T.muted} keyboardType={f.kb} autoCapitalize={f.autoCapitalize} />
               </View>
             ))}
+
+            <View style={s.fieldGroup}>
+              <Text style={s.label}>{t('registration.birthdate_label', 'FECHA DE NACIMIENTO (opcional)')}</Text>
+              {Platform.OS === 'web' ? (
+                /* @ts-ignore */
+                <input
+                  type="date"
+                  value={fechaNacimiento}
+                  onChange={(e: any) => setFechaNacimiento(e.target.value)}
+                  style={{
+                    backgroundColor: scannedOk ? '#E8F2E4' : '#FFFFFF',
+                    border: `1px solid ${scannedOk ? '#2D5A1E99' : '#E8D5B0'}`,
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 14,
+                    color: '#2C1810',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    fontFamily: 'inherit',
+                  } as any}
+                />
+              ) : (
+                <TextInput
+                  style={[s.input, scannedOk && s.inputFilled]}
+                  value={fechaNacimiento}
+                  onChangeText={setFechaNacimiento}
+                  placeholder="AAAA-MM-DD"
+                  placeholderTextColor="#8A7060"
+                />
+              )}
+              <Text style={s.fieldHint}>{t('registration.birthdate_hint', 'Se extrae automáticamente al escanear tu documento')}</Text>
+            </View>
 
             <View style={[s.fieldGroup, scannedOk && s.fieldGroupHighlight]}>
               <Text style={[s.label, scannedOk && s.labelHighlight]}>
