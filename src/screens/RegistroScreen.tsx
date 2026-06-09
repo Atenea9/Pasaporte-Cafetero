@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet, Text, View, ScrollView, TextInput,
-  TouchableOpacity, SafeAreaView, StatusBar,
+  TouchableOpacity, SafeAreaView, StatusBar, Image,
   Alert, KeyboardAvoidingView, Platform, Animated, Easing,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -49,9 +49,11 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
   const [loading,  setLoading]  = useState(false);
   const [scannerOpen,  setScannerOpen]  = useState(false);
   const [scannedOk,    setScannedOk]    = useState(false);
+  const [fotoCedula,   setFotoCedula]   = useState<string | null>(null);
 
   const scanSuccessScale = useRef(new Animated.Value(0)).current;
   const prizeShimmer     = useRef(new Animated.Value(0)).current;
+  const photoInputRef    = useRef<any>(null);
 
   useEffect(() => {
     Animated.loop(
@@ -70,9 +72,28 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
     if (data.region_departamento) setEstado(data.region_departamento);
     if (data.municipio_ciudad)    setCiudad(data.municipio_ciudad);
     if (data.fecha_nacimiento)    setFechaNacimiento(data.fecha_nacimiento);
+    if (data.foto_url)            setFotoCedula(data.foto_url);
     setScannedOk(true);
     scanSuccessScale.setValue(0);
     Animated.spring(scanSuccessScale, { toValue: 1, friction: 5, useNativeDriver: true }).start();
+  };
+
+  const handlePickPhoto = () => {
+    if (Platform.OS === 'web' && photoInputRef.current) {
+      photoInputRef.current.click();
+    }
+  };
+
+  const handlePhotoFile = (e: any) => {
+    const file: File = e.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) setFotoCedula(dataUrl);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
   };
 
   const registrar = () => {
@@ -92,7 +113,7 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
     setTimeout(() => {
       dispatch({
         type: 'SET_USUARIO',
-        payload: { cedula, nombre, whatsapp, pais, estado, ciudad, fechaNacimiento: fechaNacimiento || undefined, puntos: 0, nivel: 'Visitante', sellos: [], creadoEn: Date.now() },
+        payload: { cedula, nombre, whatsapp, pais, estado, ciudad, fechaNacimiento: fechaNacimiento || undefined, fotoPerfil: fotoCedula || undefined, puntos: 0, nivel: 'Visitante', sellos: [], creadoEn: Date.now() },
       });
       dispatch({
         type: 'AGREGAR_NOTIF',
@@ -261,19 +282,42 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
               <View style={s.preview}>
                 <Text style={s.previewTitle}>{t('registration.preview_title', 'VISTA PREVIA DE TU PASAPORTE')}</Text>
                 <View style={s.previewCard}>
-                  <View style={s.previewAvatar}>
-                    <Text style={s.previewAvatarText}>{nombre.charAt(0).toUpperCase()}</Text>
-                  </View>
+                  <TouchableOpacity style={s.previewAvatar} onPress={handlePickPhoto} activeOpacity={0.8}>
+                    {fotoCedula ? (
+                      <Image source={{ uri: fotoCedula }} style={s.previewAvatarImg} />
+                    ) : (
+                      <Text style={s.previewAvatarText}>{nombre.charAt(0).toUpperCase()}</Text>
+                    )}
+                    <View style={s.previewAvatarEditBadge}>
+                      <Text style={{ fontSize: 9 }}>✏️</Text>
+                    </View>
+                  </TouchableOpacity>
                   <View style={{ flex: 1 }}>
                     <Text style={s.previewNombre}>{nombre}</Text>
                     <Text style={s.previewLoc}>{[ciudad, estado, pais].filter(Boolean).join(' · ') || '—'}</Text>
                     <View style={s.previewBadge}>
                       <Text style={s.previewBadgeText}>⭐ Visitante · 0 puntos</Text>
                     </View>
+                    {fotoCedula && (
+                      <TouchableOpacity onPress={handlePickPhoto} style={s.changePhotoBtn}>
+                        <Text style={s.changePhotoBtnText}>Cambiar foto</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                   <Text style={{ fontSize: 32 }}>📗</Text>
                 </View>
               </View>
+            )}
+            {/* Hidden file input for web photo picker */}
+            {Platform.OS === 'web' && (
+              /* @ts-ignore */
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handlePhotoFile}
+              />
             )}
 
             <View style={s.sectionDiv}>
@@ -373,8 +417,12 @@ const s = StyleSheet.create({
   preview:           { marginBottom: 20 },
   previewTitle:      { fontSize: 10, fontWeight: '800', color: T.gold, letterSpacing: 1, marginBottom: 8 },
   previewCard:       { backgroundColor: T.card, borderRadius: 14, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: T.border },
-  previewAvatar:     { width: 44, height: 44, borderRadius: 22, backgroundColor: T.green, alignItems: 'center', justifyContent: 'center' },
-  previewAvatarText: { fontSize: 20, fontWeight: '800', color: '#FFF' },
+  previewAvatar:          { width: 56, height: 56, borderRadius: 28, backgroundColor: T.green, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' },
+  previewAvatarImg:       { width: 56, height: 56, borderRadius: 28 },
+  previewAvatarText:      { fontSize: 22, fontWeight: '800', color: '#FFF' },
+  previewAvatarEditBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: T.gold, borderRadius: 8, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
+  changePhotoBtn:         { marginTop: 6, alignSelf: 'flex-start' },
+  changePhotoBtnText:     { fontSize: 10, color: T.green, fontWeight: '700', textDecorationLine: 'underline' },
   previewNombre:     { fontSize: 14, fontWeight: '700', color: T.dark },
   previewLoc:        { fontSize: 11, color: T.muted, marginTop: 2 },
   previewBadge:      { marginTop: 6, backgroundColor: T.greenPale, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3, alignSelf: 'flex-start' },

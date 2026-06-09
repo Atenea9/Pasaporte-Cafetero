@@ -2,7 +2,7 @@ import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, LayoutAnimation, Platform, UIManager,
-  Dimensions, SafeAreaView, StatusBar,
+  Dimensions, SafeAreaView, StatusBar, Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -168,11 +168,30 @@ export const PasaporteScreen = () => {
   const nav = useNavigation<VisitanteNavProp>();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState(0);
   const scrollRef = useRef<ScrollView>(null);
+  const photoInputRef = useRef<any>(null);
+
+  const handleChangePhoto = () => {
+    if (Platform.OS === 'web' && photoInputRef.current) {
+      photoInputRef.current.click();
+    }
+  };
+
+  const handlePhotoFile = (e: any) => {
+    const file: File = e.target?.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      if (dataUrl) dispatch({ type: 'UPDATE_FOTO', payload: dataUrl });
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   useFocusEffect(useCallback(() => {
     let alive = true;
@@ -275,10 +294,28 @@ export const PasaporteScreen = () => {
             </View>
 
             <PassportPage title="IDENTIFICACIÓN DEL PORTADOR">
+              {/* Hidden file input for web photo change */}
+              {Platform.OS === 'web' && (
+                /* @ts-ignore */
+                <input
+                  ref={photoInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handlePhotoFile}
+                />
+              )}
               <View style={s.idSection}>
-                <View style={s.idAvatar}>
-                  <Text style={s.idAvatarText}>{nombre.charAt(0).toUpperCase()}</Text>
-                </View>
+                <TouchableOpacity style={s.idAvatar} onPress={handleChangePhoto} activeOpacity={0.85}>
+                  {state.usuario?.fotoPerfil ? (
+                    <Image source={{ uri: state.usuario.fotoPerfil }} style={s.idAvatarImg} />
+                  ) : (
+                    <Text style={s.idAvatarText}>{nombre.charAt(0).toUpperCase()}</Text>
+                  )}
+                  <View style={s.idAvatarEditBadge}>
+                    <Text style={{ fontSize: 10 }}>✏️</Text>
+                  </View>
+                </TouchableOpacity>
                 <View style={s.idData}>
                   <Text style={s.idLabel}>NOMBRE COMPLETO</Text>
                   <Text style={s.idValue}>{nombre.toUpperCase()}</Text>
@@ -537,8 +574,10 @@ const s = StyleSheet.create({
   levelBadgeName: { fontSize: 10, fontWeight: '900', color: T.dark, letterSpacing: 1 },
   spine:        { position: 'absolute', left: 0, top: 0, bottom: 0, width: 10, backgroundColor: T.leatherDark, borderTopLeftRadius: 16, borderBottomLeftRadius: 16 },
   idSection:    { flexDirection: 'row', gap: 14, marginBottom: 18 },
-  idAvatar:     { width: 70, height: 90, borderRadius: 10, backgroundColor: T.leather, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: T.gold + '60' },
-  idAvatarText: { fontSize: 32, fontWeight: '900', color: T.goldPale },
+  idAvatar:          { width: 80, height: 90, borderRadius: 10, backgroundColor: T.leather, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: T.gold + '60', overflow: 'hidden', position: 'relative' },
+  idAvatarImg:       { width: 80, height: 90 },
+  idAvatarText:      { fontSize: 32, fontWeight: '900', color: T.goldPale },
+  idAvatarEditBadge: { position: 'absolute', bottom: 4, right: 4, backgroundColor: T.gold, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
   idData:       { flex: 1 },
   idLabel:      { fontSize: 8, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 2, marginTop: 6 },
   idValue:      { fontSize: 12, fontWeight: '800', color: T.ink, letterSpacing: 0.5 },

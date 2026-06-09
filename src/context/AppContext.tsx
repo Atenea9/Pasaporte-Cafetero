@@ -14,6 +14,7 @@ export interface Usuario {
   municipio?: string;
   departamento?: string;
   fechaNacimiento?: string;
+  fotoPerfil?: string;
   puntos: number;
   nivel: string;
   sellos: string[];
@@ -63,6 +64,7 @@ export interface AppState {
 
 type Action =
   | { type: 'SET_USUARIO'; payload: Usuario }
+  | { type: 'UPDATE_FOTO'; payload: string }
   | { type: 'AGREGAR_TRANSACCION'; payload: Transaccion }
   | { type: 'ACUNAR_SELLO'; payload: string }
   | { type: 'SUMAR_PUNTOS'; payload: number }
@@ -87,6 +89,9 @@ function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_USUARIO':
       return { ...state, usuario: action.payload };
+    case 'UPDATE_FOTO':
+      if (!state.usuario) return state;
+      return { ...state, usuario: { ...state.usuario, fotoPerfil: action.payload } };
     case 'AGREGAR_TRANSACCION':
       return { ...state, transacciones: [action.payload, ...state.transacciones] };
     case 'ACUNAR_SELLO': {

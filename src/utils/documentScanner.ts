@@ -21,6 +21,7 @@ export interface DocumentScanResult {
   pais_emision: string | null;
   region_departamento: string | null;
   municipio_ciudad: string | null;
+  foto_url?: string;
   _confidence: Record<
     'numero_documento' | 'nombres' | 'apellidos' | 'fecha_nacimiento' |
     'pais_emision' | 'region_departamento' | 'municipio_ciudad',
@@ -28,6 +29,49 @@ export interface DocumentScanResult {
   >;
   _raw_text: string;
   _engine?: 'gemini' | 'tesseract';
+}
+
+// ─── Face photo extraction ───────────────────────────────────────────────────
+
+/**
+ * Crops the face-photo zone from an identity document.
+ * Colombian cédulas always have the photo in the top-left area
+ * (~x:0–38%, y:10%–92% of the card).
+ * Returns a JPEG base64 data URL, or null on failure.
+ */
+export async function extractFaceFromDocument(
+  source: File | Blob | string,
+): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = typeof source === 'string' ? source : URL.createObjectURL(source as Blob);
+    img.onload = () => {
+      try {
+        const W = img.naturalWidth;
+        const H = img.naturalHeight;
+        // Face zone: left 38% of card width, top 10%–92% of card height
+        const sx = 0;
+        const sy = Math.floor(H * 0.10);
+        const sw = Math.floor(W * 0.38);
+        const sh = Math.floor(H * 0.82);
+        const canvas = document.createElement('canvas');
+        canvas.width  = sw;
+        canvas.height = sh;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+        resolve(canvas.toDataURL('image/jpeg', 0.88));
+      } catch {
+        resolve(null);
+      } finally {
+        if (typeof source !== 'string') URL.revokeObjectURL(url);
+      }
+    };
+    img.onerror = () => {
+      if (typeof source !== 'string') URL.revokeObjectURL(url);
+      resolve(null);
+    };
+    img.src = url;
+  });
 }
 
 // ─── STEP 1: Image preprocessing ─────────────────────────────────────────────
@@ -389,16 +433,18 @@ export async function scanDocument(
 ): Promise<DocumentScanResult> {
   onProgress?.('Procesando imagen…', 5);
 
+  // Extract face photo from the original (colour) image regardless of OCR engine
+  const foto_url = await extractFaceFromDocument(source).catch(() => null) ?? undefined;
+
   // ── Primary: Gemini 2.0 Flash (original image — no preprocessing needed) ──
   if (isGeminiAvailable()) {
     try {
-      // Convert source to Blob for Gemini without preprocessing
-      // (Gemini's vision model works best on the original colour image)
       const originalBlob: Blob =
         source instanceof Blob
           ? source
           : await fetch(source).then(r => r.blob());
-      return await scanWithGemini(originalBlob, onProgress);
+      const geminiResult = await scanWithGemini(originalBlob, onProgress);
+      return { ...geminiResult, foto_url };
     } catch (geminiErr) {
       console.warn(
         '[DocumentScanner] Gemini failed, falling back to Tesseract:',
@@ -484,9 +530,10 @@ export async function scanDocument(
   // Strategy: find the "Apellidos" label line, then scan subsequent lines for the
   // first one that yields a clean name (the actual surname is NEVER on the same
   // line as NUIP — it's always 1-2 lines below the label).
+  // Note: Tesseract sometimes reads "Apeliidos" (double-i) — use fuzzy match.
   let apellidosLabelIdx = -1;
   for (let i = 0; i < lines.length; i++) {
-    if (/\bApellidos?\b/i.test(lines[i])) { apellidosLabelIdx = i; break; }
+    if (/Apeli+dos?/i.test(lines[i])) { apellidosLabelIdx = i; break; }
   }
   if (apellidosLabelIdx >= 0) {
     for (let j = apellidosLabelIdx + 1; j < Math.min(apellidosLabelIdx + 4, lines.length); j++) {
@@ -551,25 +598,64 @@ export async function scanDocument(
   }
 
   // ── D) Fecha de nacimiento ─────────────────────────────────────────────────
-  const fechaM = text.match(/(\d{1,2})\s*(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)\s*(\d{4})/i);
-  if (fechaM) {
-    const mo: Record<string, string> = {
-      ENE:'01',FEB:'02',MAR:'03',ABR:'04',MAY:'05',JUN:'06',
-      JUL:'07',AGO:'08',SEP:'09',OCT:'10',NOV:'11',DIC:'12',
-    };
-    fecha_nacimiento = `${fechaM[3]}-${mo[fechaM[2].toUpperCase()]}-${fechaM[1].padStart(2,'0')}`;
+  // Tesseract often misreads "OCT" as "0CT" — normalise before matching.
+  const textNorm = text.replace(/\b0CT\b/gi, 'OCT').replace(/\bAG0\b/gi, 'AGO');
+  // Look for fecha near "nacimiento" label first to avoid expedition date
+  const moMap: Record<string, string> = {
+    ENE:'01',FEB:'02',MAR:'03',ABR:'04',MAY:'05',JUN:'06',
+    JUL:'07',AGO:'08',SEP:'09',OCT:'10',NOV:'11',DIC:'12',
+  };
+  const FECHA_RE = /(\d{1,2})\s*(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)\s*(\d{4})/gi;
+  let fechaMatch: RegExpExecArray | null;
+  const allDates: Array<{ day: string; mo: string; year: string; idx: number }> = [];
+  while ((fechaMatch = FECHA_RE.exec(textNorm)) !== null) {
+    allDates.push({ day: fechaMatch[1], mo: fechaMatch[2].toUpperCase(), year: fechaMatch[3], idx: fechaMatch.index });
+  }
+  if (allDates.length > 0) {
+    // Prefer the date nearest the "nacimiento" label (if found), else take the first
+    const nacIdx = textNorm.search(/nacimiento/i);
+    const best = nacIdx >= 0
+      ? allDates.reduce((a, b) => Math.abs(a.idx - nacIdx) <= Math.abs(b.idx - nacIdx) ? a : b)
+      : allDates[0];
+    fecha_nacimiento = `${best.year}-${moMap[best.mo]}-${best.day.padStart(2,'0')}`;
   }
 
   // ── E) Lugar de nacimiento ─────────────────────────────────────────────────
+  // Strip leading OCR noise: remove words with no vowels (e.g. "CMS", "D", "C")
+  const stripNoise = (s: string) => s
+    .split(/\s+/)
+    .filter(w => w.length >= 2 && /[AEIOUÁÉÍÓÚ]/i.test(w))
+    .join(' ').trim();
+
+  // Primary: city (department) — e.g. "MEDELLÍN (ANTIOQUIA)"
   const lugarM = text.match(/([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\.]{2,})\s*\(([A-ZÁÉÍÓÚÑ\s]{2,})\)/);
   if (lugarM) {
-    // Strip leading OCR noise: remove words with no vowels (e.g. "CMS", "D", "C")
-    const stripNoise = (s: string) => s
-      .split(/\s+/)
-      .filter(w => w.length >= 2 && /[AEIOUÁÉÍÓÚ]/i.test(w))
-      .join(' ').trim();
     municipio_ciudad    = stripNoise(lugarM[1]) || lugarM[1].trim();
     region_departamento = lugarM[2].trim();
+  }
+  // Fallback: detect "BOGOTÁ D.C." pattern (no parentheses on some cédulas)
+  if (!municipio_ciudad) {
+    const bogotaM = text.match(/BOGOT[AÁ]\s*D\.?C\.?/i);
+    if (bogotaM) {
+      municipio_ciudad    = 'Bogotá D.C.';
+      region_departamento = 'Cundinamarca';
+    }
+  }
+  // Fallback: scan for "Lugar de nacimiento" label and grab next meaningful line
+  if (!municipio_ciudad) {
+    for (let i = 0; i < lines.length; i++) {
+      if (/lugar de nacimiento/i.test(lines[i])) {
+        for (let j = i + 1; j < Math.min(i + 4, lines.length); j++) {
+          const cleaned = stripNoise(lines[j].replace(/[^A-Za-záéíóúñÁÉÍÓÚÑ\s\.]/g, ' '));
+          if (cleaned.length >= 3) { municipio_ciudad = cleaned; break; }
+        }
+        break;
+      }
+    }
+  }
+  // Also try to find department if still null using the known departments list
+  if (!region_departamento) {
+    region_departamento = findDepartment(text);
   }
 
   // ── F) País ────────────────────────────────────────────────────────────────
@@ -595,6 +681,7 @@ export async function scanDocument(
     pais_emision,
     region_departamento,
     municipio_ciudad,
+    foto_url,
     _confidence: {
       numero_documento:    confFor(numero_documento),
       nombres:             confFor(nombres),
