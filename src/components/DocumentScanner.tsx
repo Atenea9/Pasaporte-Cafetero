@@ -243,23 +243,24 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
     const cropW = FRAME_W / scale;
     const cropH = FRAME_H / scale;
 
-    // 3× upscale + contrast boost for OCR
-    canvas.width  = Math.round(cropW * 3);
-    canvas.height = Math.round(cropH * 3);
+    // Crop to card area at 2× resolution — NO filters here.
+    // scanDocument → preprocessImage will apply grayscale/contrast/brightness
+    // exactly once. Applying filters here AND in preprocessImage double-processes
+    // the image, making it unreadable for Tesseract.
+    canvas.width  = Math.round(cropW * 2);
+    canvas.height = Math.round(cropH * 2);
     const ctx = canvas.getContext('2d')!;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-    ctx.filter = 'grayscale(1) contrast(1.9) brightness(1.25)';
     ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, canvas.width, canvas.height);
-    ctx.filter = 'none';
 
     stopWebCam();
 
-    // Convert canvas to blob and run OCR
+    // Convert canvas to blob and run OCR (scanDocument handles preprocessing)
     canvas.toBlob(
       (blob: Blob | null) => { if (blob) runOCR(blob); else setPhase('error'); },
       'image/jpeg',
-      0.92,
+      0.95,
     );
   };
 

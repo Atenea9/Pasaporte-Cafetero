@@ -21,7 +21,8 @@ const DEMO_ACCOUNTS: Record<string, { role: UserRole; name: string }> = {
   'stevenpolania23@outlook.com': { role: 'ceo', name: 'Steven Polania'      },
 };
 
-// In-memory session cache — avoids relying on AsyncStorage in the critical path
+// In-memory session only — never restored from AsyncStorage so every fresh
+// app launch always shows the general login screen (correct demo behaviour).
 let _sessionCache: UserProfile | null = null;
 
 export const mockAuthService = {
@@ -48,36 +49,21 @@ export const mockAuthService = {
       ...(type === 'phone' ? { phone: identifier } : { email: identifier }),
     };
 
-    // Store in memory immediately — fire-and-forget AsyncStorage (can hang in web iframe)
+    // Keep session in memory for the lifetime of this app session only
     _sessionCache = mockUser;
-    AsyncStorage.setItem(SESSION_KEY, JSON.stringify(mockUser)).catch(() => {});
 
     return mockUser;
   },
 
   async checkSession(): Promise<UserProfile | null> {
-    // Return in-memory cache instantly if available (e.g. after login in same session)
-    if (_sessionCache) return _sessionCache;
-
-    try {
-      // Race AsyncStorage against a 800ms timeout to avoid hanging in web iframe
-      const session = await Promise.race([
-        AsyncStorage.getItem(SESSION_KEY),
-        new Promise<null>(resolve => setTimeout(() => resolve(null), 800)),
-      ]);
-      if (session) {
-        _sessionCache = JSON.parse(session);
-        return _sessionCache;
-      }
-      return null;
-    } catch {
-      return null;
-    }
+    // Only return the in-memory cache — never restore from AsyncStorage.
+    // This ensures every cold start shows the general login, not a stale role.
+    return _sessionCache;
   },
 
   async logout(): Promise<void> {
     _sessionCache = null;
-    // Fire-and-forget — don't block logout on AsyncStorage
+    // Best-effort cleanup of any previously stored values
     AsyncStorage.removeItem(SESSION_KEY).catch(() => {});
   },
 };
