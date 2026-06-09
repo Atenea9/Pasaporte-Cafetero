@@ -1,36 +1,16 @@
-/**
- * firebase.ts
- * -------------------------------------------------
- * Central Firebase initialisation for PasaporteCafetero.
- *
- * HOW TO SET UP:
- * 1. Create a project at https://console.firebase.google.com
- * 2. Enable Firestore, Authentication (Phone provider), and Storage.
- * 3. Copy your Web SDK config and replace the placeholder values below.
- * 4. Rename this file section or use environment variables in a .env file
- *    (with expo-constants) for production security.
- *
- * REQUIRED PACKAGES:
- *   npx expo install firebase
- * -------------------------------------------------
- */
-
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
-// ─── Replace with your actual Firebase project config ────────────────────────
 const firebaseConfig = {
-  apiKey:            'YOUR_API_KEY',
-  authDomain:        'YOUR_PROJECT_ID.firebaseapp.com',
-  projectId:         'YOUR_PROJECT_ID',
-  storageBucket:     'YOUR_PROJECT_ID.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId:             'YOUR_APP_ID',
+  apiKey:            process.env.FIREBASE_API_KEY            ?? 'YOUR_API_KEY',
+  authDomain:        process.env.FIREBASE_AUTH_DOMAIN        ?? 'YOUR_PROJECT_ID.firebaseapp.com',
+  projectId:         process.env.FIREBASE_PROJECT_ID         ?? 'YOUR_PROJECT_ID',
+  storageBucket:     process.env.FIREBASE_STORAGE_BUCKET     ?? 'YOUR_PROJECT_ID.appspot.com',
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID ?? 'YOUR_SENDER_ID',
+  appId:             process.env.FIREBASE_APP_ID             ?? 'YOUR_APP_ID',
 };
-// ─────────────────────────────────────────────────────────────────────────────
 
-// Prevent re-initialisation in hot-reload environments
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 export const db   = getFirestore(app);
