@@ -243,10 +243,10 @@ export const LoginScreen = () => {
 
         {/* ── Title block ── */}
         <Text style={s.fairLabel}>FERIA INTERNACIONAL DE CAFÉ</Text>
-        <Text style={[s.titleLg, { width: CARD_W }]} numberOfLines={1} adjustsFontSizeToFit>
+        <Text style={[s.titleLg, { width: CARD_W, fontSize: Math.min(38, CARD_W / 8.5) }]}>
           TOLIMA CORAZÓN
         </Text>
-        <Text style={[s.titleMd, { width: CARD_W }]} numberOfLines={1} adjustsFontSizeToFit>
+        <Text style={[s.titleMd, { width: CARD_W, fontSize: Math.min(26, CARD_W / 13) }]}>
           CAFETERO DE COLOMBIA
         </Text>
         <Text style={s.titleSub}>Chaparral - 2026</Text>

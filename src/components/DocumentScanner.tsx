@@ -14,7 +14,7 @@ import {
   Animated, Easing, LayoutChangeEvent,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { scanDocument, DocumentScanResult, Confidence } from '../utils/documentScanner';
+import { scanDocument, warmupOCR, DocumentScanResult, Confidence } from '../utils/documentScanner';
 import { isGeminiAvailable } from '../utils/geminiOcr';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -154,13 +154,16 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
     }
   }, [phase]);
 
-  // ── Web camera lifecycle ──────────────────────────────────────────────────
+  // ── Web camera lifecycle + OCR pre-warm ──────────────────────────────────
   useEffect(() => {
     if (!visible) {
       stopWebCam();
       return;
     }
-    if (Platform.OS === 'web' && visible && phase === 'idle') {
+    // Pre-warm Tesseract worker as soon as modal opens so language data is
+    // already loaded by the time the user captures the photo
+    warmupOCR();
+    if (Platform.OS === 'web' && phase === 'idle') {
       startWebCam();
     }
   }, [visible, phase]);
