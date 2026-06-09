@@ -502,7 +502,7 @@ export async function scanDocument(
   const lines = text.split('\n');
 
   // Words that should NEVER be a name value (known labels/noise)
-  const FALSE_NAME = /^(NUIP|REPÚBLICA|REPUBLICA|COLOMBIA|CIUDADANÍA|CIUDADANIA|MINISTERIO|TRANSPORTE|IDENTIFICACIÓN|IDENTIFICACION|NOMBRES?|APELLIDOS?|FIRMA|FECHA|LUGAR|EXPEDICIÓN|EXPEDICION|ESTATURA|SEXO|NACIONALIDAD|NACIMIENTO|COL|GS|DNI)$/i;
+  const FALSE_NAME = /^(NUIP|REPÚBLICA|REPUBLICA|COLOMBIA|CIUDADANÍA|CIUDADANIA|CÉDULA|CEDULA|CIUDADANO|CIUDADANA|MINISTERIO|TRANSPORTE|IDENTIFICACIÓN|IDENTIFICACION|NOMBRES?|APELLIDOS?|FIRMA|FECHA|LUGAR|EXPEDICIÓN|EXPEDICION|ESTATURA|SEXO|NACIONALIDAD|NACIMIENTO|COL|GS|DNI|DE|LA|EL|LOS|LAS|ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)$/i;
 
   /**
    * Given a raw OCR line, strip leading junk and return only the space-joined
@@ -533,7 +533,8 @@ export async function scanDocument(
   // Note: Tesseract sometimes reads "Apeliidos" (double-i) — use fuzzy match.
   let apellidosLabelIdx = -1;
   for (let i = 0; i < lines.length; i++) {
-    if (/Apeli+dos?/i.test(lines[i])) { apellidosLabelIdx = i; break; }
+    // Matches: "Apellidos", "Apeliidos" (double-i OCR), "Apelidos" (single-l OCR typo)
+    if (/Apell?i+dos?/i.test(lines[i])) { apellidosLabelIdx = i; break; }
   }
   if (apellidosLabelIdx >= 0) {
     for (let j = apellidosLabelIdx + 1; j < Math.min(apellidosLabelIdx + 4, lines.length); j++) {

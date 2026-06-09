@@ -3,3 +3,4 @@
 - [Architecture overview](architecture.md) — Multi-role navigator structure: role detected from usuario.rol, each role gets its own Stack navigator.
 - [Web preview setTimeout freeze](settimeout-web-freeze.md) — setTimeout freezes in Expo web preview iframe when unfocused; remove delays from critical init paths.
 - [LoginScreen art style](login-art-style.md) — Parchment/rustic reference design; colour tokens, shadow helpers, and pattern to apply across all new screens.
+- [OCR cédula label regex](ocr-cedula-label-regex.md) — `/Apell?i+dos?/i` required (double-l); FALSE_NAME must include CÉDULA, DE, month abbrevs.
