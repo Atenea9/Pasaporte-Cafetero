@@ -1,6 +1,6 @@
 /**
  * CedulaScanner — Real OCR document scanner
- * Web:    getUserMedia camera + Tesseract.js OCR  (file-upload fallback)
+ * Web:    getUserMedia camera + crop-to-card + Tesseract.js / Gemini OCR
  * Native: expo-camera capture + Tesseract.js OCR
  *
  * Parses: Colombian cédulas (APELLIDOS/NOMBRES layout),
@@ -9,10 +9,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
-  Platform, Animated, Easing, TextInput, ScrollView, ActivityIndicator,
+  Platform, Animated, Easing, TextInput, ScrollView,
+  LayoutChangeEvent,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import Tesseract from 'tesseract.js';
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
+// ID card (CR80) aspect ratio: 85.6 × 54 mm → ~1.585:1
+const FRAME_W   = 280;
+const FRAME_H   = Math.round(FRAME_W / 1.585); // ≈ 177
+const BOX_H     = 310;
+const CORNER_SZ = 28;
+const BORDER    = 3;
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -45,7 +55,7 @@ const MRZ_CODES: Record<string, string> = {
 
 const COUNTRY_KW: [string, string][] = [
   ['REPÚBLICA DE COLOMBIA','Colombia'],['COLOMBIE','Colombia'],['COLOMBIA','Colombia'],
-  ['ESPAÑA','España'],['ESPAÑA','España'],['SPAIN','España'],
+  ['ESPAÑA','España'],['SPAIN','España'],
   ['ALEMANIA','Alemania'],['GERMANY','Alemania'],['BUNDESREPUBLIK','Alemania'],
   ['BRASIL','Brasil'],['BRAZIL','Brasil'],
   ['ESTADOS UNIDOS','Estados Unidos'],['UNITED STATES','Estados Unidos'],
@@ -59,11 +69,20 @@ function parseOCRText(raw: string): Partial<ScannedData> {
   const up    = lines.map(l => l.toUpperCase());
   const res: Partial<ScannedData> = {};
 
-  // ── Document number: 6-12 digit run ──────────────────────────────────────
-  const docM = text.match(/\b(\d{6,12})\b/);
-  if (docM) res.cedula = docM[1];
+  // ── Document number: 6-12 digit run ─────────────────────────────────────
+  const nuipM = text.match(/NUIP\s*:?\s*([\d.]{6,15})/i);
+  if (nuipM) {
+    res.cedula = nuipM[1].replace(/\./g, '');
+  } else {
+    const dotNum = text.match(/\b(\d{1,3}(?:\.\d{3}){2,3})\b/);
+    if (dotNum) res.cedula = dotNum[1].replace(/\./g, '');
+  }
+  if (!res.cedula) {
+    const docM = text.match(/\b(\d{6,12})\b/);
+    if (docM) res.cedula = docM[1];
+  }
 
-  // ── Name: APELLIDOS / NOMBRES labels (Colombian cédula) ──────────────────
+  // ── Name: APELLIDOS / NOMBRES labels (Colombian cédula) ─────────────────
   const aIdx = up.findIndex(l => /APELLIDOS?/.test(l));
   const nIdx = up.findIndex(l => /^NOMBRES?$/.test(l));
   if (aIdx >= 0 && lines[aIdx + 1]) {
@@ -73,25 +92,21 @@ function parseOCRText(raw: string): Partial<ScannedData> {
     if (full.length > 3) res.nombre = full;
   }
 
-  // ── MRZ parsing (Passport type P or ID card TD1/TD3) ─────────────────────
+  // ── MRZ parsing (Passport type P or ID card TD1/TD3) ────────────────────
   const mrzRaw = lines.filter(l => /^[A-Z0-9<\s]{28,}$/.test(l));
   const mrz    = mrzRaw.map(l => l.replace(/\s/g, ''));
   if (mrz.length >= 2) {
     const m1 = mrz[0];
     const m2 = mrz[1];
-
     if (m1.startsWith('P<') && m1.length >= 44) {
-      // Passport MRZ line 1: P<COL<LASTNAME<<FIRSTNAME<...
-      const cc      = m1.slice(2, 5);
-      const namePt  = m1.slice(5).split('<<');
+      const cc        = m1.slice(2, 5);
+      const namePt    = m1.slice(5).split('<<');
       const lastName  = namePt[0]?.replace(/<+/g, ' ').trim();
       const firstName = namePt.slice(1).join(' ').replace(/<+/g, ' ').trim();
       if (firstName && lastName && !res.nombre) res.nombre = `${firstName} ${lastName}`;
       if (MRZ_CODES[cc]) res.pais = MRZ_CODES[cc];
-      // MRZ line 2: doc number is first 9 chars
       if (m2.length >= 9 && !res.cedula) res.cedula = m2.slice(0, 9).replace(/<+/g, '');
     } else if (m1.length >= 30) {
-      // TD1/TD2 identity card
       const nameLine = mrz.find(l => l.includes('<<'));
       if (nameLine && !res.nombre) {
         const parts     = nameLine.split('<<');
@@ -106,7 +121,7 @@ function parseOCRText(raw: string): Partial<ScannedData> {
     }
   }
 
-  // ── Country from text ─────────────────────────────────────────────────────
+  // ── Country from text ────────────────────────────────────────────────────
   if (!res.pais) {
     for (const [kw, country] of COUNTRY_KW) {
       if (text.includes(kw)) { res.pais = country; break; }
@@ -131,6 +146,7 @@ const C = {
   border:    '#2A4020',
   red:       '#C0392B',
   success:   '#2ECC71',
+  dim:       'rgba(0,0,0,0.68)',
 };
 
 // ── Main component ───────────────────────────────────────────────────────────
@@ -143,42 +159,49 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
   const [cameraError, setCameraError]   = useState(false);
   const [previewUrl,  setPreviewUrl]    = useState<string | null>(null);
   const [uploadFile,  setUploadFile]    = useState<File | null>(null);
+  const [boxWidth,    setBoxWidth]      = useState(340);
 
-  // Form state for confirm phase
   const [fc, setFc] = useState<ScannedData>({
     cedula: '', nombre: '', pais: 'Colombia', estado: '', ciudad: '',
   });
 
-  // Animations
-  const scanLine    = useRef(new Animated.Value(0)).current;
-  const pulseAnim   = useRef(new Animated.Value(1)).current;
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  const scanLine     = useRef(new Animated.Value(0)).current;
+  const pulseAnim    = useRef(new Animated.Value(1)).current;
+  const cornerPulse  = useRef(new Animated.Value(1)).current;
 
-  // Web refs
-  const webVideoRef   = useRef<HTMLVideoElement  | null>(null);
-  const webCanvasRef  = useRef<HTMLCanvasElement | null>(null);
-  const fileInputRef  = useRef<HTMLInputElement  | null>(null);
-  const streamRef     = useRef<MediaStream      | null>(null);
+  const webVideoRef  = useRef<HTMLVideoElement  | null>(null);
+  const webCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement  | null>(null);
+  const streamRef    = useRef<MediaStream      | null>(null);
 
-  // Pulse loop for processing
-  useEffect(() => {
-    if (phase === 'processing') {
-      progressAnim.setValue(0);
-      pulseAnim.setValue(1);
-      Animated.loop(Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.06, duration: 400, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1,    duration: 400, useNativeDriver: true }),
-      ])).start();
-    }
-  }, [phase]);
-
-  // Scan-line loop for camera phase
+  // Scan-line animation
   useEffect(() => {
     if (phase === 'camera' || phase === 'idle') {
       scanLine.setValue(0);
       Animated.loop(Animated.sequence([
-        Animated.timing(scanLine, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
-        Animated.timing(scanLine, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+        Animated.timing(scanLine, { toValue: 1, duration: 1600, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+        Animated.timing(scanLine, { toValue: 0, duration: 1600, easing: Easing.inOut(Easing.sin), useNativeDriver: false }),
+      ])).start();
+    }
+  }, [phase]);
+
+  // Corner-bracket pulse
+  useEffect(() => {
+    if (phase === 'camera' || phase === 'idle') {
+      Animated.loop(Animated.sequence([
+        Animated.timing(cornerPulse, { toValue: 1.04, duration: 700, useNativeDriver: true }),
+        Animated.timing(cornerPulse, { toValue: 1,    duration: 700, useNativeDriver: true }),
+      ])).start();
+    }
+  }, [phase]);
+
+  // Pulse for processing
+  useEffect(() => {
+    if (phase === 'processing') {
+      pulseAnim.setValue(1);
+      Animated.loop(Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.06, duration: 400, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1,    duration: 400, useNativeDriver: true }),
       ])).start();
     }
   }, [phase]);
@@ -194,12 +217,10 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
       setProgress(0);
       return;
     }
-    if (Platform.OS === 'web' && visible) {
-      startWebCamera();
-    }
+    if (Platform.OS === 'web' && visible) startWebCamera();
   }, [visible]);
 
-  // Native camera permission
+  // Native permission
   useEffect(() => {
     if (Platform.OS !== 'web' && permission && !permission.granted && visible) {
       requestPermission();
@@ -211,7 +232,7 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
     setCameraError(false);
     try {
       const stream = await (navigator.mediaDevices as any).getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
       });
       streamRef.current = stream;
       if (webVideoRef.current) {
@@ -230,14 +251,56 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
     streamRef.current = null;
   };
 
-  // ── Capture frame from live camera ────────────────────────────────────────
+  // ── Capture & crop to card area ────────────────────────────────────────────
   const captureAndOCR = async () => {
     if (!webVideoRef.current || !webCanvasRef.current) return;
     const video  = webVideoRef.current as any;
     const canvas = webCanvasRef.current as any;
-    canvas.width  = video.videoWidth  || 1280;
-    canvas.height = video.videoHeight || 720;
-    canvas.getContext('2d')?.drawImage(video, 0, 0);
+
+    const vW = video.videoWidth  || 1280;
+    const vH = video.videoHeight || 720;
+
+    // The cameraBox renders at boxWidth × BOX_H on screen.
+    // The video uses objectFit:cover → we compute the cover scale and offset.
+    const scaleX = boxWidth / vW;
+    const scaleY = BOX_H   / vH;
+    const scale  = Math.max(scaleX, scaleY); // cover scale
+
+    // Amount of video "hidden" on each side (in video-pixel space)
+    const rendW = vW * scale;
+    const rendH = vH * scale;
+    const hidX  = (rendW - boxWidth) / 2 / scale; // video px hidden left
+    const hidY  = (rendH - BOX_H)   / 2 / scale;  // video px hidden top
+
+    // Card frame center position in box-pixel space
+    const frameLeft = (boxWidth - FRAME_W) / 2;
+    const frameTop  = (BOX_H   - FRAME_H) / 2;
+
+    // Convert box-px to video-px
+    const cropX = hidX + frameLeft  / scale;
+    const cropY = hidY + frameTop   / scale;
+    const cropW = FRAME_W / scale;
+    const cropH = FRAME_H / scale;
+
+    // Draw cropped card area, upscaled 3× for OCR quality + contrast boost
+    const OUT_SCALE = 3;
+    canvas.width  = Math.round(cropW * OUT_SCALE);
+    canvas.height = Math.round(cropH * OUT_SCALE);
+    const ctx = canvas.getContext('2d')!;
+    ctx.imageSmoothingEnabled  = true;
+    ctx.imageSmoothingQuality  = 'high';
+    ctx.filter = 'grayscale(1) contrast(1.9) brightness(1.25)';
+    ctx.drawImage(
+      video,
+      cropX, cropY, cropW, cropH,
+      0, 0, canvas.width, canvas.height,
+    );
+    ctx.filter = 'none';
+
+    // Show a preview of what was captured
+    const previewDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+    setPreviewUrl(previewDataUrl);
+
     stopWebCamera();
     await runOCR(canvas);
   };
@@ -250,7 +313,7 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  // ── Run Tesseract on image source ─────────────────────────────────────────
+  // ── Run Tesseract ──────────────────────────────────────────────────────────
   const runOCR = async (source: HTMLCanvasElement | File) => {
     setPhase('processing');
     setProgress(0);
@@ -271,7 +334,7 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
               setOcrLog('Descargando modelos de idioma…');
             }
           },
-        }
+        } as any,
       );
 
       const parsed = parseOCRText(text);
@@ -298,11 +361,15 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
     }, 600);
   };
 
-  // ── Render helpers ────────────────────────────────────────────────────────
-  const scanLineY = scanLine.interpolate({ inputRange: [0, 1], outputRange: [0, 180] });
+  // ── Interpolations ────────────────────────────────────────────────────────
+  const scanLineY = scanLine.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, FRAME_H - 2],
+  });
 
+  // ── Render ────────────────────────────────────────────────────────────────
   const renderBody = () => {
-    // ── Processing ──────────────────────────────────────────────────────────
+
     if (phase === 'processing') {
       return (
         <View style={s.centeredBox}>
@@ -311,12 +378,10 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
           </Animated.Text>
           <Text style={s.procTitle}>ANALIZANDO DOCUMENTO</Text>
           <Text style={s.procSub}>{ocrLog}</Text>
-
           <View style={s.progressTrack}>
             <View style={[s.progressBar, { width: `${progress}%` as any }]} />
           </View>
           <Text style={s.progressPct}>{progress}%</Text>
-
           <View style={s.stepList}>
             {['Detección de texto', 'Extracción de nombre', 'Número de documento', 'País de expedición'].map((step, i) => (
               <View key={i} style={s.stepRow}>
@@ -331,7 +396,6 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
       );
     }
 
-    // ── Done ────────────────────────────────────────────────────────────────
     if (phase === 'done') {
       return (
         <View style={s.centeredBox}>
@@ -342,14 +406,14 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
       );
     }
 
-    // ── Error ───────────────────────────────────────────────────────────────
     if (phase === 'error') {
       return (
         <View style={s.centeredBox}>
           <Text style={s.bigIcon}>⚠️</Text>
           <Text style={s.procTitle}>NO SE PUDO LEER</Text>
           <Text style={s.procSub}>
-            La imagen no tiene suficiente calidad.{'\n'}Intenta con mejor iluminación o usa la carga manual.
+            Asegúrate de que la cédula quede completamente dentro del recuadro y con buena iluminación.{'\n'}
+            También puedes subir una foto directamente.
           </Text>
           <TouchableOpacity style={s.retryBtn} onPress={() => {
             setPreviewUrl(null);
@@ -365,7 +429,6 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
       );
     }
 
-    // ── Confirm / review extracted data ─────────────────────────────────────
     if (phase === 'confirm') {
       return (
         <ScrollView contentContainerStyle={s.confirmBox} keyboardShouldPersistTaps="handled">
@@ -376,13 +439,12 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
               <Text style={s.confirmSub}>Revisa y corrige si es necesario</Text>
             </View>
           </View>
-
-          {([ 
+          {([
             { key: 'cedula', label: 'NÚMERO DE DOCUMENTO', placeholder: 'Ej: 1107654321', kbType: 'numeric' },
-            { key: 'nombre', label: 'NOMBRE COMPLETO',     placeholder: 'Nombre y apellidos', kbType: 'default' },
-            { key: 'pais',   label: 'PAÍS',                placeholder: 'Colombia',           kbType: 'default' },
-            { key: 'estado', label: 'DEPARTAMENTO / ESTADO',placeholder: 'Tolima',            kbType: 'default' },
-            { key: 'ciudad', label: 'CIUDAD',              placeholder: 'Chaparral',          kbType: 'default' },
+            { key: 'nombre', label: 'NOMBRE COMPLETO',      placeholder: 'Nombre y apellidos', kbType: 'default' },
+            { key: 'pais',   label: 'PAÍS',                 placeholder: 'Colombia',           kbType: 'default' },
+            { key: 'estado', label: 'DEPARTAMENTO / ESTADO',placeholder: 'Tolima',             kbType: 'default' },
+            { key: 'ciudad', label: 'CIUDAD',               placeholder: 'Chaparral',          kbType: 'default' },
           ] as const).map(f => (
             <View key={f.key} style={s.fieldWrap}>
               <Text style={s.fieldLabel}>{f.label}</Text>
@@ -399,11 +461,9 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
               )}
             </View>
           ))}
-
           <TouchableOpacity style={s.confirmBtn} onPress={handleConfirm}>
             <Text style={s.confirmBtnTxt}>✓  CONFIRMAR DATOS</Text>
           </TouchableOpacity>
-
           <TouchableOpacity style={s.rescanBtn} onPress={() => {
             setPreviewUrl(null);
             setUploadFile(null);
@@ -420,11 +480,8 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
       return (
         <ScrollView contentContainerStyle={s.webBody} keyboardShouldPersistTaps="handled">
 
-          {/* Hidden canvas for capture */}
           {/* @ts-ignore */}
           <canvas ref={webCanvasRef} style={{ display: 'none' }} />
-
-          {/* Hidden file input */}
           {/* @ts-ignore */}
           <input
             ref={fileInputRef}
@@ -435,8 +492,12 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
             onChange={handleFileChange as any}
           />
 
-          {/* Live camera or uploaded image preview */}
-          <View style={s.cameraBox}>
+          {/* ── Camera box with silhouette guide ─────────────────────────── */}
+          <View
+            style={s.cameraBox}
+            onLayout={(e: LayoutChangeEvent) => setBoxWidth(e.nativeEvent.layout.width)}
+          >
+            {/* Live camera feed */}
             {/* @ts-ignore */}
             <video
               ref={webVideoRef}
@@ -444,6 +505,8 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
               autoPlay
               muted
               style={{
+                position: 'absolute',
+                top: 0, left: 0,
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
@@ -451,16 +514,22 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
               } as any}
             />
 
-            {/* Uploaded image preview */}
+            {/* Uploaded / captured image preview */}
             {previewUrl && (
               /* @ts-ignore */
               <img
                 src={previewUrl}
-                style={{ width: '100%', height: '100%', objectFit: 'contain' } as any}
+                style={{
+                  position: 'absolute',
+                  top: 0, left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                } as any}
               />
             )}
 
-            {/* Camera unavailable placeholder */}
+            {/* Camera unavailable */}
             {cameraError && !previewUrl && (
               <View style={s.camErrorBox}>
                 <Text style={s.camErrorIcon}>📷</Text>
@@ -468,31 +537,71 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
               </View>
             )}
 
-            {/* Scan frame overlay */}
-            {!previewUrl && (
-              <View style={s.overlay} pointerEvents="none">
-                <View style={s.scanFrame}>
-                  <View style={[s.corner, s.tl]} />
-                  <View style={[s.corner, s.tr]} />
-                  <View style={[s.corner, s.bl]} />
-                  <View style={[s.corner, s.br]} />
-                  {!cameraError && (
+            {/* ── Card silhouette guide (only while live camera is showing) ── */}
+            {!previewUrl && !cameraError && (
+              <View style={StyleSheet.absoluteFillObject} pointerEvents="none">
+
+                {/* Top dim */}
+                <View style={s.guideTop} />
+
+                {/* Middle row: side dims + card frame */}
+                <View style={s.guideMiddle}>
+                  <View style={s.guideSide} />
+
+                  {/* Card frame — clear window */}
+                  <Animated.View style={[s.cardFrame, { transform: [{ scale: cornerPulse }] }]}>
+
+                    {/* Interior layout hint */}
+                    <View style={s.cardInterior} pointerEvents="none">
+                      {/* Photo zone (left ~33%) */}
+                      <View style={s.photoZone}>
+                        <Text style={s.photoIcon}>👤</Text>
+                        <Text style={s.photoLabel}>FOTO</Text>
+                      </View>
+                      {/* Text-fields zone (right ~67%) */}
+                      <View style={s.fieldsZone}>
+                        <View style={s.fieldLineWide} />
+                        <View style={s.fieldLineNarrow} />
+                        <View style={s.fieldSpacer} />
+                        <View style={s.fieldLineMed} />
+                        <View style={s.fieldLineShort} />
+                        <View style={s.fieldSpacer} />
+                        <View style={s.fieldLineWide} />
+                      </View>
+                    </View>
+
+                    {/* Animated scan beam */}
                     <Animated.View style={[s.scanBeam, { top: scanLineY }]} />
-                  )}
+
+                    {/* Corner brackets */}
+                    <View style={[s.corner, s.tl]} />
+                    <View style={[s.corner, s.tr]} />
+                    <View style={[s.corner, s.bl]} />
+                    <View style={[s.corner, s.br]} />
+                  </Animated.View>
+
+                  <View style={s.guideSide} />
+                </View>
+
+                {/* Bottom dim with instruction */}
+                <View style={s.guideBottom}>
+                  <Text style={s.guideArrow}>↑</Text>
+                  <Text style={s.guideLabel}>Centra el frente de tu cédula en el recuadro</Text>
                 </View>
               </View>
             )}
           </View>
 
+          {/* Hint text below box */}
           <Text style={s.hint}>
             {previewUrl
-              ? 'Imagen lista para analizar'
+              ? '✅ Imagen capturada — procesando con OCR…'
               : cameraError
-                ? 'Sube una foto del documento'
-                : 'Centra el frente de tu cédula o pasaporte en el recuadro'}
+                ? 'La cámara no está disponible. Sube una foto del documento.'
+                : 'Mantén el documento quieto, bien iluminado y dentro del recuadro dorado'}
           </Text>
 
-          {/* Actions */}
+          {/* Action buttons */}
           {!previewUrl ? (
             <>
               {!cameraError && (
@@ -527,7 +636,7 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
       );
     }
 
-    // ── Native: expo-camera ──────────────────────────────────────────────────
+    // ── Native: expo-camera ───────────────────────────────────────────────────
     if (!permission?.granted) {
       return (
         <View style={s.centeredBox}>
@@ -547,21 +656,43 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
     return (
       <View style={{ flex: 1 }}>
         <CameraView style={StyleSheet.absoluteFillObject} facing="back" />
-        <View style={s.nativeOverlay}>
+
+        {/* Native silhouette overlay */}
+        <View style={s.nativeOverlay} pointerEvents="box-none">
           <View style={s.dimTop} />
           <View style={s.middleRow}>
             <View style={s.dimSide} />
+
+            {/* Native card frame */}
             <View style={s.nativeFrame}>
+              {/* Interior layout hint */}
+              <View style={[s.cardInterior, { opacity: 0.35 }]}>
+                <View style={s.photoZone}>
+                  <Text style={s.photoIcon}>👤</Text>
+                  <Text style={[s.photoLabel, { color: C.gold }]}>FOTO</Text>
+                </View>
+                <View style={s.fieldsZone}>
+                  <View style={s.fieldLineWide} />
+                  <View style={s.fieldLineNarrow} />
+                  <View style={s.fieldSpacer} />
+                  <View style={s.fieldLineMed} />
+                  <View style={s.fieldLineShort} />
+                </View>
+              </View>
+              {/* Scan beam */}
+              <Animated.View style={[s.scanBeam, { top: scanLineY }]} />
+              {/* Corners */}
               <View style={[s.corner, s.tl]} />
               <View style={[s.corner, s.tr]} />
               <View style={[s.corner, s.bl]} />
               <View style={[s.corner, s.br]} />
-              <Animated.View style={[s.scanBeam, { top: scanLineY }]} />
             </View>
+
             <View style={s.dimSide} />
           </View>
           <View style={s.dimBottom}>
-            <Text style={s.nativeHint}>Centra el frente de tu cédula o pasaporte</Text>
+            <Text style={s.guideArrow}>↑</Text>
+            <Text style={s.nativeHint}>Centra el frente de tu cédula en el recuadro dorado</Text>
             <TouchableOpacity style={s.primaryBtn} onPress={() => setPhase('processing')} activeOpacity={0.85}>
               <Text style={s.primaryBtnTxt}>📷  CAPTURAR DOCUMENTO</Text>
             </TouchableOpacity>
@@ -580,7 +711,7 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
         <View style={s.header}>
           <View>
             <Text style={s.headerTitle}>ESCANEAR DOCUMENTO</Text>
-            <Text style={s.headerSub}>Cédula · Pasaporte · DNI · ID — OCR automático</Text>
+            <Text style={s.headerSub}>Cédula · Pasaporte · DNI — OCR automático</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={s.closeBtn}>
             <Text style={s.closeBtnTxt}>✕</Text>
@@ -594,12 +725,8 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 
-const CORNER_SZ = 26;
-const BORDER    = 3;
-
 const s = StyleSheet.create({
-  root: { flex: 1, backgroundColor: C.bg },
-
+  root:   { flex: 1, backgroundColor: C.bg },
   header: {
     paddingTop: 52, paddingBottom: 14, paddingHorizontal: 24,
     backgroundColor: C.green,
@@ -607,66 +734,145 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
   },
   headerTitle: { fontSize: 13, fontWeight: '900', color: C.gold, letterSpacing: 2.5 },
-  headerSub:   { fontSize: 9,  color: C.muted,  marginTop: 2, letterSpacing: 1 },
+  headerSub:   { fontSize: 9,  color: C.muted, marginTop: 2, letterSpacing: 1 },
   closeBtn:    { padding: 8 },
   closeBtnTxt: { fontSize: 18, color: C.muted, fontWeight: '700' },
 
-  // ── Processing / done / error ────────────────────────────────────────────
-  centeredBox: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 32, gap: 14,
-  },
-  bigIcon: { fontSize: 72 },
-  procTitle: { fontSize: 17, fontWeight: '900', color: C.goldLight, letterSpacing: 1, textAlign: 'center' },
-  procSub:   { fontSize: 12, color: C.muted, textAlign: 'center', lineHeight: 18 },
-
+  // Processing / done / error
+  centeredBox: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 14 },
+  bigIcon:     { fontSize: 72 },
+  procTitle:   { fontSize: 17, fontWeight: '900', color: C.goldLight, letterSpacing: 1, textAlign: 'center' },
+  procSub:     { fontSize: 12, color: C.muted, textAlign: 'center', lineHeight: 18 },
   progressTrack: { width: '80%', height: 5, backgroundColor: C.green, borderRadius: 3, overflow: 'hidden', marginTop: 8 },
   progressBar:   { height: '100%', backgroundColor: C.gold, borderRadius: 3 },
   progressPct:   { fontSize: 13, fontWeight: '700', color: C.gold },
+  stepList:      { gap: 6, alignSelf: 'stretch', paddingHorizontal: 24, marginTop: 6 },
+  stepRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  stepDot:       { fontSize: 14, color: C.muted, fontWeight: '900', width: 16 },
+  stepTxt:       { fontSize: 11, color: C.muted },
 
-  stepList:  { gap: 6, alignSelf: 'stretch', paddingHorizontal: 24, marginTop: 6 },
-  stepRow:   { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  stepDot:   { fontSize: 14, color: C.muted, fontWeight: '900', width: 16 },
-  stepTxt:   { fontSize: 11, color: C.muted },
-
-  // ── Confirm phase ────────────────────────────────────────────────────────
+  // Confirm
   confirmBox:    { padding: 20, paddingBottom: 40, gap: 14 },
   confirmHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 4 },
   confirmIcon:   { fontSize: 36 },
   confirmTitle:  { fontSize: 14, fontWeight: '900', color: C.goldLight, letterSpacing: 1.5 },
   confirmSub:    { fontSize: 11, color: C.muted, marginTop: 2 },
-
-  fieldWrap:   { gap: 4 },
-  fieldLabel:  { fontSize: 9, fontWeight: '900', color: C.gold, letterSpacing: 1.5 },
-  fieldInput:  {
-    backgroundColor: C.input, borderRadius: 10, padding: 13,
-    fontSize: 14, color: C.text, borderWidth: 1, borderColor: C.border,
-  },
+  fieldWrap:     { gap: 4 },
+  fieldLabel:    { fontSize: 9, fontWeight: '900', color: C.gold, letterSpacing: 1.5 },
+  fieldInput:    { backgroundColor: C.input, borderRadius: 10, padding: 13, fontSize: 14, color: C.text, borderWidth: 1, borderColor: C.border },
   fieldInputEmpty: { borderColor: '#8B4513', borderStyle: 'dashed' as any },
   fieldWarning:    { fontSize: 9, color: '#E8A020', letterSpacing: 0.5 },
-
   confirmBtn:    { backgroundColor: C.gold, borderRadius: 30, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
   confirmBtnTxt: { fontSize: 14, fontWeight: '900', color: C.bg, letterSpacing: 1 },
+  rescanBtn:     { alignItems: 'center', paddingVertical: 12 },
+  rescanBtnTxt:  { fontSize: 13, color: C.muted, fontWeight: '600' },
 
-  rescanBtn:    { alignItems: 'center', paddingVertical: 12 },
-  rescanBtnTxt: { fontSize: 13, color: C.muted, fontWeight: '600' },
-
-  // ── Web camera / upload ──────────────────────────────────────────────────
+  // Web body
   webBody: { paddingHorizontal: 20, paddingVertical: 20, alignItems: 'center', gap: 16 },
 
+  // Camera box
   cameraBox: {
-    width: '100%', height: 220, borderRadius: 16, overflow: 'hidden',
-    backgroundColor: C.darkGreen, borderWidth: 1, borderColor: C.gold + '30',
+    width: '100%', height: BOX_H,
+    borderRadius: 16, overflow: 'hidden',
+    backgroundColor: C.darkGreen,
+    borderWidth: 1, borderColor: C.gold + '30',
     position: 'relative',
   },
-  overlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  scanFrame: {
-    width: 260, height: 165,
-    borderRadius: 4, overflow: 'hidden', position: 'relative',
-  },
+
   camErrorBox: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
   camErrorIcon:{ fontSize: 36 },
   camErrorTxt: { fontSize: 12, color: C.muted },
+
+  // ── 4-panel silhouette ─────────────────────────────────────────────────────
+  guideTop: {
+    backgroundColor: C.dim,
+    height: (BOX_H - FRAME_H) / 2,
+  },
+  guideMiddle: {
+    flexDirection: 'row',
+    height: FRAME_H,
+  },
+  guideSide: {
+    flex: 1,
+    backgroundColor: C.dim,
+  },
+  guideBottom: {
+    flex: 1,
+    backgroundColor: C.dim,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 6,
+    gap: 2,
+  },
+  guideArrow: {
+    fontSize: 14,
+    color: C.gold,
+    fontWeight: '900',
+  },
+  guideLabel: {
+    fontSize: 10,
+    color: C.text,
+    fontWeight: '600',
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    opacity: 0.9,
+  },
+
+  // Card frame (the clear window)
+  cardFrame: {
+    width: FRAME_W,
+    height: FRAME_H,
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 6,
+  },
+
+  // Interior card layout hint
+  cardInterior: {
+    ...StyleSheet.absoluteFillObject,
+    flexDirection: 'row',
+    padding: 8,
+    gap: 6,
+    opacity: 0.22,
+  },
+  photoZone: {
+    width: '32%',
+    borderWidth: 1,
+    borderColor: C.gold,
+    borderRadius: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    backgroundColor: C.gold + '10',
+  },
+  photoIcon:  { fontSize: 22, opacity: 0.7 },
+  photoLabel: { fontSize: 7, color: C.text, fontWeight: '700', letterSpacing: 1 },
+
+  fieldsZone: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 6,
+  },
+  fieldLineWide:   { height: 3, backgroundColor: C.gold, borderRadius: 2, width: '90%', opacity: 0.7 },
+  fieldLineNarrow: { height: 3, backgroundColor: C.gold, borderRadius: 2, width: '55%', opacity: 0.7 },
+  fieldLineMed:    { height: 3, backgroundColor: C.gold, borderRadius: 2, width: '75%', opacity: 0.7 },
+  fieldLineShort:  { height: 3, backgroundColor: C.gold, borderRadius: 2, width: '40%', opacity: 0.7 },
+  fieldSpacer:     { height: 4 },
+
+  // Scan beam
+  scanBeam: {
+    position: 'absolute', left: 0, right: 0, height: 2,
+    backgroundColor: C.gold, opacity: 0.9,
+    shadowColor: C.gold, shadowRadius: 10, shadowOpacity: 1,
+  },
+
+  // Corner brackets
+  corner: { position: 'absolute', width: CORNER_SZ, height: CORNER_SZ, borderColor: C.gold },
+  tl:     { top: 0, left: 0,  borderTopWidth: BORDER,    borderLeftWidth: BORDER  },
+  tr:     { top: 0, right: 0, borderTopWidth: BORDER,    borderRightWidth: BORDER },
+  bl:     { bottom: 0, left: 0,  borderBottomWidth: BORDER, borderLeftWidth: BORDER  },
+  br:     { bottom: 0, right: 0, borderBottomWidth: BORDER, borderRightWidth: BORDER },
 
   hint: { fontSize: 11, color: C.muted, textAlign: 'center', lineHeight: 17 },
 
@@ -674,31 +880,17 @@ const s = StyleSheet.create({
   primaryBtnTxt: { fontSize: 13, fontWeight: '900', color: C.bg, letterSpacing: 0.5 },
   secondaryBtn:  { borderRadius: 30, paddingVertical: 13, paddingHorizontal: 28, alignItems: 'center', alignSelf: 'stretch', borderWidth: 1, borderColor: C.gold + '60' },
   secondaryBtnTxt:{ fontSize: 13, fontWeight: '700', color: C.gold },
+  cancelBtn:     { paddingVertical: 10 },
+  cancelBtnTxt:  { fontSize: 12, color: C.muted, fontWeight: '600', textAlign: 'center' },
+  retryBtn:      { backgroundColor: C.green, borderRadius: 30, paddingVertical: 14, paddingHorizontal: 28, alignItems: 'center', borderWidth: 1, borderColor: C.gold + '50' },
+  retryBtnTxt:   { fontSize: 13, fontWeight: '900', color: C.gold, letterSpacing: 0.5 },
 
-  cancelBtn:    { paddingVertical: 10 },
-  cancelBtnTxt: { fontSize: 12, color: C.muted, fontWeight: '600', textAlign: 'center' },
-
-  retryBtn:    { backgroundColor: C.green, borderRadius: 30, paddingVertical: 14, paddingHorizontal: 28, alignItems: 'center', borderWidth: 1, borderColor: C.gold + '50' },
-  retryBtnTxt: { fontSize: 13, fontWeight: '900', color: C.gold, letterSpacing: 0.5 },
-
-  // ── Scan corners & beam ──────────────────────────────────────────────────
-  corner:   { position: 'absolute', width: CORNER_SZ, height: CORNER_SZ, borderColor: C.gold },
-  tl:       { top: 0, left: 0, borderTopWidth: BORDER, borderLeftWidth: BORDER },
-  tr:       { top: 0, right: 0, borderTopWidth: BORDER, borderRightWidth: BORDER },
-  bl:       { bottom: 0, left: 0, borderBottomWidth: BORDER, borderLeftWidth: BORDER },
-  br:       { bottom: 0, right: 0, borderBottomWidth: BORDER, borderRightWidth: BORDER },
-  scanBeam: {
-    position: 'absolute', left: 0, right: 0, height: 2,
-    backgroundColor: C.gold, opacity: 0.85,
-    shadowColor: C.gold, shadowRadius: 8, shadowOpacity: 1,
-  },
-
-  // ── Native camera layout ─────────────────────────────────────────────────
+  // Native overlay
   nativeOverlay: { ...StyleSheet.absoluteFillObject, flexDirection: 'column' },
-  dimTop:        { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  middleRow:     { height: 165, flexDirection: 'row' },
-  dimSide:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  nativeFrame:   { width: 260, height: 165, overflow: 'hidden', position: 'relative' },
-  dimBottom:     { flex: 1.5, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', gap: 16 },
+  dimTop:        { flex: 1,   backgroundColor: C.dim },
+  middleRow:     { height: FRAME_H, flexDirection: 'row' },
+  dimSide:       { flex: 1,   backgroundColor: C.dim },
+  nativeFrame:   { width: FRAME_W, height: FRAME_H, overflow: 'hidden', position: 'relative' },
+  dimBottom:     { flex: 1.5, backgroundColor: C.dim, alignItems: 'center', justifyContent: 'center', gap: 12 },
   nativeHint:    { color: C.text, fontSize: 12, textAlign: 'center', paddingHorizontal: 32 },
 });
