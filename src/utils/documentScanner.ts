@@ -453,19 +453,65 @@ export async function scanDocument(
   let region_departamento: string | null = null;
   let pais_emision:        string | null = null;
 
-  // NUIP — new cédula prints "NUIP 1.999.999.999" (dots as thousands sep)
-  const nuipMatch = text.match(/NUIP\s+([\d\.]+)/i);
-  if (nuipMatch) numero_documento = nuipMatch[1].replace(/\./g, '');
+  // ── A) NUIP ───────────────────────────────────────────────────────────────
+  // Primary: "NUIP 1.999.999.999" with label
+  const nuipLabelMatch = text.match(/NUIP\s+([\d\.]+)/i);
+  if (nuipLabelMatch) {
+    numero_documento = nuipLabelMatch[1].replace(/\./g, '');
+  }
+  // Fallback: any dot-grouped number like "1.999.999.999" (Tesseract often drops the label)
+  if (!numero_documento) {
+    const dotNumMatch = text.match(/\b(\d{1,3}(?:\.\d{3}){2,3})\b/);
+    if (dotNumMatch) numero_documento = dotNumMatch[1].replace(/\./g, '');
+  }
 
-  // Apellidos — label then value on next line OR same line
-  const apellidosMatch = text.match(/Apellidos?\s*\n?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]+)/i);
-  if (apellidosMatch) apellidos = apellidosMatch[1].trim();
+  // ── B) Apellidos ──────────────────────────────────────────────────────────
+  // Primary: "Apellidos VELEZ RUIZ" with label
+  const apellidosLabelMatch = text.match(/Apellidos?\s*\n?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]+)/i);
+  if (apellidosLabelMatch) {
+    apellidos = apellidosLabelMatch[1].trim();
+  }
+  // Fallback: first line of 2+ all-caps words that isn't a known header
+  if (!apellidos) {
+    const KNOWN = /REPÚBLICA|REPUBLICA|COLOMBIA|CIUDADANÍA|CIUDADANIA|MINISTERIO|TRANSPORTE|IDENTIFICACIÓN|IDENTIFICACION/i;
+    for (const line of text.split('\n')) {
+      const cleaned = line.replace(/[^A-Za-záéíóúñÁÉÍÓÚÑ\s]/g, '').trim();
+      const parts = cleaned.split(/\s+/).filter(w => w.length >= 2);
+      if (parts.length >= 2 && parts.every(w => /^[A-ZÁÉÍÓÚÑ]+$/.test(w)) && !KNOWN.test(cleaned)) {
+        apellidos = cleaned;
+        break;
+      }
+    }
+  }
 
-  // Nombres — label then value on next line OR same line
-  const nombresMatch = text.match(/Nombres?\s*\n?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]+)/i);
-  if (nombresMatch) nombres = nombresMatch[1].trim();
+  // ── C) Nombres ────────────────────────────────────────────────────────────
+  // Primary: "Nombres GERONIMO" with label
+  const nombresLabelMatch = text.match(/Nombres?\s*\n?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s]+)/i);
+  if (nombresLabelMatch) {
+    nombres = nombresLabelMatch[1].trim();
+  }
+  // Fallback: second all-caps single-word or multi-word line after apellidos
+  if (!nombres && apellidos) {
+    const KNOWN = /REPÚBLICA|REPUBLICA|COLOMBIA|CIUDADANÍA|CIUDADANIA|MINISTERIO|TRANSPORTE/i;
+    let foundApellidos = false;
+    for (const line of text.split('\n')) {
+      const cleaned = line.replace(/[^A-Za-záéíóúñÁÉÍÓÚÑ\s]/g, '').trim();
+      if (!foundApellidos) {
+        if (cleaned.toUpperCase().includes(apellidos.toUpperCase().slice(0, 4))) {
+          foundApellidos = true;
+        }
+        continue;
+      }
+      // Next non-empty all-caps line after apellidos = nombres
+      const parts = cleaned.split(/\s+/).filter(w => w.length >= 2);
+      if (parts.length >= 1 && parts.every(w => /^[A-ZÁÉÍÓÚÑ]+$/.test(w)) && !KNOWN.test(cleaned)) {
+        nombres = cleaned;
+        break;
+      }
+    }
+  }
 
-  // Fecha de nacimiento — "12 MAR 2000" or "12MAR2000"
+  // ── D) Fecha de nacimiento ─────────────────────────────────────────────────
   const fechaMatch = text.match(/(\d{1,2})\s*(ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|OCT|NOV|DIC)\s*(\d{4})/i);
   if (fechaMatch) {
     const months: Record<string, string> = {
@@ -475,19 +521,21 @@ export async function scanDocument(
     fecha_nacimiento = `${fechaMatch[3]}-${months[fechaMatch[2].toUpperCase()]}-${fechaMatch[1].padStart(2,'0')}`;
   }
 
-  // Lugar de nacimiento — "BOGOTA D.C. (CUNDINAMARCA)"
+  // ── E) Lugar de nacimiento ─────────────────────────────────────────────────
   const lugarMatch = text.match(/([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\.]+)\s*\(([A-ZÁÉÍÓÚÑ\s]+)\)/);
   if (lugarMatch) {
     municipio_ciudad    = lugarMatch[1].trim();
     region_departamento = lugarMatch[2].trim();
   }
 
-  // País — always Colombia if header present
+  // ── F) País ────────────────────────────────────────────────────────────────
   if (/COLOMBIA/i.test(text)) pais_emision = 'Colombia';
 
-  // ── STEP 4: Bounding-box fallback for nombres / apellidos ─────────────────
+  // ── STEP 4: Bounding-box fallback — zones proportional to canvas height ───
   const words: Array<{ text: string; bbox: { x0: number; y0: number; x1: number; y1: number } }> =
     (data as any).words ?? [];
+
+  const canvasH = processedCanvas?.height ?? 0;
 
   const wordsInZone = (yMin: number, yMax: number): string =>
     words
@@ -495,8 +543,19 @@ export async function scanDocument(
       .map(w => w.text)
       .join(' ');
 
-  if (!apellidos) { const v = wordsInZone(120, 160); if (v) apellidos = v; }
-  if (!nombres)   { const v = wordsInZone(160, 210); if (v) nombres   = v; }
+  if (canvasH > 0) {
+    // Use proportional zones (percentages of canvas height)
+    // Cédula layout: apellidos ≈ 30-50%, nombres ≈ 48-65% from top
+    const apeMin = Math.floor(canvasH * 0.30);
+    const apeMax = Math.floor(canvasH * 0.52);
+    const nomMin = Math.floor(canvasH * 0.48);
+    const nomMax = Math.floor(canvasH * 0.66);
+    if (!apellidos) { const v = wordsInZone(apeMin, apeMax); if (v) apellidos = v; }
+    if (!nombres)   { const v = wordsInZone(nomMin, nomMax); if (v) nombres   = v; }
+  } else {
+    if (!apellidos) { const v = wordsInZone(120, 160); if (v) apellidos = v; }
+    if (!nombres)   { const v = wordsInZone(160, 210); if (v) nombres   = v; }
+  }
 
   // Debug
   console.log('[Tesseract] raw text:', text.slice(0, 600));

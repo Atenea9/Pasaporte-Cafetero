@@ -13,11 +13,11 @@ import { DocumentScanResult, Confidence } from './documentScanner';
 // Try models in order — lite models have the most generous free-tier quota.
 // Includes API version per model since 1.5 models only exist on v1beta under some keys.
 // If a model returns 429 (quota) or 404 (not found) or 5xx, we fall through to the next.
+// All models use v1beta — responseMimeType is not available on v1 stable API.
 const GEMINI_MODELS = [
   { name: 'gemini-2.0-flash-lite',   version: 'v1beta' },
   { name: 'gemini-2.0-flash',        version: 'v1beta' },
   { name: 'gemini-1.5-flash-latest', version: 'v1beta' },
-  { name: 'gemini-1.5-flash-latest', version: 'v1'     },
 ];
 
 const EXTRACTION_PROMPT = `You are an OCR expert specializing in identity documents. Analyze this document image and extract the following fields as a JSON object.
