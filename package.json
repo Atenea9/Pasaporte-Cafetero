@@ -4,6 +4,7 @@
   "main": "index.ts",
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
+    "@google/genai": "^2.8.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/netinfo": "11.4.1",
     "@react-navigation/bottom-tabs": "^6.6.1",
@@ -11,6 +12,7 @@
     "@react-navigation/native-stack": "^6.11.0",
     "@react-navigation/stack": "^6.4.1",
     "date-fns": "^3.6.0",
+    "drizzle-zod": "^0.8.3",
     "expo": "~52.0.46",
     "expo-asset": "~11.0.5",
     "expo-av": "~15.0.2",
@@ -28,6 +30,8 @@
     "expo-status-bar": "~2.0.1",
     "firebase": "^10.14.1",
     "i18next": "^23.16.8",
+    "p-limit": "^7.3.0",
+    "p-retry": "^7.1.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.76.1",
@@ -40,7 +44,9 @@
     "react-native-web": "^0.19.13",
     "sharp": "^0.34.5",
     "tesseract.js": "^7.0.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3",
+    "zod-validation-error": "^5.0.0"
   },
   "devDependencies": {
     "@types/react": "~18.3.12",
