@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import type { CompradorNavProp } from '../../navigation/types';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 import LangSelector from '../../components/LangSelector';
 
 const T = {
@@ -28,6 +29,7 @@ const T = {
 export default function CompradorWelcomeScreen() {
   const nav = useNavigation<CompradorNavProp>();
   const { state } = useApp();
+  const { logout } = useAuth();
   const { t } = useTranslation();
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
@@ -51,8 +53,12 @@ export default function CompradorWelcomeScreen() {
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={T.blue} />
 
-      {/* Language selector */}
+      {/* Top bar: back button left, language selector right */}
       <View style={s.topBar}>
+        <TouchableOpacity style={s.backBtn} onPress={logout} activeOpacity={0.8}>
+          <Text style={s.backIcon}>‹</Text>
+          <Text style={s.backText}>{t('common.back', '‹ Volver').replace('‹ ', '')}</Text>
+        </TouchableOpacity>
         <LangSelector />
       </View>
 
@@ -110,8 +116,11 @@ export default function CompradorWelcomeScreen() {
 const s = StyleSheet.create({
   safe:            { flex: 1, backgroundColor: T.bg },
   container:       { flex: 1 },
-  topBar:          { position: 'absolute', top: 48, right: 16, zIndex: 10 },
-  hero:            { paddingTop: 56, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
+  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
+  backBtn:         { flexDirection: 'row', alignItems: 'center', gap: 2, padding: 4 },
+  backIcon:        { fontSize: 28, color: T.blue, lineHeight: 32, fontWeight: '300' },
+  backText:        { fontSize: 15, color: T.blue, fontWeight: '600' },
+  hero:            { paddingTop: 24, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
   heroBadge:       { borderRadius: 30, paddingHorizontal: 16, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(200,150,12,0.3)', marginBottom: 4 },
   heroBadgeText:   { color: T.coffeeDark, fontSize: 9, fontWeight: '900', letterSpacing: 2 },
   heroEmoji:       { fontSize: 50 },

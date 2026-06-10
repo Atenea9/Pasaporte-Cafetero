@@ -134,7 +134,7 @@ export default function RegistroScreen({ onRegistrado }: { onRegistrado?: () => 
 
           {/* Back + Header */}
           <View style={s.topBar}>
-            <TouchableOpacity style={s.backBtn} onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Inicio')}>
+            <TouchableOpacity style={s.backBtn} onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Welcome')}>
               <Text style={s.backIcon}>‹</Text>
               <Text style={s.backText}>{t('common.back', '‹ Volver').replace('‹ ', '')}</Text>
             </TouchableOpacity>

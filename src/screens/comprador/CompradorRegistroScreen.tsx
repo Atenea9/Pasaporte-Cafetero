@@ -102,7 +102,7 @@ export const CompradorRegistroScreen = () => {
 
           {/* Back */}
           <View style={s.topBar}>
-            <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+            <TouchableOpacity style={s.backBtn} onPress={() => navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Welcome')}>
               <Text style={s.backIcon}>‹</Text>
               <Text style={s.backText}>Volver</Text>
             </TouchableOpacity>
