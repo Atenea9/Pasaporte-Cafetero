@@ -127,7 +127,7 @@ export const HomeScreen = () => {
               <View style={s.medallionRingOuter} />
               <View style={s.medallionRingInner} />
               <Image source={require('../../../assets/logo-feria-icon.png')} style={s.medallionLogo} resizeMode="contain" />
-              <Text style={s.medallionLabel}>{'FERIA\nINT\'L DE CAFÉ'}</Text>
+              <Text style={s.medallionLabel}>{'CHAPARRAL\n2026'}</Text>
             </LinearGradient>
           </View>
         </View>

@@ -279,6 +279,7 @@ export const PasaporteScreen = () => {
                       source={require('../../../assets/colombia-escudo.png')}
                       style={s.escudoImg}
                       resizeMode="contain"
+                      tintColor="rgba(255,255,255,0.8)"
                     />
                     <Text style={s.embossCountry}>REPÚBLICA DE COLOMBIA</Text>
                   </View>
@@ -603,7 +604,7 @@ const s = StyleSheet.create({
   embossHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6, width: '80%' },
   embossLine:   { flex: 1, height: 0.5, backgroundColor: 'rgba(255,255,255,0.4)' },
   embossCountryRow:{ flexDirection: 'row', alignItems: 'center', gap: 6 },
-  escudoImg:    { width: 18, height: 18, tintColor: 'rgba(255,255,255,0.75)' },
+  escudoImg:    { width: 18, height: 18 },
   embossCountry:{ fontSize: 8, fontWeight: '900', color: 'rgba(255,255,255,0.7)', letterSpacing: 2.5 },
   embossTitle:  { fontSize: 26, fontWeight: '900', color: T.goldPale, letterSpacing: 3, textAlign: 'center', marginBottom: 4 },
   embossSubtitle:{ fontSize: 11, color: 'rgba(255,255,255,0.7)', letterSpacing: 2, textAlign: 'center', marginBottom: 2 },

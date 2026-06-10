@@ -4,3 +4,5 @@
 - [Web preview setTimeout freeze](settimeout-web-freeze.md) — setTimeout freezes in Expo web preview iframe when unfocused; remove delays from critical init paths.
 - [LoginScreen art style](login-art-style.md) — Parchment/rustic reference design; colour tokens, shadow helpers, and pattern to apply across all new screens.
 - [OCR cédula label regex](ocr-cedula-label-regex.md) — `/Apell?i+dos?/i` required (double-l); FALSE_NAME must include CÉDULA, DE, month abbrevs.
+- [tintColor must be a prop not style](tintcolor-prop.md) — On RN web, tintColor inside StyleSheet makes images solid white; always pass as JSX prop.
+- [Horizontal ScrollView web height](hscrollview-web.md) — Horizontal ScrollViews collapse to 0 height on RN web without explicit minHeight + flexShrink:0.
