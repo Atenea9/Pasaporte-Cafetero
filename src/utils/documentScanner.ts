@@ -86,16 +86,19 @@ async function getWorker(onProgress?: (stage: string, pct: number) => void): Pro
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
-    const w = await Tesseract.createWorker('spa', 1, {
+    const w = await Tesseract.createWorker(['spa', 'eng'], 1, {
       logger: (m: any) => {
         if (m.status === 'loading tesseract core' || m.status === 'initializing tesseract') {
           onProgress?.('Cargando motor OCR…', 8);
         } else if (m.status === 'loading language traineddata') {
-          onProgress?.('Preparando modelos…', 11);
+          onProgress?.('Preparando modelos de idioma…', 11);
         }
       },
     });
-    await w.setParameters({ tessedit_pageseg_mode: '6' as any });
+    await w.setParameters({
+      tessedit_pageseg_mode: '3' as any,
+      preserve_interword_spaces: '1' as any,
+    });
     _worker = w;
     _initPromise = null;
     return w;
@@ -115,24 +118,92 @@ export function warmupOCR(): void {
 
 // ─── STEP 1: Image preprocessing ─────────────────────────────────────────────
 
-// 2x upscaling + CSS filter (grayscale, contrast, brightness) for Tesseract.
-// 2x is sufficient for cedula text and processes ~4× faster than 3x.
+/**
+ * High-quality preprocessing pipeline for Tesseract OCR:
+ *  1. 3× upscale (more pixels → better character recognition)
+ *  2. Grayscale + contrast boost via CSS filter
+ *  3. Adaptive binarization (Otsu-lite: threshold = mean pixel value)
+ *     → converts image to pure black-and-white — Tesseract's optimal input
+ */
 export async function preprocessImage(source: File | Blob | string): Promise<HTMLCanvasElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = typeof source === 'string' ? source : URL.createObjectURL(source as Blob);
 
     img.onload = () => {
+      const SCALE = 3;
       const canvas = document.createElement('canvas');
-      canvas.width  = img.naturalWidth  * 2;
-      canvas.height = img.naturalHeight * 2;
-      const ctx = canvas.getContext('2d')!;
+      canvas.width  = img.naturalWidth  * SCALE;
+      canvas.height = img.naturalHeight * SCALE;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
-      ctx.filter = 'grayscale(1) contrast(2) brightness(1.3)';
+      // Step 1: grayscale + contrast to enhance text edges
+      ctx.filter = 'grayscale(1) contrast(2.2) brightness(1.1)';
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       ctx.filter = 'none';
+
+      // Step 2: adaptive binarization — compute mean luminance as threshold
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      let sum = 0;
+      const total = data.length / 4;
+      for (let i = 0; i < data.length; i += 4) {
+        sum += data[i]; // already grayscale — all channels equal
+      }
+      // Clamp threshold to [90, 210] so we never whiteout or blackout the image
+      const threshold = Math.max(90, Math.min(210, sum / total));
+      for (let i = 0; i < data.length; i += 4) {
+        const binary = data[i] >= threshold ? 255 : 0;
+        data[i] = data[i + 1] = data[i + 2] = binary;
+        data[i + 3] = 255;
+      }
+      ctx.putImageData(imageData, 0, 0);
+
+      if (typeof source !== 'string') URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+/**
+ * Inverted preprocessing — for dark-background documents (e.g. dark cédulas).
+ * Same as preprocessImage but binarization result is inverted (white text → black text).
+ */
+export async function preprocessImageInverted(source: File | Blob | string): Promise<HTMLCanvasElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = typeof source === 'string' ? source : URL.createObjectURL(source as Blob);
+
+    img.onload = () => {
+      const SCALE = 3;
+      const canvas = document.createElement('canvas');
+      canvas.width  = img.naturalWidth  * SCALE;
+      canvas.height = img.naturalHeight * SCALE;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      ctx.filter = 'grayscale(1) contrast(2.2) brightness(1.1)';
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.filter = 'none';
+
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const data = imageData.data;
+      let sum = 0;
+      const total = data.length / 4;
+      for (let i = 0; i < data.length; i += 4) sum += data[i];
+      const threshold = Math.max(90, Math.min(210, sum / total));
+      for (let i = 0; i < data.length; i += 4) {
+        // inverted: dark pixels become white, light pixels become black
+        const binary = data[i] >= threshold ? 0 : 255;
+        data[i] = data[i + 1] = data[i + 2] = binary;
+        data[i + 3] = 255;
+      }
+      ctx.putImageData(imageData, 0, 0);
 
       if (typeof source !== 'string') URL.revokeObjectURL(url);
       resolve(canvas);
@@ -493,26 +564,48 @@ export async function scanDocument(
     }
   }
 
-  // ── STEP 1: 3x upscale + CSS filter preprocessing for Tesseract ─────────
+  // ── STEP 1: Binarized 3× upscale preprocessing ──────────────────────────
+  onProgress?.('Procesando imagen…', 10);
   let processedCanvas: HTMLCanvasElement | null = null;
+  let processedCanvasInv: HTMLCanvasElement | null = null;
   try {
-    processedCanvas = await preprocessImage(source);
+    [processedCanvas, processedCanvasInv] = await Promise.all([
+      preprocessImage(source),
+      preprocessImageInverted(source),
+    ]);
   } catch (e) {
     console.warn('[Tesseract] preprocessing failed, using original source:', e);
   }
-  const tesseractInput: any = processedCanvas ?? source;
 
-  // ── STEP 2: Tesseract.js via singleton worker (PSM 6 — uniform block) ──────
-  onProgress?.('Extrayendo texto del documento…', 15);
-
-  // Get the pre-warmed singleton worker (instant if warmupOCR() was called earlier)
+  // ── STEP 2: Two-pass OCR — normal binarization + inverted ───────────────
+  // The pass with more extracted text wins; merge the other pass to fill gaps.
+  onProgress?.('Leyendo documento (pasada 1/2)…', 20);
   const worker = await getWorker(onProgress);
 
-  const { data } = await worker.recognize(tesseractInput);
+  const pass1Input: any = processedCanvas ?? source;
+  const { data: data1 } = await worker.recognize(pass1Input);
 
-  onProgress?.('Extrayendo texto del documento…', 85);
+  onProgress?.('Leyendo documento (pasada 2/2)…', 55);
+  const pass2Input: any = processedCanvasInv ?? source;
+  const { data: data2 } = await worker.recognize(pass2Input);
 
-  const text: string = data.text;
+  onProgress?.('Combinando resultados…', 80);
+
+  // Choose the pass that extracted more meaningful text
+  const countWords = (t: string) => t.split(/\s+/).filter(w => w.length >= 2).length;
+  const w1 = countWords(data1.text);
+  const w2 = countWords(data2.text);
+  console.log(`[Tesseract] Pass1 words: ${w1}, Pass2 words: ${w2}`);
+
+  // Primary text = better pass; secondary = the other (used to fill missing fields)
+  const primaryText   = w1 >= w2 ? data1.text : data2.text;
+  const secondaryText = w1 >= w2 ? data2.text : data1.text;
+  const primaryData   = w1 >= w2 ? data1 : data2;
+  const primaryCanvas = w1 >= w2 ? processedCanvas : processedCanvasInv;
+
+  // Combined text merges both passes — helps field extraction find labels
+  // from either pass even if one pass missed them
+  const text = primaryText + '\n\n---\n\n' + secondaryText;
 
   onProgress?.('Identificando campos…', 90);
 
@@ -612,11 +705,11 @@ export async function scanDocument(
       if (name && name.length >= 3 && !FALSE_NAME.test(name)) { nombres = name; break; }
     }
   }
-  // Bounding-box fallback for nombres (uses Tesseract word-level data)
+  // Bounding-box fallback for nombres (uses Tesseract word-level data from primary pass)
   if (!nombres) {
     const words: Array<{ text: string; bbox: { x0: number; y0: number; x1: number; y1: number } }> =
-      (data as any).words ?? [];
-    const canvasH = processedCanvas?.height ?? 0;
+      (primaryData as any).words ?? [];
+    const canvasH = primaryCanvas?.height ?? 0;
     if (canvasH > 0) {
       const nomMin = Math.floor(canvasH * 0.48);
       const nomMax = Math.floor(canvasH * 0.66);

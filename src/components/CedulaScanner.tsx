@@ -235,10 +235,17 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
         video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
       });
       streamRef.current = stream;
-      if (webVideoRef.current) {
-        (webVideoRef.current as any).srcObject = stream;
-        (webVideoRef.current as any).play();
-      }
+      // Retry assigning the stream until the video element is mounted in the DOM
+      let attempts = 0;
+      const tryAssign = () => {
+        if (webVideoRef.current) {
+          (webVideoRef.current as any).srcObject = stream;
+          (webVideoRef.current as any).play().catch(() => {});
+        } else if (attempts++ < 40) {
+          setTimeout(tryAssign, 50);
+        }
+      };
+      tryAssign();
       setPhase('camera');
     } catch {
       setCameraError(true);
@@ -282,22 +289,21 @@ export default function CedulaScanner({ visible, onScanned, onClose }: Props) {
     const cropW = FRAME_W / scale;
     const cropH = FRAME_H / scale;
 
-    // Draw cropped card area, upscaled 3× for OCR quality + contrast boost
+    // Crop to card area at 3× resolution — NO filters here.
+    // scanDocument → preprocessImage applies binarization + contrast exactly once.
     const OUT_SCALE = 3;
     canvas.width  = Math.round(cropW * OUT_SCALE);
     canvas.height = Math.round(cropH * OUT_SCALE);
     const ctx = canvas.getContext('2d')!;
     ctx.imageSmoothingEnabled  = true;
     ctx.imageSmoothingQuality  = 'high';
-    ctx.filter = 'grayscale(1) contrast(1.9) brightness(1.25)';
     ctx.drawImage(
       video,
       cropX, cropY, cropW, cropH,
       0, 0, canvas.width, canvas.height,
     );
-    ctx.filter = 'none';
 
-    // Show a preview of what was captured
+    // Show a preview of what was captured (JPEG for display only — not sent to OCR)
     const previewDataUrl = canvas.toDataURL('image/jpeg', 0.9);
     setPreviewUrl(previewDataUrl);
 

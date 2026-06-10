@@ -61,7 +61,7 @@ const C = {
 };
 
 // ── Assets ────────────────────────────────────────────────────────────────────
-const LOGO_ICON    = require('../../../assets/logo-feria.png');
+const LOGO_ICON    = require('../../../assets/logo-feria-hd.png');
 const ILLUSTRATION = require('../../../assets/presentacion-feria.webp');
 const ANIMAL_IMGS  = {
   visitor:   require('../../../assets/animal-visitante.png'),
@@ -440,7 +440,7 @@ const s = StyleSheet.create({
   },
 
   // Logo
-  logoIcon: { width: 54, height: 58, marginBottom: 14 },
+  logoIcon: { width: 130, height: 130, marginBottom: 16 },
 
   // Title block
   fairLabel: {

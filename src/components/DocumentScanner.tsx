@@ -182,10 +182,17 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
         video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
       });
       streamRef.current = stream;
-      if (webVideoRef.current) {
-        (webVideoRef.current as any).srcObject = stream;
-        (webVideoRef.current as any).play();
-      }
+      // Retry assigning the stream until the video element is mounted in the DOM
+      let attempts = 0;
+      const tryAssign = () => {
+        if (webVideoRef.current) {
+          (webVideoRef.current as any).srcObject = stream;
+          (webVideoRef.current as any).play().catch(() => {});
+        } else if (attempts++ < 40) {
+          setTimeout(tryAssign, 50);
+        }
+      };
+      tryAssign();
     } catch {
       setCamError(true);
     }
@@ -246,12 +253,11 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
     const cropW = FRAME_W / scale;
     const cropH = FRAME_H / scale;
 
-    // Crop to card area at 2× resolution — NO filters here.
-    // scanDocument → preprocessImage will apply grayscale/contrast/brightness
-    // exactly once. Applying filters here AND in preprocessImage double-processes
-    // the image, making it unreadable for Tesseract.
-    canvas.width  = Math.round(cropW * 2);
-    canvas.height = Math.round(cropH * 2);
+    // Crop to card area at 3× resolution — NO filters here.
+    // scanDocument → preprocessImage applies binarization + contrast exactly once.
+    // Use PNG (lossless) so JPEG artifacts don't corrupt text edges for Tesseract.
+    canvas.width  = Math.round(cropW * 3);
+    canvas.height = Math.round(cropH * 3);
     const ctx = canvas.getContext('2d')!;
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
@@ -259,11 +265,10 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
 
     stopWebCam();
 
-    // Convert canvas to blob and run OCR (scanDocument handles preprocessing)
+    // PNG is lossless — no compression artifacts that could corrupt text edges
     canvas.toBlob(
       (blob: Blob | null) => { if (blob) runOCR(blob); else setPhase('error'); },
-      'image/jpeg',
-      0.95,
+      'image/png',
     );
   };
 
