@@ -127,7 +127,7 @@ export const HomeScreen = () => {
               <View style={s.medallionRingOuter} />
               <View style={s.medallionRingInner} />
               <Image source={require('../../../assets/logo-feria-icon.png')} style={s.medallionLogo} resizeMode="contain" />
-              <Text style={s.medallionLabel}>FERIA CAFÉ</Text>
+              <Text style={s.medallionLabel}>{'FERIA\nINT\'L DE CAFÉ'}</Text>
             </LinearGradient>
           </View>
         </View>
@@ -384,7 +384,7 @@ const s = StyleSheet.create({
   medallionRingOuter: { position: 'absolute', top: 3, left: 3, right: 3, bottom: 3, borderRadius: 42, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
   medallionRingInner: { position: 'absolute', top: 8, left: 8, right: 8, bottom: 8, borderRadius: 37, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
   medallionLogo:  { width: 44, height: 44, tintColor: '#FFF8E0' },
-  medallionLabel: { fontSize: 7, fontWeight: '900', color: 'rgba(255,248,224,0.85)', letterSpacing: 2, marginTop: 2 },
+  medallionLabel: { fontSize: 6, fontWeight: '900', color: 'rgba(255,248,224,0.85)', letterSpacing: 0.8, marginTop: 2, textAlign: 'center', lineHeight: 9 },
 
   // Happy hour
   hhBanner: { padding: 12, borderRadius: 14, alignItems: 'center', marginBottom: 16 },
