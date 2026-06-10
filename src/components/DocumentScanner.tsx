@@ -7,7 +7,7 @@
  * Web:    getUserMedia live camera → crop-to-card → OCR  (+ file-upload fallback)
  * Native: expo-camera CameraView → capture → OCR
  */
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
   ScrollView, TextInput, ActivityIndicator, Platform,
@@ -109,6 +109,8 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
   const [stage,      setStage]     = useState('');
   const [pct,        setPct]       = useState(0);
   const [result,     setResult]    = useState<DocumentScanResult | null>(null);
+  const [secsLeft,   setSecsLeft]  = useState(10);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Editable result fields
   const [fNum,  setFNum]  = useState('');
@@ -134,6 +136,22 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
   const webCanvasRef   = useRef<HTMLCanvasElement | null>(null);
   const streamRef      = useRef<MediaStream      | null>(null);
   const nativeCamRef   = useRef<CameraView       | null>(null);
+
+  // ── Countdown timer while processing ─────────────────────────────────────
+  useEffect(() => {
+    if (phase === 'processing') {
+      setSecsLeft(10);
+      countdownRef.current = setInterval(() => {
+        setSecsLeft(s => {
+          if (s <= 1) { clearInterval(countdownRef.current!); return 0; }
+          return s - 1;
+        });
+      }, 1000);
+    } else {
+      if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+    }
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, [phase]);
 
   // ── Scan-line + corner animations ─────────────────────────────────────────
   useEffect(() => {
@@ -531,8 +549,8 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
     const gemini = isGeminiAvailable();
     const steps = gemini
       ? [
-          { label: 'Procesando imagen',         threshold: 5  },
-          { label: 'Enviando a Gemini AI…',      threshold: 20 },
+          { label: 'Comprimiendo imagen',        threshold: 15 },
+          { label: 'Enviando a Gemini AI…',      threshold: 25 },
           { label: 'Analizando con IA…',         threshold: 50 },
           { label: 'Extrayendo campos del doc…', threshold: 80 },
         ]
@@ -543,19 +561,42 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
           { label: 'Calculando confianza', threshold: 95 },
         ];
 
+    // Countdown ring colour: green > 5 s, amber ≤ 5 s, red ≤ 2 s
+    const ringColor = secsLeft > 5 ? C.success : secsLeft > 2 ? C.warn : C.red;
+    const totalSecs = 10;
+    const ringPct   = (secsLeft / totalSecs) * 100;
+
     return (
       <View style={s.centeredBox}>
-        <ActivityIndicator size="large" color={gemini ? C.goldLight : C.gold} style={{ marginBottom: 16 }} />
+        {/* Countdown ring */}
+        <View style={s.ringWrap}>
+          {/* Background ring */}
+          <View style={[s.ringBg, { borderColor: C.border }]} />
+          {/* Filled arc approximated with a coloured border (top half) */}
+          <View style={[s.ringFill, { borderColor: ringColor, opacity: secsLeft === 0 ? 0.3 : 1 }]} />
+          {/* Inner content */}
+          <View style={s.ringInner}>
+            <Text style={[s.ringNumber, { color: ringColor }]}>
+              {secsLeft}
+            </Text>
+            <Text style={s.ringSub}>seg</Text>
+          </View>
+        </View>
+
         {gemini && (
-          <View style={s.aiBadge}>
+          <View style={[s.aiBadge, { marginBottom: 10 }]}>
             <Text style={s.aiBadgeTxt}>✨ Gemini AI procesando…</Text>
           </View>
         )}
         <Text style={s.procTitle}>{stage || 'Analizando documento…'}</Text>
+
+        {/* Progress bar */}
         <View style={s.progressTrack}>
-          <View style={[s.progressBar, { width: `${pct}%` as any }]} />
+          <View style={[s.progressBar, { width: `${pct}%` as any, backgroundColor: ringColor }]} />
         </View>
         <Text style={s.progressPct}>{pct}%</Text>
+
+        {/* Step checklist */}
         <View style={s.stepList}>
           {steps.map((step, i) => (
             <View key={i} style={s.stepRow}>
@@ -687,11 +728,18 @@ const s = StyleSheet.create({
   procTitle:   { fontSize: 15, fontWeight: '900', color: C.goldLight, letterSpacing: 0.5, textAlign: 'center' },
   procSub:     { fontSize: 11, color: C.muted, textAlign: 'center', lineHeight: 17 },
 
-  progressTrack: { width: '80%', height: 5, backgroundColor: C.green, borderRadius: 3, overflow: 'hidden', marginTop: 4 },
-  progressBar:   { height: '100%', backgroundColor: C.gold, borderRadius: 3 },
+  progressTrack: { width: '80%', height: 7, backgroundColor: C.green, borderRadius: 4, overflow: 'hidden', marginTop: 4 },
+  progressBar:   { height: '100%', borderRadius: 4 },
   progressPct:   { fontSize: 13, fontWeight: '700', color: C.gold },
   stepList:      { gap: 6, alignSelf: 'stretch', paddingHorizontal: 20, marginTop: 6 },
   stepRow:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // ── Countdown ring ──────────────────────────────────────────────────────
+  ringWrap:   { width: 96, height: 96, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  ringBg:     { position: 'absolute', width: 96, height: 96, borderRadius: 48, borderWidth: 6 },
+  ringFill:   { position: 'absolute', width: 96, height: 96, borderRadius: 48, borderWidth: 6, borderStyle: 'solid' as any },
+  ringInner:  { alignItems: 'center', justifyContent: 'center' },
+  ringNumber: { fontSize: 32, fontWeight: '900', lineHeight: 36 },
+  ringSub:    { fontSize: 11, color: C.muted, fontWeight: '600', letterSpacing: 1 },
   stepDot:       { fontSize: 14, color: C.muted, fontWeight: '900', width: 16 },
   stepTxt:       { fontSize: 11, color: C.muted },
 
