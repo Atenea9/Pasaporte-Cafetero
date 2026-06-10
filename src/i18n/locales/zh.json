@@ -178,7 +178,15 @@
     "municipalities": "咖啡产区",
     "today_agenda": "今日议程",
     "passport_levels": "护照的4个等级",
-    "mascot_tip": "点我! ☕"
+    "mascot_tip": "点我! ☕",
+    "prev_fairs_title": "往届博览会",
+    "fair_intl_coffee": "国际咖啡\n博览会",
+    "fair_ibague_year": "伊瓦格 2024",
+    "fair_libano_year": "黎巴嫩 2025",
+    "fair_ibague_desc": "首届 · 传统的开始",
+    "fair_libano_desc": "第二届 · 共同成长",
+    "fair_view_memories": "查看记忆",
+    "fair_venue": "举办地"
   },
   "passport": {
     "my_passport": "我的护照",

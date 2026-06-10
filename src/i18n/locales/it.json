@@ -175,7 +175,15 @@
     "municipalities": "COMUNI CAFEICOLTORI",
     "today_agenda": "AGENDA DI OGGI",
     "passport_levels": "I 4 LIVELLI DEL PASSAPORTO",
-    "mascot_tip": "Toccami! ☕"
+    "mascot_tip": "Toccami! ☕",
+    "prev_fairs_title": "EDIZIONI PRECEDENTI",
+    "fair_intl_coffee": "Fiera Internazionale\ndel Caffè",
+    "fair_ibague_year": "Ibagué 2024",
+    "fair_libano_year": "Líbano 2025",
+    "fair_ibague_desc": "Prima edizione · L'inizio di una tradizione",
+    "fair_libano_desc": "Seconda edizione · Crescere insieme",
+    "fair_view_memories": "Vedi i ricordi",
+    "fair_venue": "Sede"
   },
   "passport": {
     "my_passport": "IL MIO PASSAPORTO",

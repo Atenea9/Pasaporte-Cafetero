@@ -178,7 +178,15 @@
     "municipalities": "COFFEE MUNICIPALITIES",
     "today_agenda": "TODAY'S AGENDA",
     "passport_levels": "THE 4 PASSPORT LEVELS",
-    "mascot_tip": "Tap me! ☕"
+    "mascot_tip": "Tap me! ☕",
+    "prev_fairs_title": "PREVIOUS EDITIONS",
+    "fair_intl_coffee": "International\nCoffee Fair",
+    "fair_ibague_year": "Ibagué 2024",
+    "fair_libano_year": "Líbano 2025",
+    "fair_ibague_desc": "First edition · The start of a tradition",
+    "fair_libano_desc": "Second edition · Growing together",
+    "fair_view_memories": "View memories",
+    "fair_venue": "Venue"
   },
   "passport": {
     "my_passport": "MY PASSPORT",

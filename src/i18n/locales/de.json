@@ -175,7 +175,15 @@
     "municipalities": "KAFFEEGEMEINDEN",
     "today_agenda": "TAGESAGENDA",
     "passport_levels": "DIE 4 PASS-STUFEN",
-    "mascot_tip": "Tippen! ☕"
+    "mascot_tip": "Tippen! ☕",
+    "prev_fairs_title": "FRÜHERE AUSGABEN",
+    "fair_intl_coffee": "Internationale\nKaffeemesse",
+    "fair_ibague_year": "Ibagué 2024",
+    "fair_libano_year": "Líbano 2025",
+    "fair_ibague_desc": "Erste Ausgabe · Beginn einer Tradition",
+    "fair_libano_desc": "Zweite Ausgabe · Gemeinsam wachsen",
+    "fair_view_memories": "Erinnerungen ansehen",
+    "fair_venue": "Ort"
   },
   "passport": {
     "my_passport": "MEIN REISEPASS",

@@ -175,7 +175,15 @@
     "municipalities": "MUNICÍPIOS CAFEEIROS",
     "today_agenda": "AGENDA DE HOJE",
     "passport_levels": "OS 4 NÍVEIS DO PASSAPORTE",
-    "mascot_tip": "Toque em mim! ☕"
+    "mascot_tip": "Toque em mim! ☕",
+    "prev_fairs_title": "EDIÇÕES ANTERIORES",
+    "fair_intl_coffee": "Feira Internacional\nde Café",
+    "fair_ibague_year": "Ibagué 2024",
+    "fair_libano_year": "Líbano 2025",
+    "fair_ibague_desc": "Primeira edição · Início de uma tradição",
+    "fair_libano_desc": "Segunda edição · Crescendo juntos",
+    "fair_view_memories": "Ver memórias",
+    "fair_venue": "Sede"
   },
   "passport": {
     "my_passport": "MEU PASSAPORTE",

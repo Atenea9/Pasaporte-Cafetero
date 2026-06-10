@@ -4,6 +4,7 @@ import {
   ActivityIndicator, LayoutAnimation, Platform, UIManager,
   Dimensions, SafeAreaView, StatusBar, Image,
 } from 'react-native';
+import QRCode from 'react-native-qrcode-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
@@ -269,20 +270,38 @@ export const PasaporteScreen = () => {
         {activePage === 0 && (
           <View>
             <View style={s.coverWrap}>
-              <LinearGradient colors={[T.leatherDark, T.leather, '#A0714F']} style={s.cover}>
+              <LinearGradient colors={['#0D0600', '#2A1006', '#4A1E0A', '#6B3218']} style={s.cover}>
+                {/* Header emboss */}
                 <View style={s.embossHeader}>
                   <View style={s.embossLine} />
                   <Text style={s.embossCountry}>REPÚBLICA DE COLOMBIA</Text>
                   <View style={s.embossLine} />
                 </View>
                 <Text style={s.embossTitle}>PASAPORTE CAFETERO</Text>
-                <Text style={s.embossSubtitle}>FERIA INTERNACIONAL DEL CAFÉ</Text>
-                <Text style={s.embossCity}>CHAPARRAL · TOLIMA · 2026</Text>
+
+                {/* Central gold emblem with logo */}
                 <View style={s.seal}>
-                  <Text style={s.sealEmoji}>☕</Text>
-                  <View style={s.sealRing} />
                   <View style={s.sealRing2} />
+                  <View style={s.sealRing} />
+                  <View style={s.sealInner}>
+                    <Image
+                      source={require('../../../assets/logo-feria-icon.png')}
+                      style={s.sealLogo}
+                      resizeMode="contain"
+                    />
+                  </View>
                 </View>
+
+                {/* Gold plaque */}
+                <View style={s.goldPlaque}>
+                  <Text style={s.goldPlaqueMain}>Feria Internacional{'\n'}de Café</Text>
+                  <View style={s.goldPlaqueDivider} />
+                  <Text style={s.goldPlaqueCity}>TOLIMA CORAZÓN</Text>
+                  <Text style={s.goldPlaqueSub}>CAFETERO DE COLOMBIA</Text>
+                  <Text style={s.goldPlaqueYear}>Chaparral · 2026</Text>
+                </View>
+
+                {/* Level badge */}
                 {nivelActual && (
                   <View style={[s.levelBadge, { backgroundColor: nivelActual.color }]}>
                     <Text style={s.levelBadgeEmoji}>{nivelActual.emoji}</Text>
@@ -305,32 +324,47 @@ export const PasaporteScreen = () => {
                   onChange={handlePhotoFile}
                 />
               )}
+              {/* ── Photo + data row ── */}
               <View style={s.idSection}>
-                <TouchableOpacity style={s.idAvatar} onPress={handleChangePhoto} activeOpacity={0.85}>
-                  {state.usuario?.fotoPerfil ? (
-                    <Image source={{ uri: state.usuario.fotoPerfil }} style={s.idAvatarImg} />
-                  ) : (
-                    <Text style={s.idAvatarText}>{nombre.charAt(0).toUpperCase()}</Text>
-                  )}
-                  <View style={s.idAvatarEditBadge}>
-                    <Text style={{ fontSize: 10 }}>✏️</Text>
-                  </View>
-                </TouchableOpacity>
+                <View style={s.idPhotoCol}>
+                  <TouchableOpacity style={s.idAvatar} onPress={handleChangePhoto} activeOpacity={0.85}>
+                    {state.usuario?.fotoPerfil ? (
+                      <Image source={{ uri: state.usuario.fotoPerfil }} style={s.idAvatarImg} />
+                    ) : (
+                      <LinearGradient colors={[T.leatherDark, T.leather]} style={s.idAvatarGrad}>
+                        <Text style={s.idAvatarText}>{nombre.charAt(0).toUpperCase()}</Text>
+                      </LinearGradient>
+                    )}
+                    {/* Gold initial overlay */}
+                    <View style={s.idInitialBadge}>
+                      <Text style={s.idInitialText}>{nombre.charAt(0).toUpperCase()}</Text>
+                    </View>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleChangePhoto} style={s.changePhotoBtn} activeOpacity={0.7}>
+                    <Text style={s.changePhotoBtnText}>✏️ Cambiar foto</Text>
+                  </TouchableOpacity>
+                </View>
                 <View style={s.idData}>
-                  <Text style={s.idLabel}>NOMBRE COMPLETO</Text>
-                  <Text style={s.idValue}>{nombre.toUpperCase()}</Text>
                   <Text style={s.idLabel}>DOCUMENTO</Text>
                   <Text style={s.idValue}>{state.usuario?.cedula || user?.uid?.slice(-8).toUpperCase() || '—'}</Text>
                   <Text style={s.idLabel}>FECHA DE NACIMIENTO</Text>
                   <Text style={s.idValue}>{formatearFecha(state.usuario?.fechaNacimiento)}</Text>
                   <Text style={s.idLabel}>ORIGEN</Text>
                   <Text style={s.idValue}>{[state.usuario?.ciudad, state.usuario?.pais].filter(Boolean).join(' · ') || '—'}</Text>
+                  <Text style={s.idLabel}>NOMBRE COMPLETO</Text>
+                  <Text style={s.idValue}>{nombre.toUpperCase()}</Text>
                 </View>
               </View>
 
+              {/* ── QR + passport ID ── */}
               <View style={s.qrSection}>
                 <View style={s.qrBox}>
-                  <Text style={s.qrPattern}>▓▓▓▓▓▓▓{'\n'}▓░░░░░▓{'\n'}▓░▓░░▓▓{'\n'}▓░░░░░▓{'\n'}▓▓▓▓▓▓▓</Text>
+                  <QRCode
+                    value={`CF26-${(user?.uid?.slice(-8) || '00000000').toUpperCase()}`}
+                    size={82}
+                    color={T.ink}
+                    backgroundColor="transparent"
+                  />
                 </View>
                 <View style={s.qrInfo}>
                   <Text style={s.qrIdLabel}>ID ÚNICO DE PASAPORTE</Text>
@@ -565,24 +599,38 @@ const s = StyleSheet.create({
   embossTitle:  { fontSize: 26, fontWeight: '900', color: T.goldPale, letterSpacing: 3, textAlign: 'center', marginBottom: 4 },
   embossSubtitle:{ fontSize: 11, color: 'rgba(255,255,255,0.7)', letterSpacing: 2, textAlign: 'center', marginBottom: 2 },
   embossCity:   { fontSize: 10, color: 'rgba(255,255,255,0.55)', letterSpacing: 3, textAlign: 'center', marginBottom: 20 },
-  seal:         { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+  seal:         { width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255,215,100,0.08)', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
   sealEmoji:    { fontSize: 36, zIndex: 1 },
-  sealRing:     { position: 'absolute', top: 6, left: 6, right: 6, bottom: 6, borderRadius: 34, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
-  sealRing2:    { position: 'absolute', top: 14, left: 14, right: 14, bottom: 14, borderRadius: 26, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  sealRing:     { position: 'absolute', top: 4, left: 4, right: 4, bottom: 4, borderRadius: 46, borderWidth: 1.5, borderColor: 'rgba(212,165,32,0.5)' },
+  sealRing2:    { position: 'absolute', top: 12, left: 12, right: 12, bottom: 12, borderRadius: 38, borderWidth: 1, borderColor: 'rgba(212,165,32,0.25)' },
+  sealInner:    { width: 60, height: 60, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  sealLogo:     { width: 52, height: 52, tintColor: T.goldPale },
+  goldPlaque:   { backgroundColor: 'rgba(212,165,32,0.12)', borderWidth: 1, borderColor: 'rgba(212,165,32,0.4)', borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16, alignItems: 'center', marginBottom: 16 },
+  goldPlaqueMain:{ fontSize: 14, fontWeight: '900', color: T.goldPale, textAlign: 'center', letterSpacing: 0.5, lineHeight: 20 },
+  goldPlaqueDivider:{ width: 40, height: 1, backgroundColor: 'rgba(212,165,32,0.5)', marginVertical: 6 },
+  goldPlaqueCity:{ fontSize: 9, fontWeight: '900', color: T.goldPale, letterSpacing: 2.5, textAlign: 'center' },
+  goldPlaqueSub: { fontSize: 8, color: 'rgba(255,255,255,0.7)', letterSpacing: 2, textAlign: 'center', marginTop: 2 },
+  goldPlaqueYear:{ fontSize: 9, color: 'rgba(255,255,255,0.5)', letterSpacing: 1.5, marginTop: 6 },
   levelBadge:   { borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, alignItems: 'center' },
   levelBadgeEmoji: { fontSize: 18 },
   levelBadgeName: { fontSize: 10, fontWeight: '900', color: T.dark, letterSpacing: 1 },
   spine:        { position: 'absolute', left: 0, top: 0, bottom: 0, width: 10, backgroundColor: T.leatherDark, borderTopLeftRadius: 16, borderBottomLeftRadius: 16 },
   idSection:    { flexDirection: 'row', gap: 14, marginBottom: 18 },
-  idAvatar:          { width: 80, height: 90, borderRadius: 10, backgroundColor: T.leather, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: T.gold + '60', overflow: 'hidden', position: 'relative' },
-  idAvatarImg:       { width: 80, height: 90 },
-  idAvatarText:      { fontSize: 32, fontWeight: '900', color: T.goldPale },
+  idPhotoCol:   { alignItems: 'center', gap: 8 },
+  idAvatar:          { width: 100, height: 130, borderRadius: 10, backgroundColor: T.leather, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: T.gold + '80', overflow: 'hidden', position: 'relative' },
+  idAvatarGrad:      { width: 100, height: 130, alignItems: 'center', justifyContent: 'center' },
+  idAvatarImg:       { width: 100, height: 130 },
+  idAvatarText:      { fontSize: 42, fontWeight: '900', color: T.goldPale },
   idAvatarEditBadge: { position: 'absolute', bottom: 4, right: 4, backgroundColor: T.gold, borderRadius: 10, width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
+  idInitialBadge:    { position: 'absolute', top: 6, left: 6, width: 24, height: 24, borderRadius: 4, backgroundColor: T.gold, alignItems: 'center', justifyContent: 'center', zIndex: 2 },
+  idInitialText:     { fontSize: 13, fontWeight: '900', color: '#FFF' },
+  changePhotoBtn:    { backgroundColor: T.parchment, borderRadius: 12, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: T.border },
+  changePhotoBtnText:{ fontSize: 9, color: T.body, fontWeight: '700' },
   idData:       { flex: 1 },
   idLabel:      { fontSize: 8, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 2, marginTop: 6 },
   idValue:      { fontSize: 12, fontWeight: '800', color: T.ink, letterSpacing: 0.5 },
   qrSection:    { flexDirection: 'row', gap: 14, marginBottom: 18, alignItems: 'center' },
-  qrBox:        { width: 80, height: 80, backgroundColor: '#FFF', borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: T.border, padding: 6 },
+  qrBox:        { width: 96, height: 96, backgroundColor: '#FFF', borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: T.border, padding: 6 },
   qrPattern:    { fontSize: 8.5, color: T.ink, fontWeight: '900', lineHeight: 13, letterSpacing: 0.5, fontFamily: 'monospace' },
   qrInfo:       { flex: 1 },
   qrIdLabel:    { fontSize: 7, fontWeight: '900', color: T.gold, letterSpacing: 2, marginBottom: 4 },
