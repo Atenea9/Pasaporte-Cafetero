@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import type { VisitanteNavProp } from '../../navigation/types';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 import LangSelector from '../../components/LangSelector';
 
 const T = {
@@ -28,6 +29,7 @@ const T = {
 export default function VisitanteWelcomeScreen() {
   const nav = useNavigation<VisitanteNavProp>();
   const { state } = useApp();
+  const { logout } = useAuth();
   const { t } = useTranslation();
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
@@ -44,8 +46,12 @@ export default function VisitanteWelcomeScreen() {
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
 
-      {/* Language selector */}
+      {/* Top bar: back to general login + language selector */}
       <View style={s.topBar}>
+        <TouchableOpacity style={s.backBtn} onPress={logout} activeOpacity={0.8}>
+          <Text style={s.backIcon}>‹</Text>
+          <Text style={s.backText}>{t('common.back', 'Volver')}</Text>
+        </TouchableOpacity>
         <LangSelector style={s.langBtn} light />
       </View>
 
@@ -118,7 +124,10 @@ export default function VisitanteWelcomeScreen() {
 const s = StyleSheet.create({
   safe:             { flex: 1, backgroundColor: T.bg },
   container:        { flex: 1 },
-  topBar:           { position: 'absolute', top: 48, right: 16, zIndex: 10 },
+  topBar:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4, zIndex: 10 },
+  backBtn:          { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 6, paddingHorizontal: 4 },
+  backIcon:         { fontSize: 26, color: T.coffee, lineHeight: 30, fontWeight: '300' },
+  backText:         { fontSize: 14, color: T.coffee, fontWeight: '700' },
   langBtn:          {},
 
   hero:             { paddingTop: 56, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, StyleSheet, Platform, TouchableOpacity, Text } from 'react-native';
 import { Asset } from 'expo-asset';
 
@@ -9,10 +9,19 @@ const videoModule = require('../../assets/intro.mp4');
 export default function VideoIntroScreen({ onFinish }: Props) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const fallback = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isMuted, setIsMuted] = useState(true);
 
   const finish = () => {
     if (fallback.current) clearTimeout(fallback.current);
     onFinish();
+  };
+
+  const toggleMute = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.muted = !vid.muted;
+    if (!vid.muted) vid.volume = 1;
+    setIsMuted(vid.muted);
   };
 
   useEffect(() => {
@@ -23,12 +32,11 @@ export default function VideoIntroScreen({ onFinish }: Props) {
       if (!videoRef.current || !uri) { finish(); return; }
       const vid = videoRef.current;
       vid.src = uri;
-      vid.muted = false;
+      // Start muted (required by browsers for autoplay)
+      vid.muted = true;
       vid.volume = 1;
-      vid.play().catch(() => {
-        vid.muted = true;
-        vid.play().catch(finish);
-      });
+      setIsMuted(true);
+      vid.play().catch(finish);
       fallback.current = setTimeout(finish, 35_000);
     }).catch(finish);
 
@@ -48,6 +56,13 @@ export default function VideoIntroScreen({ onFinish }: Props) {
         onEnded={finish}
         onError={finish}
       />
+
+      {/* Mute/unmute button */}
+      <TouchableOpacity style={s.muteBtn} onPress={toggleMute} activeOpacity={0.8}>
+        <Text style={s.muteTxt}>{isMuted ? '🔇 Toca para activar sonido' : '🔊 Con sonido'}</Text>
+      </TouchableOpacity>
+
+      {/* Skip button */}
       <TouchableOpacity style={s.skip} onPress={finish} activeOpacity={0.7}>
         <Text style={s.skipTxt}>Omitir  ›</Text>
       </TouchableOpacity>
@@ -58,6 +73,8 @@ export default function VideoIntroScreen({ onFinish }: Props) {
 const s = StyleSheet.create({
   root:    { flex: 1, backgroundColor: '#000' },
   video:   { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' } as any,
+  muteBtn: { position: 'absolute', top: 36, left: 20, backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
+  muteTxt: { color: '#FFF', fontSize: 13, fontWeight: '700' },
   skip:    { position: 'absolute', bottom: 36, right: 24, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 24, borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' },
   skipTxt: { color: '#FFF', fontSize: 13, fontWeight: '700', letterSpacing: 1 },
 });
