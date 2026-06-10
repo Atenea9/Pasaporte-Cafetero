@@ -567,47 +567,24 @@ export async function scanDocument(
   // ── STEP 1: Binarized 3× upscale preprocessing ──────────────────────────
   onProgress?.('Procesando imagen…', 10);
   let processedCanvas: HTMLCanvasElement | null = null;
-  let processedCanvasInv: HTMLCanvasElement | null = null;
   try {
-    [processedCanvas, processedCanvasInv] = await Promise.all([
-      preprocessImage(source),
-      preprocessImageInverted(source),
-    ]);
+    processedCanvas = await preprocessImage(source);
   } catch (e) {
     console.warn('[Tesseract] preprocessing failed, using original source:', e);
   }
 
-  // ── STEP 2: Two-pass OCR — normal binarization + inverted ───────────────
-  // The pass with more extracted text wins; merge the other pass to fill gaps.
-  onProgress?.('Leyendo documento (pasada 1/2)…', 20);
+  // ── STEP 2: Single OCR pass ───────────────────────────────────────────────
+  onProgress?.('Leyendo documento…', 25);
   const worker = await getWorker(onProgress);
 
   const pass1Input: any = processedCanvas ?? source;
   const { data: data1 } = await worker.recognize(pass1Input);
 
-  onProgress?.('Leyendo documento (pasada 2/2)…', 55);
-  const pass2Input: any = processedCanvasInv ?? source;
-  const { data: data2 } = await worker.recognize(pass2Input);
+  onProgress?.('Identificando campos…', 75);
 
-  onProgress?.('Combinando resultados…', 80);
-
-  // Choose the pass that extracted more meaningful text
-  const countWords = (t: string) => t.split(/\s+/).filter(w => w.length >= 2).length;
-  const w1 = countWords(data1.text);
-  const w2 = countWords(data2.text);
-  console.log(`[Tesseract] Pass1 words: ${w1}, Pass2 words: ${w2}`);
-
-  // Primary text = better pass; secondary = the other (used to fill missing fields)
-  const primaryText   = w1 >= w2 ? data1.text : data2.text;
-  const secondaryText = w1 >= w2 ? data2.text : data1.text;
-  const primaryData   = w1 >= w2 ? data1 : data2;
-  const primaryCanvas = w1 >= w2 ? processedCanvas : processedCanvasInv;
-
-  // Combined text merges both passes — helps field extraction find labels
-  // from either pass even if one pass missed them
-  const text = primaryText + '\n\n---\n\n' + secondaryText;
-
-  onProgress?.('Identificando campos…', 90);
+  const primaryData   = data1;
+  const primaryCanvas = processedCanvas;
+  const text          = data1.text;
 
   const tipo = detectDocumentType(text);
 

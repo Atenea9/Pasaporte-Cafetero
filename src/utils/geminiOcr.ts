@@ -20,24 +20,37 @@ const GEMINI_MODELS = [
   { name: 'gemini-1.5-flash-latest', version: 'v1beta' },
 ];
 
-const EXTRACTION_PROMPT = `You are an OCR expert specializing in identity documents. Analyze this document image and extract the following fields as a JSON object.
+const EXTRACTION_PROMPT = `You are an OCR expert specializing in Colombian identity documents (Cédula de Ciudadanía) and other Latin American IDs.
+
+Analyze this document image and extract the following fields as a JSON object.
+
+COLOMBIAN CÉDULA LAYOUT (most common document):
+- Header: "CÉDULA DE CIUDADANÍA" + "REPÚBLICA DE COLOMBIA"
+- Top right corner: "NUIP" followed by a number with dots, e.g. "NUIP 1.999.999.999" — this is the document number
+- "Apellidos" label → surname(s) printed below or on the same line (e.g. "VELEZ RUIZ")
+- "Nombres" label → given name(s) printed below or on the same line (e.g. "GERONIMO")
+- "Fecha de nacimiento:" → date in "dd MMM yyyy" format (e.g. "12 MAR 2000")
+- Place of birth/issue in "CITY (DEPARTMENT)" format (e.g. "BOGOTA D.C. (CUNDINAMARCA)")
+- Month abbreviations: ENE=Jan FEB=Feb MAR=Mar ABR=Apr MAY=May JUN=Jun JUL=Jul AGO=Aug SEP=Sep OCT=Oct NOV=Nov DIC=Dec
 
 Return ONLY a valid JSON object with these exact keys (use null if a field is not present or unclear):
 {
   "tipo_documento": "document type in Spanish (e.g. 'Cédula de Ciudadanía (Colombia)', 'Pasaporte', 'DNI', 'Licencia de Conducción', 'Documento de identidad')",
-  "numero_documento": "document number as a string, digits only",
-  "nombres": "first and middle names only, uppercase",
-  "apellidos": "last name(s) only, uppercase",
-  "fecha_nacimiento": "birth date in YYYY-MM-DD format",
+  "numero_documento": "NUIP or document number as a string, digits only — remove all dots, e.g. '1.999.999.999' becomes '1999999999'",
+  "nombres": "given/first names only, uppercase, exactly as printed",
+  "apellidos": "surname(s) only, uppercase, exactly as printed",
+  "fecha_nacimiento": "birth date converted to YYYY-MM-DD format, e.g. '12 MAR 2000' becomes '2000-03-12'",
   "pais_emision": "country of issue in Spanish (e.g. 'Colombia', 'España', 'México')",
-  "region_departamento": "department, state or province",
-  "municipio_ciudad": "city or municipality"
+  "region_departamento": "department, state or province in proper case, e.g. 'Cundinamarca' from '(CUNDINAMARCA)'",
+  "municipio_ciudad": "city or municipality in proper case, e.g. 'Bogotá D.C.' from 'BOGOTA D.C. (CUNDINAMARCA)'"
 }
 
-Confidence guidelines:
-- Extract text exactly as printed, do not invent data
-- For fecha_nacimiento, always output YYYY-MM-DD format
-- If the document is a Colombian Cédula, tipo_documento = "Cédula de Ciudadanía (Colombia)"
+Rules:
+- Extract text exactly as printed — do NOT invent or guess missing data
+- For Colombian cédulas: tipo_documento = "Cédula de Ciudadanía (Colombia)"
+- Strip all dots from NUIP/document numbers
+- Convert "dd MMM yyyy" dates to "YYYY-MM-DD" (e.g. "10 ABR 2018" → "2018-04-10")
+- If place format is "CITY (DEPARTMENT)", split accordingly
 - Return null for any field you cannot read with reasonable confidence`;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

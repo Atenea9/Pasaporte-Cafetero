@@ -537,10 +537,10 @@ export default function DocumentScanner({ visible, onDataExtracted, onClose }: P
           { label: 'Extrayendo campos del doc…', threshold: 80 },
         ]
       : [
-          { label: 'Procesando imagen',   threshold: 10 },
-          { label: 'Extrayendo texto',    threshold: 40 },
-          { label: 'Identificando campos',threshold: 85 },
-          { label: 'Calculando confianza',threshold: 98 },
+          { label: 'Procesando imagen',    threshold: 10 },
+          { label: 'Leyendo documento…',   threshold: 25 },
+          { label: 'Identificando campos', threshold: 75 },
+          { label: 'Calculando confianza', threshold: 95 },
         ];
 
     return (
