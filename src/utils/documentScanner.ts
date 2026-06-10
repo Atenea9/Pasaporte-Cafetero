@@ -86,7 +86,7 @@ async function getWorker(onProgress?: (stage: string, pct: number) => void): Pro
   if (_initPromise) return _initPromise;
 
   _initPromise = (async () => {
-    const w = await Tesseract.createWorker(['spa', 'eng'], 1, {
+    const w = await Tesseract.createWorker('spa', 1, {
       logger: (m: any) => {
         if (m.status === 'loading tesseract core' || m.status === 'initializing tesseract') {
           onProgress?.('Cargando motor OCR…', 8);
@@ -96,7 +96,7 @@ async function getWorker(onProgress?: (stage: string, pct: number) => void): Pro
       },
     });
     await w.setParameters({
-      tessedit_pageseg_mode: '3' as any,
+      tessedit_pageseg_mode: '6' as any,   // uniform block of text — faster than auto(3)
       preserve_interword_spaces: '1' as any,
     });
     _worker = w;
@@ -131,7 +131,8 @@ export async function preprocessImage(source: File | Blob | string): Promise<HTM
     const url = typeof source === 'string' ? source : URL.createObjectURL(source as Blob);
 
     img.onload = () => {
-      const SCALE = 3;
+      // 2× is sufficient for Tesseract accuracy and cuts pixel count by ~56% vs 3×
+      const SCALE = 2;
       const canvas = document.createElement('canvas');
       canvas.width  = img.naturalWidth  * SCALE;
       canvas.height = img.naturalHeight * SCALE;
@@ -139,21 +140,19 @@ export async function preprocessImage(source: File | Blob | string): Promise<HTM
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
-      // Step 1: grayscale + contrast to enhance text edges
-      ctx.filter = 'grayscale(1) contrast(2.2) brightness(1.1)';
+      // Grayscale + contrast to enhance text edges
+      ctx.filter = 'grayscale(1) contrast(2.4) brightness(1.1)';
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       ctx.filter = 'none';
 
-      // Step 2: adaptive binarization — compute mean luminance as threshold
+      // Adaptive binarization — sample every 8th pixel for threshold (4× faster)
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
-      let sum = 0;
-      const total = data.length / 4;
-      for (let i = 0; i < data.length; i += 4) {
-        sum += data[i]; // already grayscale — all channels equal
+      let sum = 0, count = 0;
+      for (let i = 0; i < data.length; i += 32) { // step=32 → every 8th pixel (4 channels×8)
+        sum += data[i]; count++;
       }
-      // Clamp threshold to [90, 210] so we never whiteout or blackout the image
-      const threshold = Math.max(90, Math.min(210, sum / total));
+      const threshold = Math.max(90, Math.min(210, sum / count));
       for (let i = 0; i < data.length; i += 4) {
         const binary = data[i] >= threshold ? 255 : 0;
         data[i] = data[i + 1] = data[i + 2] = binary;
@@ -543,18 +542,17 @@ export async function scanDocument(
 ): Promise<DocumentScanResult> {
   onProgress?.('Procesando imagen…', 5);
 
-  // Extract face photo from the original (colour) image regardless of OCR engine
-  const foto_url = await extractFaceFromDocument(source).catch(() => null) ?? undefined;
-
-  // ── Primary: Gemini 2.0 Flash (original image — no preprocessing needed) ──
+  // ── Primary: Gemini 2.0 Flash — fast path (~2-4 s), no preprocessing needed ──
   if (isGeminiAvailable()) {
     try {
       const originalBlob: Blob =
-        source instanceof Blob
-          ? source
-          : await fetch(source).then(r => r.blob());
-      const geminiResult = await scanWithGemini(originalBlob, onProgress);
-      return { ...geminiResult, foto_url };
+        source instanceof Blob ? source : await fetch(source).then(r => r.blob());
+      // Run face extraction in parallel with Gemini OCR
+      const [geminiResult, foto_url] = await Promise.all([
+        scanWithGemini(originalBlob, onProgress),
+        extractFaceFromDocument(source).catch(() => null),
+      ]);
+      return { ...geminiResult, foto_url: foto_url ?? undefined };
     } catch (geminiErr) {
       console.warn(
         '[DocumentScanner] Gemini failed, falling back to Tesseract:',
@@ -564,16 +562,17 @@ export async function scanDocument(
     }
   }
 
-  // ── STEP 1: Binarized 3× upscale preprocessing ──────────────────────────
+  // ── Tesseract fallback: preprocess + OCR + face extraction in parallel ───
   onProgress?.('Procesando imagen…', 10);
-  let processedCanvas: HTMLCanvasElement | null = null;
-  try {
-    processedCanvas = await preprocessImage(source);
-  } catch (e) {
-    console.warn('[Tesseract] preprocessing failed, using original source:', e);
-  }
+  const [processedCanvas, foto_url] = await Promise.all([
+    preprocessImage(source).catch((e) => {
+      console.warn('[Tesseract] preprocessing failed, using original:', e);
+      return null;
+    }),
+    extractFaceFromDocument(source).catch(() => null),
+  ]);
 
-  // ── STEP 2: Single OCR pass ───────────────────────────────────────────────
+  // ── Single OCR pass ───────────────────────────────────────────────────────
   onProgress?.('Leyendo documento…', 25);
   const worker = await getWorker(onProgress);
 
