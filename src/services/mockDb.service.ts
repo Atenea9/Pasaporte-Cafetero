@@ -22,7 +22,7 @@ export const mockDbService = {
   },
   async getUserStats(uid: string) {
     await delay(300);
-    return { points: 1250, stamps: ['Chaparral', 'Planadas'], level: 'Degustador' };
+    return { points: 0, stamps: [] as string[], level: '' };
   },
   async getStandStats(expositorUid: string) {
     await delay(300);

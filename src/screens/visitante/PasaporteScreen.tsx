@@ -274,7 +274,14 @@ export const PasaporteScreen = () => {
                 {/* Header emboss */}
                 <View style={s.embossHeader}>
                   <View style={s.embossLine} />
-                  <Text style={s.embossCountry}>REPÚBLICA DE COLOMBIA</Text>
+                  <View style={s.embossCountryRow}>
+                    <Image
+                      source={require('../../../assets/colombia-escudo.png')}
+                      style={s.escudoImg}
+                      resizeMode="contain"
+                    />
+                    <Text style={s.embossCountry}>REPÚBLICA DE COLOMBIA</Text>
+                  </View>
                   <View style={s.embossLine} />
                 </View>
                 <Text style={s.embossTitle}>PASAPORTE CAFETERO</Text>
@@ -595,6 +602,8 @@ const s = StyleSheet.create({
   cover:        { borderRadius: 16, padding: 28, alignItems: 'center', minHeight: 280, justifyContent: 'center', overflow: 'hidden', shadowColor: T.dark, shadowOffset: { width: 4, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 8 },
   embossHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6, width: '80%' },
   embossLine:   { flex: 1, height: 0.5, backgroundColor: 'rgba(255,255,255,0.4)' },
+  embossCountryRow:{ flexDirection: 'row', alignItems: 'center', gap: 6 },
+  escudoImg:    { width: 18, height: 18, tintColor: 'rgba(255,255,255,0.75)' },
   embossCountry:{ fontSize: 8, fontWeight: '900', color: 'rgba(255,255,255,0.7)', letterSpacing: 2.5 },
   embossTitle:  { fontSize: 26, fontWeight: '900', color: T.goldPale, letterSpacing: 3, textAlign: 'center', marginBottom: 4 },
   embossSubtitle:{ fontSize: 11, color: 'rgba(255,255,255,0.7)', letterSpacing: 2, textAlign: 'center', marginBottom: 2 },

@@ -186,7 +186,10 @@
     "fair_ibague_desc": "首届 · 传统的开始",
     "fair_libano_desc": "第二届 · 共同成长",
     "fair_view_memories": "查看记忆",
-    "fair_venue": "举办地"
+    "fair_venue": "举办地",
+    "my_qr_title": "我的专属二维码",
+    "my_qr_sub": "向摊主出示以获得积分",
+    "my_qr_id": "护照ID"
   },
   "passport": {
     "my_passport": "我的护照",

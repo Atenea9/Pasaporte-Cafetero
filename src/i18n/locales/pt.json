@@ -183,7 +183,10 @@
     "fair_ibague_desc": "Primeira edição · Início de uma tradição",
     "fair_libano_desc": "Segunda edição · Crescendo juntos",
     "fair_view_memories": "Ver memórias",
-    "fair_venue": "Sede"
+    "fair_venue": "Sede",
+    "my_qr_title": "MEU QR PESSOAL",
+    "my_qr_sub": "Mostre ao vendedor para ganhar pontos",
+    "my_qr_id": "ID PASSAPORTE"
   },
   "passport": {
     "my_passport": "MEU PASSAPORTE",

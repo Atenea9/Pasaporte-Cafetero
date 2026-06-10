@@ -6,17 +6,19 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import QRCode from 'react-native-qrcode-svg';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { mockDbService } from '../../services/mockDb.service';
 import { NIVELES, getTopStands, getNivelActual, getNivelSiguiente } from '../../data/mockData';
 import type { VisitanteNavProp } from '../../navigation/types';
-import BearMascot from '../../components/BearMascot';
 
 // ─── Theme tokens ─────────────────────────────────────────────────────────────
 const T = {
-  bg:         '#FBF7ED',
+  bg:         '#F9F3E3',
   card:       '#FFFDF8',
+  parchment:  '#F5EDD0',
+  parchDark:  '#EAD9AA',
   dark:       '#2C1A0E',
   body:       '#5C3520',
   muted:      '#9B7B5A',
@@ -25,11 +27,12 @@ const T = {
   amberPale:  '#FBF0C8',
   amberDark:  '#8B6308',
   coffee:     '#7B4A2A',
-  coffeeDark: '#5C3520',
-  coffeePale: '#F0E0CC',
+  coffeeDark: '#4A2010',
   border:     '#EDD9A8',
   borderMed:  '#D4B886',
   danger:     '#C0392B',
+  gold:       '#B8860B',
+  goldLight:  '#D4A520',
 };
 
 const { width } = Dimensions.get('window');
@@ -41,24 +44,9 @@ const PREMIO_LABEL: Record<string, string> = {
   visitas_exclusivas:'🏡 Visita Exclusiva',
 };
 
-// ─── Ferias data (static, scalable) ──────────────────────────────────────────
 const PREV_FAIRS = [
-  {
-    key:       'ibague',
-    cityKey:   'fair_ibague_year',
-    descKey:   'fair_ibague_desc',
-    cityFall:  'Ibagué 2024',
-    descFall:  'Primera edición · Inicio de la tradición',
-    c1: '#1A3A2A', c2: '#2D6A4F',
-  },
-  {
-    key:       'libano',
-    cityKey:   'fair_libano_year',
-    descKey:   'fair_libano_desc',
-    cityFall:  'Líbano 2025',
-    descFall:  'Segunda edición · Creciendo juntos',
-    c1: '#2A1408', c2: '#7B4A2A',
-  },
+  { key: 'ibague', cityKey: 'fair_ibague_year', descKey: 'fair_ibague_desc', cityFall: 'Ibagué 2024', descFall: 'Primera edición', c1: '#1A3A2A', c2: '#2D6A4F' },
+  { key: 'libano', cityKey: 'fair_libano_year', descKey: 'fair_libano_desc', cityFall: 'Líbano 2025',  descFall: 'Segunda edición',  c1: '#2A1408', c2: '#7B4A2A' },
 ] as const;
 
 export const HomeScreen = () => {
@@ -66,162 +54,219 @@ export const HomeScreen = () => {
   const { user, logout } = useAuth();
   const { state } = useApp();
   const nav = useNavigation<VisitanteNavProp>();
-  const [stats,     setStats]     = useState({ visitorCount: 847, activeStands: 11, happyHour: false });
-  const [userStats, setUserStats] = useState<any>({ points: 0, stamps: [] });
-  const pulsAnim = useRef(new Animated.Value(1)).current;
+  const [globalStats, setGlobalStats] = useState({ visitorCount: 1420, activeStands: 45, happyHour: false });
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const pulsAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+    Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     Animated.loop(Animated.sequence([
-      Animated.timing(pulsAnim, { toValue: 1.02, duration: 2600, useNativeDriver: true }),
-      Animated.timing(pulsAnim, { toValue: 1.0,  duration: 2600, useNativeDriver: true }),
+      Animated.timing(pulsAnim, { toValue: 1.015, duration: 2800, useNativeDriver: true }),
+      Animated.timing(pulsAnim, { toValue: 1.0,   duration: 2800, useNativeDriver: true }),
     ])).start();
   }, []);
 
   useFocusEffect(useCallback(() => {
     let alive = true;
-    mockDbService.getHomeStats().then(d => { if (alive) setStats(d); });
-    if (user?.uid) mockDbService.getUserStats(user.uid).then(d => { if (alive) setUserStats(d); });
+    mockDbService.getHomeStats().then(d => { if (alive) setGlobalStats(d); });
     return () => { alive = false; };
-  }, [user]));
+  }, []));
 
-  const puntos      = userStats?.points ?? 0;
+  // Personal stats from AppContext (cedula registration) — 0 for new users
+  const puntos      = state.usuario?.puntos    ?? 0;
+  const stamps      = state.usuario?.sellos    ?? [];
+  const stampsCount = stamps.length;
   const nivelActual = getNivelActual(puntos);
   const nivelSig    = getNivelSiguiente(puntos);
-  const stampsCount = (userStats?.stamps ?? []).length;
-  const topStands   = getTopStands(4);
   const progressPct = nivelActual && nivelSig
     ? Math.min(((puntos - nivelActual.minPuntos) / (nivelSig.minPuntos - nivelActual.minPuntos)) * 100, 100)
     : nivelActual ? 100 : 0;
 
-  // Name priority: cedula registration > auth name > fallback
   const displayName = state.usuario?.nombre?.split(' ')[0]
     || user?.name?.split(' ')[0]
     || 'Cafetero';
 
-  const TILES = [
-    { icon: '🗺️', label: t('home.fair_map', 'Mapa'),          sub: t('home.fair_map_sub', 'Stands y escenarios'), screen: 'MapaFeria'     as const, c1: T.coffee,     c2: '#A0663C'   },
-    { icon: '📅', label: t('home.agenda',    'Agenda'),        sub: t('home.agenda_sub', '3 días de programa'),   screen: 'Agenda'        as const, c1: '#1565C0',     c2: '#1976D2'   },
-    { icon: '🏛️', label: t('home.sponsors', 'Auspiciadores'), sub: t('home.sponsors_sub', 'Gobernación'),        screen: 'Auspiciadores' as const, c1: '#5D4037',     c2: '#795548'   },
-    { icon: '🏅', label: t('nav.ranking',    'Ranking'),       sub: t('home.ranking_nav_sub', 'Tabla de posiciones'), screen: 'Ranking'  as const, c1: T.amber,       c2: T.amberLight},
-    { icon: '🛍️', label: t('comprador.catalog', 'Catálogo'),  sub: 'Productos de los stands',                    screen: 'Catalogo'  as const, c1: '#2D5A1E',       c2: '#4A8A2E'   },
-  ];
+  const passportId = `CF26-${(state.usuario?.cedula || user?.uid?.slice(-8) || '00000000').toUpperCase()}`;
+  const topStands  = getTopStands(4);
 
   const STAT_ITEMS = [
-    { icon: '👥', val: stats.visitorCount, lbl: t('home.visitors_label', 'visitantes') },
-    { icon: '🏪', val: stats.activeStands, lbl: t('home.stands_label',   'stands activos') },
-    { icon: '🪙', val: puntos,             lbl: t('home.pts_label',       'puntos') },
-    { icon: '✅', val: stampsCount,        lbl: t('home.stamps_label',    'sellos') },
+    { icon: '👥', val: globalStats.visitorCount, lbl: t('home.visitors_label', 'VISITANTES') },
+    { icon: '🏪', val: globalStats.activeStands, lbl: t('home.stands_label',   'STANDS ACTIVOS') },
+    { icon: '🪙', val: puntos,                   lbl: t('home.pts_label',       'PUNTOS') },
+    { icon: '✅', val: stampsCount,              lbl: t('home.stamps_label',    'SELLOS') },
+  ];
+
+  const TILES = [
+    { icon: '🗺️', label: t('home.fair_map', 'Mapa'),          sub: t('home.fair_map_sub', 'Stands'),    screen: 'MapaFeria'     as const, c1: T.coffee,  c2: '#A0663C' },
+    { icon: '📅', label: t('home.agenda', 'Agenda'),           sub: t('home.agenda_sub', '3 días'),      screen: 'Agenda'        as const, c1: '#1565C0', c2: '#1E88E5' },
+    { icon: '🏛️', label: t('home.sponsors', 'Aliados'),       sub: t('home.sponsors_sub', 'Tolima'),    screen: 'Auspiciadores' as const, c1: '#5D4037', c2: '#8D6E63' },
+    { icon: '🏅', label: t('nav.ranking', 'Ranking'),           sub: t('home.ranking_nav_sub', 'Tabla'), screen: 'Ranking'       as const, c1: T.amber,   c2: T.goldLight },
   ];
 
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
-      <Animated.ScrollView
-        style={{ opacity: fadeAnim }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={s.scroll}
-      >
+      <Animated.ScrollView style={{ opacity: fadeAnim }} showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <View style={s.header}>
           <View style={{ flex: 1 }}>
-            <Text style={s.greeting}>{t('home.greeting', '¡Hola,')} {displayName} 👋</Text>
-            <View style={s.headerEventRow}>
-              <Text style={s.headerEventIcon}>🍒</Text>
-              <Text style={s.headerSub}>{t('login.fair_name', 'Feria Internacional de Café')} · Chaparral 2026</Text>
+            <Text style={s.greeting}>{t('home.greeting', '¡Hola,')} {displayName}! 👋</Text>
+            <View style={s.eventRow}>
+              <Text style={s.eventIcon}>🍒</Text>
+              <Text style={s.eventSub}>{t('login.fair_name', 'Feria Internacional de Café')} – Chaparral 2026</Text>
             </View>
-            <TouchableOpacity onPress={logout} style={s.logoutBtn}>
-              <Text style={s.logoutText}>{t('home.logout', 'Salir')} ↩</Text>
+            <TouchableOpacity onPress={logout} style={s.salirBtn} activeOpacity={0.8}>
+              <Text style={s.salirText}>{t('home.logout', 'SALIR')}  →</Text>
             </TouchableOpacity>
           </View>
-          <View style={s.bearWrap}>
-            <BearMascot size={96} />
-            <Text style={s.bearTip}>{t('home.mascot_tip', '¡Tócame! ☕')}</Text>
+
+          {/* Fair logo medallion */}
+          <View style={s.medallion}>
+            <LinearGradient colors={['#D4A520', '#B8860B', '#8B6308', '#5C3A06']} style={s.medallionGrad}>
+              <View style={s.medallionRingOuter} />
+              <View style={s.medallionRingInner} />
+              <Image source={require('../../../assets/logo-feria-icon.png')} style={s.medallionLogo} resizeMode="contain" />
+              <Text style={s.medallionLabel}>FERIA CAFÉ</Text>
+            </LinearGradient>
           </View>
         </View>
 
         {/* ── Happy Hour banner ────────────────────────────────────────────── */}
-        {stats.happyHour && (
+        {globalStats.happyHour && (
           <LinearGradient colors={[T.amber, T.amberLight]} style={s.hhBanner}>
             <Text style={s.hhText}>{t('home.happy_hour_active', '✨ HAPPY HOUR — PUNTOS DOBLES ✨')}</Text>
           </LinearGradient>
         )}
 
-        {/* ── Stats strip ──────────────────────────────────────────────────── */}
-        <View style={s.statsStrip}>
-          {STAT_ITEMS.map((item, i) => (
-            <React.Fragment key={i}>
-              {i > 0 && <View style={s.statDiv} />}
-              <View style={s.statItem}>
-                <Text style={s.statIcon}>{item.icon}</Text>
-                <Text style={s.statNum}>{item.val}</Text>
-                <Text style={s.statLbl}>{item.lbl}</Text>
-              </View>
-            </React.Fragment>
-          ))}
+        {/* ── Stats scroll ─────────────────────────────────────────────────── */}
+        <View style={s.statsScroll}>
+          <LinearGradient colors={[T.parchment, '#FFFBF0', T.parchment]} style={StyleSheet.absoluteFill} />
+          {/* Scroll curl decorations */}
+          <View style={s.scrollCurlTop} />
+          <View style={s.scrollCurlBot} />
+          <View style={s.statsRow}>
+            {STAT_ITEMS.map((item, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <View style={s.statDiv} />}
+                <View style={s.statItem}>
+                  <Text style={s.statIcon}>{item.icon}</Text>
+                  <Text style={s.statNum}>{item.val}</Text>
+                  <Text style={s.statLbl}>{item.lbl}</Text>
+                </View>
+              </React.Fragment>
+            ))}
+          </View>
         </View>
 
         {/* ── Level card ───────────────────────────────────────────────────── */}
-        <Animated.View style={{ transform: [{ scale: pulsAnim }] }}>
-          <View style={[s.levelCard, { borderColor: nivelActual?.color ?? T.border }]}>
-            <LinearGradient
-              colors={nivelActual ? [nivelActual.color + '18', T.card] : [T.card, T.card]}
-              style={StyleSheet.absoluteFill}
-            />
-            {/* Gold corner ornament */}
-            <View style={s.levelOrnamentTL} />
-            <View style={s.levelOrnamentTR} />
-            <View style={s.levelOrnamentBL} />
-            <View style={s.levelOrnamentBR} />
+        <Animated.View style={[s.levelCard, { transform: [{ scale: pulsAnim }] }]}>
+          <LinearGradient colors={[T.card, T.parchment, T.card]} style={StyleSheet.absoluteFill} />
+          {/* Corner ornaments */}
+          {(['TL','TR','BL','BR'] as const).map(pos => (
+            <View key={pos} style={[s.corner, s[`corner${pos}`]]} />
+          ))}
+          <View style={s.levelRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={s.levelLabel}>{t('home.your_level_title', 'TU NIVEL')}</Text>
+              <Text style={[s.levelName, { color: nivelActual?.color ?? T.muted }]}>
+                {nivelActual
+                  ? `${nivelActual.emoji}  ${nivelActual.nombre}`
+                  : `☕  ${t('home.no_level', '¡Haz tu primera compra!')}`}
+              </Text>
+              {nivelSig && (
+                <Text style={s.levelNext}>{nivelSig.minPuntos - puntos} pts → {nivelSig.nombre}</Text>
+              )}
+              {nivelActual && (
+                <View style={[s.eliteBadge, { backgroundColor: nivelActual.color }]}>
+                  <Text style={s.eliteBadgeText}>🎖 MEMBRESÍA DE ÉLITE</Text>
+                </View>
+              )}
+            </View>
 
-            <View style={s.levelRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={s.levelLabel}>{t('home.your_level_title', 'TU NIVEL')}</Text>
-                <Text style={[s.levelName, { color: nivelActual?.color ?? T.muted }]}>
-                  {nivelActual
-                    ? `${nivelActual.emoji}  ${nivelActual.nombre}`
-                    : `☕  ${t('home.no_level', '¡Haz tu primera compra!')}`}
+            {/* Gold coin medallion */}
+            <View style={s.levelCoin}>
+              <LinearGradient colors={['#E8C020', '#C8960C', '#8B6308']} style={s.levelCoinGrad}>
+                <View style={s.levelCoinRing} />
+                <Text style={s.levelCoinEmoji}>{nivelActual?.emoji ?? '☕'}</Text>
+                <Text style={s.levelCoinName} numberOfLines={2}>
+                  {nivelActual?.nombre ?? 'Nivel 1'}
                 </Text>
-                {nivelSig && (
-                  <Text style={s.levelNext}>
-                    {nivelSig.minPuntos - puntos} pts → {nivelSig.nombre}
-                  </Text>
-                )}
-              </View>
-              <View style={s.levelPtsBox}>
-                <Text style={[s.levelPts, { color: nivelActual?.color ?? T.amber }]}>{puntos}</Text>
-                <Text style={s.levelPtsLbl}>pts</Text>
-              </View>
+              </LinearGradient>
+              <Text style={[s.levelPts, { color: nivelActual?.color ?? T.amber }]}>{puntos}</Text>
+              <Text style={s.levelPtsLbl}>pts</Text>
             </View>
-            <View style={s.progBg}>
-              <View style={[s.progFill, { width: `${progressPct}%` as any, backgroundColor: nivelActual?.color ?? T.amber }]} />
-            </View>
-            <Text style={s.progExpl}>{t('home.pts_explain', '$1.000 COP = 1 punto')}</Text>
           </View>
+          <View style={s.progBg}>
+            <View style={[s.progFill, { width: `${progressPct}%` as any, backgroundColor: nivelActual?.color ?? T.amber }]} />
+          </View>
+          <Text style={s.progExpl}>{t('home.pts_explain', '$1.000 COP = 1 punto')}</Text>
         </Animated.View>
+
+        {/* ── Personal QR ──────────────────────────────────────────────────── */}
+        <View style={s.qrCard}>
+          <LinearGradient colors={['#F5EDD0', '#FFFBF0', '#F0E4C0']} style={StyleSheet.absoluteFill} />
+          {/* Decorative coffee corner beans */}
+          <Text style={[s.qrCorner, { top: 10, left: 10 }]}>☕</Text>
+          <Text style={[s.qrCorner, { top: 10, right: 10 }]}>🫘</Text>
+          <Text style={[s.qrCorner, { bottom: 10, left: 10 }]}>🫘</Text>
+          <Text style={[s.qrCorner, { bottom: 10, right: 10 }]}>☕</Text>
+
+          <Text style={s.qrCardTitle}>
+            {t('home.my_qr_title', 'MI QR PERSONAL')}
+          </Text>
+          <Text style={s.qrCardName}>{displayName.toUpperCase()}</Text>
+
+          <View style={s.qrCodeWrap}>
+            <View style={s.qrInnerBorder}>
+              <QRCode
+                value={passportId}
+                size={130}
+                color={T.dark}
+                backgroundColor="transparent"
+              />
+            </View>
+            {/* Decorative coffee leaf corners on QR */}
+            <Text style={[s.qrLeaf, { top: -4, left: -4 }]}>🍃</Text>
+            <Text style={[s.qrLeaf, { top: -4, right: -4 }]}>🍃</Text>
+            <Text style={[s.qrLeaf, { bottom: -4, left: -4 }]}>🍃</Text>
+            <Text style={[s.qrLeaf, { bottom: -4, right: -4 }]}>🍃</Text>
+          </View>
+
+          <Text style={s.qrCardSub}>{t('home.my_qr_sub', 'Muéstralo al vendedor para registrar tus puntos')}</Text>
+          <View style={s.qrIdRow}>
+            <Text style={s.qrIdLabel}>{t('home.my_qr_id', 'ID PASAPORTE')}</Text>
+            <Text style={s.qrIdValue}>{passportId}</Text>
+          </View>
+        </View>
 
         {/* ── Passport card ────────────────────────────────────────────────── */}
         <TouchableOpacity onPress={() => nav.navigate('Pasaporte')} activeOpacity={0.82} style={s.passCard}>
-          <LinearGradient
-            colors={['#2A1006', '#5C2E12', '#8B4A22', '#C07840']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFill}
-          />
+          <LinearGradient colors={['#2A1006', '#5C2E12', '#8B4A22', '#C07840']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+          {/* Leather texture lines */}
+          <View style={s.leatherLine1} />
+          <View style={s.leatherLine2} />
+
           <View style={{ flex: 1 }}>
             <View style={s.passBadge}>
               <Text style={s.passBadgeText}>{t('home.passport_badge', '✦ PASAPORTE')}</Text>
             </View>
-            <Text style={s.passStamps}>{stampsCount} / 38</Text>
+            <Text style={s.passCount}>{stampsCount} / 38</Text>
             <Text style={s.passSub}>{t('home.municipalities_label', 'municipios cafeteros del Tolima')}</Text>
           </View>
-          <View style={s.miniGrid}>
-            {Array.from({ length: 15 }).map((_, i) => (
-              <View key={i} style={[s.miniDot, i < stampsCount && s.miniDotFilled]} />
+
+          {/* Stamp tiles grid */}
+          <View style={s.stampGrid}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <View key={i} style={[s.stampTile, i < stampsCount && s.stampTileEarned]}>
+                {i < stampsCount ? (
+                  <Text style={s.stampTileEmoji}>🏔️</Text>
+                ) : (
+                  <View style={s.stampTileEmpty} />
+                )}
+              </View>
             ))}
           </View>
-          <Text style={s.passArrow}>›</Text>
         </TouchableOpacity>
 
         {/* ── Prize row ────────────────────────────────────────────────────── */}
@@ -245,8 +290,8 @@ export const HomeScreen = () => {
         <View style={s.section}>
           <Text style={s.sectionTitle}>{t('home.top_stands', 'STANDS MÁS VISITADOS')}</Text>
           {topStands.map((stand, idx) => {
-            const max = topStands[0].ventas ?? 1;
-            const pct = ((stand.ventas ?? 0) / max) * 100;
+            const maxV = topStands[0].ventas ?? 1;
+            const pct  = ((stand.ventas ?? 0) / maxV) * 100;
             return (
               <View key={stand.id} style={s.standRow}>
                 <Text style={[s.standRank, idx === 0 && { color: T.amber }]}>#{idx + 1}</Text>
@@ -279,18 +324,12 @@ export const HomeScreen = () => {
         </View>
 
         {/* ── Ferias anteriores ─────────────────────────────────────────────── */}
-        <Text style={[s.sectionTitle, { marginBottom: 12, marginTop: 6 }]}>
-          {t('home.prev_fairs_title', 'FERIAS ANTERIORES')}
-        </Text>
+        <Text style={[s.sectionTitle, { marginBottom: 12, marginTop: 6 }]}>{t('home.prev_fairs_title', 'FERIAS ANTERIORES')}</Text>
         <View style={s.feriasRow}>
           {PREV_FAIRS.map(f => (
             <View key={f.key} style={s.feriaCard}>
               <LinearGradient colors={[f.c1, f.c2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.feriaGrad}>
-                <Image
-                  source={require('../../../assets/logo-feria-icon.png')}
-                  style={s.feriaLogo}
-                  resizeMode="contain"
-                />
+                <Image source={require('../../../assets/logo-feria-icon.png')} style={s.feriaLogo} resizeMode="contain" />
                 <Text style={s.feriaCity}>{t(`home.${f.cityKey}`, f.cityFall)}</Text>
                 <Text style={s.feriaFairName}>{t('home.fair_intl_coffee', 'Feria Internacional\nde Café')}</Text>
                 <Text style={s.feriaDesc}>{t(`home.${f.descKey}`, f.descFall)}</Text>
@@ -305,7 +344,7 @@ export const HomeScreen = () => {
           {NIVELES.map(niv => {
             const isCurrent = nivelActual?.id === niv.id;
             return (
-              <View key={niv.id} style={[s.nivelRow, isCurrent && { borderColor: niv.color, backgroundColor: niv.color + '10' }]}>
+              <View key={niv.id} style={[s.nivelRow, isCurrent && { borderColor: niv.color, backgroundColor: niv.color + '12' }]}>
                 <Text style={s.nivelEmoji}>{niv.emoji}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[s.nivelName, { color: isCurrent ? niv.color : T.dark }]}>{niv.nombre}</Text>
@@ -317,6 +356,7 @@ export const HomeScreen = () => {
             );
           })}
         </View>
+
       </Animated.ScrollView>
     </SafeAreaView>
   );
@@ -324,60 +364,93 @@ export const HomeScreen = () => {
 
 export default HomeScreen;
 
+// ─── Styles ──────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  safe:    { flex: 1, backgroundColor: T.bg },
-  scroll:  { padding: 20, paddingTop: 16, paddingBottom: 40 },
+  safe:   { flex: 1, backgroundColor: T.bg },
+  scroll: { padding: 18, paddingTop: 14, paddingBottom: 44 },
 
   // Header
-  header:         { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
-  greeting:       { fontSize: 22, fontWeight: '900', color: T.dark, letterSpacing: 0.2 },
-  headerEventRow: { flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 4 },
-  headerEventIcon:{ fontSize: 13 },
-  headerSub:      { fontSize: 10, color: T.muted, letterSpacing: 0.4, flex: 1 },
-  logoutBtn:      { alignSelf: 'flex-start', marginTop: 10, backgroundColor: T.card, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1, borderColor: T.border },
-  logoutText:     { fontSize: 11, color: T.danger, fontWeight: '700' },
-  bearWrap:       { alignItems: 'center', marginLeft: 8 },
-  bearTip:        { fontSize: 8, color: T.muted, marginTop: 2, fontWeight: '600' },
+  header:     { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16, gap: 10 },
+  greeting:   { fontSize: 26, fontWeight: '900', color: T.dark, letterSpacing: 0.2 },
+  eventRow:   { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 },
+  eventIcon:  { fontSize: 12 },
+  eventSub:   { fontSize: 11, color: T.body, fontWeight: '600', flex: 1 },
+  salirBtn:   { marginTop: 10, alignSelf: 'flex-start', backgroundColor: T.coffeeDark, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
+  salirText:  { color: '#FFF', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+
+  // Fair logo medallion
+  medallion:      { width: 90, height: 90 },
+  medallionGrad:  { flex: 1, borderRadius: 45, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 8 },
+  medallionRingOuter: { position: 'absolute', top: 3, left: 3, right: 3, bottom: 3, borderRadius: 42, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
+  medallionRingInner: { position: 'absolute', top: 8, left: 8, right: 8, bottom: 8, borderRadius: 37, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
+  medallionLogo:  { width: 44, height: 44, tintColor: '#FFF8E0' },
+  medallionLabel: { fontSize: 7, fontWeight: '900', color: 'rgba(255,248,224,0.85)', letterSpacing: 2, marginTop: 2 },
 
   // Happy hour
-  hhBanner: { padding: 12, borderRadius: 12, alignItems: 'center', marginBottom: 16 },
+  hhBanner: { padding: 12, borderRadius: 14, alignItems: 'center', marginBottom: 16 },
   hhText:   { color: T.dark, fontWeight: '900', fontSize: 13, letterSpacing: 1 },
 
-  // Stats strip
-  statsStrip: { flexDirection: 'row', backgroundColor: T.card, borderRadius: 16, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: T.border, shadowColor: T.dark, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 },
-  statItem:   { flex: 1, alignItems: 'center', gap: 2 },
-  statIcon:   { fontSize: 16, marginBottom: 2 },
-  statNum:    { fontSize: 20, fontWeight: '900', color: T.amber },
-  statLbl:    { fontSize: 8, color: T.muted, textTransform: 'uppercase', textAlign: 'center', letterSpacing: 0.4 },
-  statDiv:    { width: 1, backgroundColor: T.border },
+  // Stats scroll
+  statsScroll:    { borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: T.parchDark, shadowColor: T.dark, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3 },
+  scrollCurlTop:  { height: 6, backgroundColor: T.parchDark, borderTopLeftRadius: 16, borderTopRightRadius: 16, opacity: 0.5 },
+  scrollCurlBot:  { height: 6, backgroundColor: T.parchDark, borderBottomLeftRadius: 16, borderBottomRightRadius: 16, opacity: 0.5 },
+  statsRow:       { flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 8 },
+  statItem:       { flex: 1, alignItems: 'center', gap: 2 },
+  statIcon:       { fontSize: 20, marginBottom: 2 },
+  statNum:        { fontSize: 22, fontWeight: '900', color: T.dark },
+  statLbl:        { fontSize: 7, color: T.muted, textTransform: 'uppercase', textAlign: 'center', letterSpacing: 0.5, fontWeight: '700' },
+  statDiv:        { width: 1, backgroundColor: T.parchDark, marginVertical: 4 },
 
   // Level card
-  levelCard:          { borderRadius: 18, borderWidth: 2, padding: 18, marginBottom: 14, overflow: 'hidden', backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
-  levelOrnamentTL:    { position: 'absolute', top: 6,  left: 6,  width: 12, height: 12, borderTopWidth: 2,    borderLeftWidth: 2,   borderColor: T.amber, opacity: 0.5 },
-  levelOrnamentTR:    { position: 'absolute', top: 6,  right: 6, width: 12, height: 12, borderTopWidth: 2,    borderRightWidth: 2,  borderColor: T.amber, opacity: 0.5 },
-  levelOrnamentBL:    { position: 'absolute', bottom: 6, left: 6, width: 12, height: 12, borderBottomWidth: 2, borderLeftWidth: 2,   borderColor: T.amber, opacity: 0.5 },
-  levelOrnamentBR:    { position: 'absolute', bottom: 6, right: 6, width: 12, height: 12, borderBottomWidth: 2, borderRightWidth: 2, borderColor: T.amber, opacity: 0.5 },
-  levelRow:           { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
-  levelLabel:         { fontSize: 9, color: T.muted, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
-  levelName:          { fontSize: 20, fontWeight: '900' },
-  levelNext:          { fontSize: 11, color: T.muted, marginTop: 4 },
-  levelPtsBox:        { alignItems: 'flex-end' },
-  levelPts:           { fontSize: 44, fontWeight: '900', lineHeight: 48 },
-  levelPtsLbl:        { fontSize: 12, color: T.muted },
-  progBg:             { height: 10, backgroundColor: T.border, borderRadius: 5, overflow: 'hidden', marginBottom: 6 },
-  progFill:           { height: '100%', borderRadius: 5 },
-  progExpl:           { fontSize: 10, color: T.muted, textAlign: 'right' },
+  levelCard:     { borderRadius: 20, borderWidth: 2, borderColor: T.borderMed, padding: 16, marginBottom: 16, overflow: 'hidden', backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 10, elevation: 5 },
+  corner:        { position: 'absolute', width: 14, height: 14 },
+  cornerTL:      { top: 8, left: 8, borderTopWidth: 2, borderLeftWidth: 2, borderColor: T.gold },
+  cornerTR:      { top: 8, right: 8, borderTopWidth: 2, borderRightWidth: 2, borderColor: T.gold },
+  cornerBL:      { bottom: 8, left: 8, borderBottomWidth: 2, borderLeftWidth: 2, borderColor: T.gold },
+  cornerBR:      { bottom: 8, right: 8, borderBottomWidth: 2, borderRightWidth: 2, borderColor: T.gold },
+  levelRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
+  levelLabel:    { fontSize: 9, color: T.muted, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 4 },
+  levelName:     { fontSize: 22, fontWeight: '900', lineHeight: 26 },
+  levelNext:     { fontSize: 10, color: T.muted, marginTop: 4, marginBottom: 8 },
+  eliteBadge:    { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginTop: 4 },
+  eliteBadgeText:{ fontSize: 9, fontWeight: '900', color: '#FFF', letterSpacing: 0.5 },
+  levelCoin:     { alignItems: 'center', width: 90 },
+  levelCoinGrad: { width: 78, height: 78, borderRadius: 39, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 6, elevation: 6 },
+  levelCoinRing: { position: 'absolute', top: 5, left: 5, right: 5, bottom: 5, borderRadius: 34, borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.3)' },
+  levelCoinEmoji:{ fontSize: 20, zIndex: 1 },
+  levelCoinName: { fontSize: 9, fontWeight: '900', color: '#FFF8E0', textAlign: 'center', letterSpacing: 0.5, zIndex: 1, marginTop: 2 },
+  levelPts:      { fontSize: 34, fontWeight: '900', marginTop: 6, lineHeight: 38 },
+  levelPtsLbl:   { fontSize: 10, color: T.muted },
+  progBg:        { height: 10, backgroundColor: T.border, borderRadius: 5, overflow: 'hidden', marginBottom: 6 },
+  progFill:      { height: '100%', borderRadius: 5 },
+  progExpl:      { fontSize: 10, color: T.muted, textAlign: 'right' },
+
+  // Personal QR card
+  qrCard:        { borderRadius: 20, borderWidth: 2, borderColor: T.borderMed, padding: 18, marginBottom: 16, overflow: 'hidden', alignItems: 'center', shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 4 },
+  qrCorner:      { position: 'absolute', fontSize: 16 },
+  qrCardTitle:   { fontSize: 11, fontWeight: '900', color: T.amberDark, letterSpacing: 2.5, marginBottom: 4 },
+  qrCardName:    { fontSize: 16, fontWeight: '900', color: T.dark, marginBottom: 14, letterSpacing: 0.5 },
+  qrCodeWrap:    { position: 'relative', padding: 6, backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 14, borderWidth: 1.5, borderColor: T.borderMed, marginBottom: 12 },
+  qrInnerBorder: { borderRadius: 10, overflow: 'hidden', backgroundColor: 'transparent' },
+  qrLeaf:        { position: 'absolute', fontSize: 12 },
+  qrCardSub:     { fontSize: 11, color: T.body, textAlign: 'center', maxWidth: 260, lineHeight: 16, marginBottom: 10 },
+  qrIdRow:       { flexDirection: 'row', gap: 8, alignItems: 'center', backgroundColor: T.coffeeDark + '15', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6 },
+  qrIdLabel:     { fontSize: 8, fontWeight: '900', color: T.amberDark, letterSpacing: 2 },
+  qrIdValue:     { fontSize: 13, fontWeight: '900', color: T.dark, letterSpacing: 1.5 },
 
   // Passport card
-  passCard:     { borderRadius: 20, padding: 20, marginBottom: 14, flexDirection: 'row', alignItems: 'center', overflow: 'hidden', shadowColor: '#1A0800', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 14, elevation: 8 },
-  passBadge:    { backgroundColor: T.amberPale, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginBottom: 6 },
-  passBadgeText:{ fontSize: 9, fontWeight: '900', color: T.amberDark, letterSpacing: 1.5 },
-  passStamps:   { fontSize: 34, fontWeight: '900', color: '#FFF' },
-  passSub:      { fontSize: 10, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
-  miniGrid:     { flexWrap: 'wrap', flexDirection: 'row', width: 64, gap: 4, marginHorizontal: 10 },
-  miniDot:      { width: 14, height: 14, borderRadius: 3, backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
-  miniDotFilled:{ backgroundColor: T.amberLight, borderColor: T.amberLight },
-  passArrow:    { fontSize: 26, color: T.amberPale, marginLeft: 4 },
+  passCard:      { borderRadius: 20, padding: 18, marginBottom: 14, flexDirection: 'row', alignItems: 'center', overflow: 'hidden', shadowColor: '#1A0800', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 14, elevation: 8, minHeight: 130 },
+  leatherLine1:  { position: 'absolute', top: 28, left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.06)' },
+  leatherLine2:  { position: 'absolute', top: 30, left: 0, right: 0, height: 1, backgroundColor: 'rgba(0,0,0,0.1)' },
+  passBadge:     { backgroundColor: 'rgba(255,240,180,0.2)', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255,240,180,0.35)' },
+  passBadgeText: { fontSize: 9, fontWeight: '900', color: '#FBF0C8', letterSpacing: 1.5 },
+  passCount:     { fontSize: 40, fontWeight: '900', color: '#FFF', lineHeight: 44 },
+  passSub:       { fontSize: 10, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  stampGrid:     { flexWrap: 'wrap', flexDirection: 'row', width: 100, gap: 5, marginLeft: 8 },
+  stampTile:     { width: 28, height: 28, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center' },
+  stampTileEarned: { backgroundColor: 'rgba(212,165,32,0.35)', borderColor: 'rgba(212,165,32,0.6)' },
+  stampTileEmpty:  { width: 14, height: 14, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.12)' },
+  stampTileEmoji:  { fontSize: 15 },
 
   // Prize row
   prizeRow:  { flexDirection: 'row', gap: 10, marginBottom: 14 },
@@ -398,22 +471,22 @@ const s = StyleSheet.create({
   barBg:        { height: 6, backgroundColor: T.border, borderRadius: 3, overflow: 'hidden' },
   barFill:      { height: '100%', borderRadius: 3 },
 
-  // Explore tile grid
+  // Explore tiles
   tileGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  tile:     { width: (width - 50) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 4 },
-  tileGrad: { padding: 16, height: 110, justifyContent: 'space-between' },
-  tileIcon: { fontSize: 26 },
+  tile:     { width: (width - 46) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 4 },
+  tileGrad: { padding: 16, height: 100, justifyContent: 'space-between' },
+  tileIcon: { fontSize: 24 },
   tileLbl:  { fontSize: 14, fontWeight: '900', color: '#FFF' },
-  tileSub:  { fontSize: 10, color: 'rgba(255,255,255,0.8)' },
+  tileSub:  { fontSize: 9, color: 'rgba(255,255,255,0.8)' },
 
   // Previous fairs
   feriasRow:    { flexDirection: 'row', gap: 10, marginBottom: 20 },
   feriaCard:    { flex: 1, borderRadius: 18, overflow: 'hidden', shadowColor: T.dark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.18, shadowRadius: 10, elevation: 5 },
-  feriaGrad:    { padding: 16, minHeight: 160, justifyContent: 'flex-end' },
-  feriaLogo:    { width: 32, height: 32, tintColor: 'rgba(255,255,255,0.9)', marginBottom: 8 },
+  feriaGrad:    { padding: 14, minHeight: 150, justifyContent: 'flex-end' },
+  feriaLogo:    { width: 28, height: 28, tintColor: 'rgba(255,255,255,0.85)', marginBottom: 6 },
   feriaCity:    { fontSize: 16, fontWeight: '900', color: '#FFF', letterSpacing: 0.2 },
-  feriaFairName:{ fontSize: 9, color: 'rgba(255,255,255,0.65)', marginTop: 2, lineHeight: 13, letterSpacing: 0.3 },
-  feriaDesc:    { fontSize: 9, color: 'rgba(255,255,255,0.5)', marginTop: 4, lineHeight: 13 },
+  feriaFairName:{ fontSize: 9, color: 'rgba(255,255,255,0.6)', marginTop: 2, lineHeight: 13 },
+  feriaDesc:    { fontSize: 9, color: 'rgba(255,255,255,0.45)', marginTop: 4, lineHeight: 13 },
 
   // Passport levels
   nivelRow:    { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: T.border, marginBottom: 8, backgroundColor: T.card },
@@ -422,4 +495,4 @@ const s = StyleSheet.create({
   nivelRange:  { fontSize: 10, color: T.muted, marginTop: 2 },
   nivelPremio: { fontSize: 11, color: T.muted, maxWidth: 100, textAlign: 'right' },
   nivelDot:    { width: 8, height: 8, borderRadius: 4, marginLeft: 4 },
-});
+} as any);

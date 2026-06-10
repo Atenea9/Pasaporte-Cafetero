@@ -183,7 +183,10 @@
     "fair_ibague_desc": "Erste Ausgabe · Beginn einer Tradition",
     "fair_libano_desc": "Zweite Ausgabe · Gemeinsam wachsen",
     "fair_view_memories": "Erinnerungen ansehen",
-    "fair_venue": "Ort"
+    "fair_venue": "Ort",
+    "my_qr_title": "MEIN PERSÖNLICHER QR",
+    "my_qr_sub": "Zeigen Sie ihn dem Verkäufer für Punkte",
+    "my_qr_id": "PASS-ID"
   },
   "passport": {
     "my_passport": "MEIN REISEPASS",
