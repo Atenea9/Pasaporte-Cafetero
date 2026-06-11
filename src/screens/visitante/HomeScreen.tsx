@@ -108,7 +108,7 @@ export const HomeScreen = () => {
     { icon: '👔', label: t('home.expositores_tile', 'Expositores'),            sub: t('home.expositores_tile_sub', '5 categorías'),         screen: 'Expositores'     as const, img: require('../../../assets/tile-tapir.png') },
     { icon: '☕', label: t('home.catacion_tile', 'Catación'),                  sub: t('home.catacion_tile_sub', 'Permanente'),              screen: 'Catacion'        as const, img: require('../../../assets/tile-redbird.png') },
     { icon: '🏆', label: t('home.premiaciones_tile', 'Premiaciones'),         sub: t('home.premiaciones_tile_sub', 'Microlotes · Barismo'),screen: 'Premiaciones'    as const, img: require('../../../assets/tile-bear.png') },
-    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'), sub: t('home.agenda_academica_tile_sub', 'Talleres'),         screen: 'AgendaAcademica' as const, img: require('../../../assets/tile-frog.png') },
+    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'), sub: t('home.agenda_academica_tile_sub', 'Talleres'),         screen: 'AgendaAcademica' as const, img: require('../../../assets/tile-deer.png') },
   ];
 
   return (
@@ -126,22 +126,19 @@ export const HomeScreen = () => {
         <View style={s.heroBanner}>
           <LinearGradient colors={['rgba(92,44,6,0.08)', 'rgba(200,150,12,0.06)']} style={StyleSheet.absoluteFill} />
           <View style={s.heroTop}>
-            <View style={s.heroLogoWrap}>
+            <View style={s.heroLogoArea}>
               <LinearGradient colors={['#D4A520','#8B6308']} style={s.heroLogoGrad}>
                 <Image source={require('../../../assets/logo-feria-icon.png')} style={s.heroLogoImg} resizeMode="contain" tintColor="#FFF8E0" />
               </LinearGradient>
+              <Text style={s.heroChaparral}>{t('home.hero_chaparral', 'Chaparral 2026')}</Text>
             </View>
             <TouchableOpacity onPress={logout} style={s.salirBtn} activeOpacity={0.8}>
               <Text style={s.salirText}>{t('home.logout', 'SALIR')} →</Text>
             </TouchableOpacity>
           </View>
-          <Text style={s.heroTitle}>{'TOLIMA CORAZÓN\nCAFETERO'}</Text>
+          <Text style={s.heroWelcome}>{t('home.hero_welcome', 'Bienvenidos al')}</Text>
+          <Text style={s.heroTitle}>{'TOLIMA\nCORAZÓN CAFETERO'}</Text>
           <Text style={s.heroDeColombia}>{t('home.de_colombia', 'de Colombia')}</Text>
-          <View style={s.heroFooter}>
-            <View style={s.heroRule} />
-            <Text style={s.heroYearText}>{t('login.fair_name', 'Feria Internacional del Café')}  ·  Chaparral 2026</Text>
-            <View style={s.heroRule} />
-          </View>
         </View>
 
         {/* ── Happy Hour banner ────────────────────────────────────────────── */}
@@ -333,9 +330,7 @@ export const HomeScreen = () => {
                   style={s.tileOverlay}
                 />
                 <View style={s.tileCnt}>
-                  <Text style={s.tileIcon}>{tile.icon}</Text>
                   <Text style={s.tileLbl}>{tile.label}</Text>
-                  <Text style={s.tileSub}>{tile.sub}</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -348,7 +343,8 @@ export const HomeScreen = () => {
           onPress={() => Linking.openURL('https://www.chaparral-tolima.gov.co/MiMunicipio/Paginas/Turismo.aspx')}
           activeOpacity={0.82}
         >
-          <LinearGradient colors={['#5C2A00', '#9B4E1A', '#C87030']} style={StyleSheet.absoluteFillObject} />
+          <Image source={require('../../../assets/tile-snake.png')} style={[StyleSheet.absoluteFill, { borderRadius: 16 }]} resizeMode="cover" />
+          <LinearGradient colors={['rgba(14,5,1,0.42)', 'rgba(80,35,0,0.88)']} style={StyleSheet.absoluteFillObject} />
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Text style={{ fontSize: 28 }}>🗺️</Text>
             <View>
@@ -374,9 +370,7 @@ export const HomeScreen = () => {
                   style={s.tileOverlay}
                 />
                 <View style={s.tileCnt}>
-                  <Text style={s.tileIcon}>{tile.icon}</Text>
                   <Text style={s.tileLbl}>{tile.label}</Text>
-                  <Text style={s.tileSub}>{tile.sub}</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -390,13 +384,8 @@ export const HomeScreen = () => {
             {PREV_FAIRS.map(f => (
               <TouchableOpacity key={f.key} style={s.feriaCard} onPress={() => nav.navigate('FeriaAnterior' as any, { fairKey: f.key })} activeOpacity={0.85}>
                 <LinearGradient colors={[f.c1, f.c2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.feriaGrad}>
-                  <Image source={require('../../../assets/logo-feria-icon.png')} style={s.feriaLogo} resizeMode="contain" tintColor="rgba(255,255,255,0.8)" />
                   <Text style={s.feriaCity}>{f.city}</Text>
                   <Text style={s.feriaYear}>{f.year}</Text>
-                  <View style={s.feriaStatRow}>
-                    <Text style={s.feriaStatNum}>{f.stats.microlotes}</Text>
-                    <Text style={s.feriaStatLbl}>{t('home.microlotes', 'microlotes')}</Text>
-                  </View>
                   <Text style={s.feriaArrow}>→ {t('home.ver_detalle', 'Ver detalle')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -436,19 +425,18 @@ const s = StyleSheet.create({
   scroll: { padding: 18, paddingTop: 14, paddingBottom: 44 },
 
   // Background coffee plants
-  bgPlants: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.065 },
+  bgPlants: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.10 },
 
   // Hero banner
   heroBanner:     { borderRadius: 24, overflow: 'hidden', marginBottom: 16, padding: 20, paddingBottom: 22, borderWidth: 1.5, borderColor: T.borderMed, backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 4 },
   heroTop:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  heroLogoWrap:   { width: 48, height: 48 },
-  heroLogoGrad:   { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
-  heroLogoImg:    { width: 28, height: 28 },
-  heroTitle:      { fontSize: 31, fontWeight: '900', color: T.dark, letterSpacing: 0.3, lineHeight: 35, marginBottom: 5 },
-  heroDeColombia: { fontSize: 15, fontWeight: '600', color: T.coffee, letterSpacing: 2.5, marginBottom: 14, fontStyle: 'italic' },
-  heroFooter:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  heroRule:       { flex: 1, height: 1, backgroundColor: T.borderMed },
-  heroYearText:   { fontSize: 9, color: T.muted, fontWeight: '700', letterSpacing: 0.8, textAlign: 'center', flexShrink: 1 },
+  heroLogoArea:   { alignItems: 'center', gap: 4 },
+  heroLogoGrad:   { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  heroLogoImg:    { width: 30, height: 30 },
+  heroChaparral:  { fontSize: 8, fontWeight: '900', color: T.amberDark, letterSpacing: 1.5, textTransform: 'uppercase' },
+  heroWelcome:    { fontSize: 13, fontWeight: '600', color: T.coffee, letterSpacing: 1.5, fontStyle: 'italic', marginBottom: 3 },
+  heroTitle:      { fontSize: 30, fontWeight: '900', color: T.dark, letterSpacing: 0.3, lineHeight: 34, marginBottom: 4 },
+  heroDeColombia: { fontSize: 14, fontWeight: '600', color: T.coffee, letterSpacing: 2.5, fontStyle: 'italic' },
   salirBtn:       { backgroundColor: T.coffeeDark, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
   salirText:      { color: '#FFF', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
 
@@ -526,7 +514,7 @@ const s = StyleSheet.create({
 
   // Sections
   section:      { marginBottom: 14 },
-  sectionTitle: { fontSize: 10, fontWeight: '900', color: T.muted, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 10 },
+  sectionTitle: { fontSize: 9, fontWeight: '900', color: T.amberDark, letterSpacing: 2.5, textTransform: 'uppercase', marginBottom: 10 },
 
   // Top stands
   standRow:     { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10, backgroundColor: T.card, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: T.border },
@@ -541,12 +529,10 @@ const s = StyleSheet.create({
   tileGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   tile:        { width: (width - 46) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: '#1A0800', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.38, shadowRadius: 14, elevation: 8 },
   tileGrad:    { height: 138, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 16, position: 'relative' },
-  tileImg:     { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', borderRadius: 16 },
+  tileImg:     { position: 'absolute', top: '-5%', left: '-5%', width: '110%', height: '110%' },
   tileOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 16 },
-  tileCnt:     { padding: 11, zIndex: 2 },
-  tileIcon:    { fontSize: 20 },
-  tileLbl:     { fontSize: 13, fontWeight: '900', color: '#FFF', marginTop: 2, textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
-  tileSub:     { fontSize: 8, color: 'rgba(255,240,200,0.85)', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  tileCnt:     { padding: 10, zIndex: 2, alignItems: 'center' },
+  tileLbl:     { fontSize: 12, fontWeight: '900', color: '#FFF', textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 5 },
   // Tourism banner
   turismoBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 14, overflow: 'hidden', justifyContent: 'space-between', shadowColor: '#5C2A00', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 6 },
   turismoTitle:  { fontSize: 13, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
@@ -556,17 +542,11 @@ const s = StyleSheet.create({
   // Previous fairs
   feriasScroll: { marginBottom: 20 },
   feriasInner:  { flexDirection: 'row', gap: 10, paddingRight: 4 },
-  feriaCard:    { width: 148, borderRadius: 18, overflow: 'hidden', shadowColor: '#0D0500', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
-  feriaGrad:    { padding: 14, height: 185, justifyContent: 'flex-end' },
-  feriaLogo:    { width: 22, height: 22, marginBottom: 8 },
+  feriaCard:    { width: 128, borderRadius: 16, overflow: 'hidden', shadowColor: '#0D0500', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.35, shadowRadius: 12, elevation: 6 },
+  feriaGrad:    { padding: 14, height: 148, justifyContent: 'flex-end' },
   feriaCity:    { fontSize: 20, fontWeight: '900', color: '#FFF', letterSpacing: 0.2 },
-  feriaYear:    { fontSize: 13, color: 'rgba(255,255,255,0.65)', fontWeight: '700', marginBottom: 10 },
-  feriaStatRow: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 8 },
-  feriaStatNum: { fontSize: 22, fontWeight: '900', color: '#FFF' },
-  feriaStatLbl: { fontSize: 8, color: 'rgba(255,255,255,0.65)', lineHeight: 11 },
-  feriaArrow:   { fontSize: 9, color: 'rgba(255,255,255,0.5)', fontWeight: '700' },
-  feriaFairName:{ fontSize: 9, color: 'rgba(255,255,255,0.6)', marginTop: 2, lineHeight: 13 },
-  feriaDesc:    { fontSize: 9, color: 'rgba(255,255,255,0.45)', marginTop: 4, lineHeight: 13 },
+  feriaYear:    { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: '700', marginBottom: 12 },
+  feriaArrow:   { fontSize: 9, color: 'rgba(255,255,255,0.9)', fontWeight: '900', letterSpacing: 0.5, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.22)', paddingTop: 8 },
 
   // Passport levels
   nivelRow:    { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: T.border, marginBottom: 8, backgroundColor: T.card },

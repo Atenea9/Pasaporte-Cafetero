@@ -204,7 +204,9 @@
     "aliados": "Allies",
     "de_colombia": "of Colombia",
     "microlotes": "micro-lots",
-    "ver_detalle": "View detail"
+    "ver_detalle": "View detail",
+    "hero_welcome": "Welcome to",
+    "hero_chaparral": "Chaparral 2026"
   },
   "passport": {
     "my_passport": "MY PASSPORT",
