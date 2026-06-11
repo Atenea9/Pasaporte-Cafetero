@@ -121,7 +121,9 @@ function getMimeType(blob: Blob): string {
 // ─── Main export ─────────────────────────────────────────────────────────────
 
 export function isGeminiAvailable(): boolean {
-  const key = process.env.GEMINI_API_KEY ?? process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+  const key = (typeof process !== 'undefined' && process.env)
+    ? (process.env.GEMINI_API_KEY ?? process.env.EXPO_PUBLIC_GEMINI_API_KEY)
+    : undefined;
   return typeof key === 'string' && key.trim().length > 10;
 }
 
@@ -129,9 +131,11 @@ export async function scanWithGemini(
   blob: Blob,
   onProgress?: (stage: string, pct: number) => void,
 ): Promise<DocumentScanResult> {
-  const apiKey = process.env.GEMINI_API_KEY ?? process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+  const apiKey = (typeof process !== 'undefined' && process.env)
+    ? (process.env.GEMINI_API_KEY ?? process.env.EXPO_PUBLIC_GEMINI_API_KEY)
+    : undefined;
   if (!apiKey || apiKey.trim().length <= 10) {
-    throw new Error('EXPO_PUBLIC_GEMINI_API_KEY not configured');
+    throw new Error('Gemini API key not configured');
   }
 
   onProgress?.('Comprimiendo imagen…', 15);
