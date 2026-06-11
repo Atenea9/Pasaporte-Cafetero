@@ -1,0 +1,69 @@
+necesito que  me desarrolles de la mejor manera las siguientes secciones de manera premium y delux y profesional en el home de visitante con el arte profesional que hemos venido manejando todo de manera profesional y siguiendo estas reglas (Reglas generales para siempre 1. Si es solo es solo un cambio de codigo corrigelo pero no lo reescribas completamente 2. asegurate que todos los cambios se acomplen a las traducciones en todos los idiomas siempre asi sea pequeño y se traduzca cualquier palabra3. Mejora el rendimiento de la realización de los cambios del codigo 4. optimiza el codigo para rendieminto y cambios futuros y escalabilidad 5. el arte de la app se va a basar en el arte del login principal para todas las paginas o secciones creadas y por crear) 
+
+1.      Una seccion donde Esten el listado de los expositores donde hay 5 categorias donde tenga filtros y favoritos que uno pueda elegir como tal, de las cuales cada una de ellas tenga la siguiente información Contacto, Telefono, Correo, Pagina web, descripción e imagen, y redes sociales (Links) que aparezcan como botones que re dirijan
+
+-          Productor
+
+-          Tostador
+
+-          Casas comerciales
+
+-          Alcaldias e instituciones
+
+-          Bancos
+
+2.      Crea una sección que me redirija a un link de la alcaldía de chaparral donde me indica los lugares turísticos del municipio realizado por la alcaldía https://www.chaparral-tolima.gov.co/MiMunicipio/Paginas/Turismo.aspx
+
+3.      Quiero que la sección de auspiciadores se llame ahora Aliados Feria donde tendrá la información de las siguientes donde muestre foto los representantes de cada entidad o logo de las entidades y link oficial de las paginas
+
+-          La Gobernación del Tolima hablando de la gobernadora como una de las mayores promotoras del café en el departamento en los últimos años
+
+-          Comité de cafeteros
+
+-          Alcaldia de chaparral
+
+-          Universidad del Tolima
+
+Y además una sección de Patrocinadores donde estarán clasificados en Platino, Diamante y Oro
+
+4.      Una sección donde mostrara todo sobre las Sesiones de Catación Permanente donde tendrá agenda, Perfiles de Café de la catación e información de los productores de los cafes habran 6 categorias en las sesiones de catación
+
+n  Jovenes
+
+n  Paz
+
+n  Mujer
+
+n  Certificados
+
+n  Refional
+
+5.      Una sección donde estará la información de las premiaciones de las 3 categorias donde algunas tendrán subcategorías
+
+5.1.Calidad Microlotes: (Estos tendrán premiación a los 3 primeros lugares donde será dinero y entregables por cada sección)
+
+5.1.1.      Varietales
+
+5.1.2.      Convencionales
+
+5.1.3.      Honey
+
+5.1.4.      Natural
+
+5.2.Catación: (Estos tendrán premiación a los 3 primeros lugares donde será dinero y entregables por cada sección)
+
+5.2.1.      Semilla
+
+5.2.2.      Chapola
+
+5.2.3.      Mayores
+
+5.3.Barismo: (Solo será la premiación a los 3 primeros lugares de barismo con dinero o entregables)
+
+6.      Agenda academica: (Los relizadores de esta sección son Cortolima, Comité de cafeteros, Universidad del Tolima y Gobernación del Tolima)
+
+-          Sesiones de talleres (Hora y Objetivo)
+
+-          Perfil de los profesores
+
+-          Sponsor
