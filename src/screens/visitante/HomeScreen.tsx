@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking, ImageBackground,
+  Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -108,7 +108,7 @@ export const HomeScreen = () => {
     { icon: '👔', label: t('home.expositores_tile', 'Expositores'),            sub: t('home.expositores_tile_sub', '5 categorías'),         screen: 'Expositores'     as const, img: require('../../../assets/tile-tapir.png') },
     { icon: '☕', label: t('home.catacion_tile', 'Catación'),                  sub: t('home.catacion_tile_sub', 'Permanente'),              screen: 'Catacion'        as const, img: require('../../../assets/tile-redbird.png') },
     { icon: '🏆', label: t('home.premiaciones_tile', 'Premiaciones'),         sub: t('home.premiaciones_tile_sub', 'Microlotes · Barismo'),screen: 'Premiaciones'    as const, img: require('../../../assets/tile-bear.png') },
-    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'), sub: t('home.agenda_academica_tile_sub', 'Talleres'),         screen: 'AgendaAcademica' as const, img: require('../../../assets/tile-barranquero.png') },
+    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'), sub: t('home.agenda_academica_tile_sub', 'Talleres'),         screen: 'AgendaAcademica' as const, img: require('../../../assets/tile-frog.png') },
   ];
 
   return (
@@ -326,14 +326,18 @@ export const HomeScreen = () => {
         <View style={s.tileGrid}>
           {TILES.map(tile => (
             <TouchableOpacity key={tile.screen} style={s.tile} onPress={() => nav.navigate(tile.screen)} activeOpacity={0.85}>
-              <ImageBackground source={tile.img} style={s.tileGrad} imageStyle={s.tileImg}>
-                <View style={s.tileOverlay} />
+              <View style={s.tileGrad}>
+                <Image source={tile.img} style={s.tileImg} resizeMode="cover" />
+                <LinearGradient
+                  colors={['rgba(14,5,1,0)', 'rgba(14,5,1,0.28)', 'rgba(14,5,1,0.72)']}
+                  style={s.tileOverlay}
+                />
                 <View style={s.tileCnt}>
                   <Text style={s.tileIcon}>{tile.icon}</Text>
                   <Text style={s.tileLbl}>{tile.label}</Text>
                   <Text style={s.tileSub}>{tile.sub}</Text>
                 </View>
-              </ImageBackground>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -344,7 +348,7 @@ export const HomeScreen = () => {
           onPress={() => Linking.openURL('https://www.chaparral-tolima.gov.co/MiMunicipio/Paginas/Turismo.aspx')}
           activeOpacity={0.82}
         >
-          <LinearGradient colors={['#1B5E20', '#2E7D32', '#388E3C']} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={['#5C2A00', '#9B4E1A', '#C87030']} style={StyleSheet.absoluteFillObject} />
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Text style={{ fontSize: 28 }}>🗺️</Text>
             <View>
@@ -363,14 +367,18 @@ export const HomeScreen = () => {
         <View style={s.tileGrid}>
           {PROGRAM_TILES.map(tile => (
             <TouchableOpacity key={tile.screen} style={s.tile} onPress={() => nav.navigate(tile.screen as any)} activeOpacity={0.85}>
-              <ImageBackground source={tile.img} style={s.tileGrad} imageStyle={s.tileImg}>
-                <View style={s.tileOverlay} />
+              <View style={s.tileGrad}>
+                <Image source={tile.img} style={s.tileImg} resizeMode="cover" />
+                <LinearGradient
+                  colors={['rgba(14,5,1,0)', 'rgba(14,5,1,0.28)', 'rgba(14,5,1,0.72)']}
+                  style={s.tileOverlay}
+                />
                 <View style={s.tileCnt}>
                   <Text style={s.tileIcon}>{tile.icon}</Text>
                   <Text style={s.tileLbl}>{tile.label}</Text>
                   <Text style={s.tileSub}>{tile.sub}</Text>
                 </View>
-              </ImageBackground>
+              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -531,16 +539,16 @@ const s = StyleSheet.create({
 
   // Explore tiles
   tileGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  tile:        { width: (width - 46) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: '#1A0800', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.32, shadowRadius: 12, elevation: 7 },
-  tileGrad:    { height: 114, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 16 },
-  tileImg:     { borderRadius: 16 },
-  tileOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(14,5,1,0.52)', borderRadius: 16 },
-  tileCnt:     { padding: 12 },
-  tileIcon:    { fontSize: 22 },
-  tileLbl:     { fontSize: 13, fontWeight: '900', color: '#FFF', marginTop: 3 },
-  tileSub:     { fontSize: 8, color: 'rgba(255,240,200,0.78)' },
+  tile:        { width: (width - 46) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: '#1A0800', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.38, shadowRadius: 14, elevation: 8 },
+  tileGrad:    { height: 138, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 16, position: 'relative' },
+  tileImg:     { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', borderRadius: 16 },
+  tileOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 16 },
+  tileCnt:     { padding: 11, zIndex: 2 },
+  tileIcon:    { fontSize: 20 },
+  tileLbl:     { fontSize: 13, fontWeight: '900', color: '#FFF', marginTop: 2, textShadowColor: 'rgba(0,0,0,0.6)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 4 },
+  tileSub:     { fontSize: 8, color: 'rgba(255,240,200,0.85)', textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
   // Tourism banner
-  turismoBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 14, overflow: 'hidden', justifyContent: 'space-between', shadowColor: '#1B5E20', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },
+  turismoBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 14, overflow: 'hidden', justifyContent: 'space-between', shadowColor: '#5C2A00', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 6 },
   turismoTitle:  { fontSize: 13, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
   turismoSub:    { fontSize: 10, color: 'rgba(255,255,255,0.75)', marginTop: 2, maxWidth: 200 },
   turismoArrow:  { alignItems: 'center' as const, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: 8 },
