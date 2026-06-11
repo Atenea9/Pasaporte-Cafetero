@@ -170,6 +170,7 @@
     "ver_detalle": "查看详情",
     "hero_welcome": "欢迎莅临",
     "hero_chaparral": "Chaparral 2026",
+    "mi_perfil": "我的主页 →",
     "ranking_nav": "排名",
     "ranking_nav_sub": "积分榜",
     "happy_hour_active": "✨ 欢乐时光 — 积分双倍 ✨",
@@ -414,5 +415,22 @@
     "footer_title": "🌿 携手共促托利马咖啡发展",
     "footer_text": "查帕拉尔2026国际咖啡博览会的举办离不开公私机构的共同努力，他们致力于托利马咖啡种植业的可持续发展。",
     "website": "官方网站"
+  },
+  "perfil": {
+    "title": "我的主页",
+    "change_photo": "📷  更换照片",
+    "default_name": "咖啡爱好者",
+    "photo_native_msg": "请在设备设置中使用相机。",
+    "personal_data": "个人资料",
+    "name": "姓名",
+    "cedula": "证件号码",
+    "country": "国家",
+    "municipality": "市镇",
+    "whatsapp": "WhatsApp",
+    "munis": "市镇",
+    "passport_title": "✦  咖啡护照",
+    "passport_sub": "下载并在社交媒体上分享您的护照",
+    "download_png": "图片",
+    "download_pdf": "PDF"
   }
 }

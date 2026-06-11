@@ -167,6 +167,7 @@
     "ver_detalle": "Details ansehen",
     "hero_welcome": "Willkommen im",
     "hero_chaparral": "Chaparral 2026",
+    "mi_perfil": "Mein Profil →",
     "ranking_nav": "Rangliste",
     "ranking_nav_sub": "Punktestand",
     "happy_hour_active": "✨ HAPPY HOUR — DOPPELTE PUNKTE ✨",
@@ -411,5 +412,22 @@
     "footer_title": "🌿 GEMEINSAM FÜR DEN TOLIMA-KAFFEE",
     "footer_text": "Die Internationale Kaffeemesse Chaparral 2026 wird durch den Zusammenschluss öffentlicher und privater Einrichtungen ermöglicht, die sich für die nachhaltige Entwicklung des Kaffeeanbaus in Tolima einsetzen.",
     "website": "Offizielle Webseite"
+  },
+  "perfil": {
+    "title": "MEIN PROFIL",
+    "change_photo": "📷  Foto ändern",
+    "default_name": "Kaffeeliebhaber",
+    "photo_native_msg": "Nutzen Sie die Kamera in den Geräteeinstellungen.",
+    "personal_data": "PERSÖNLICHE DATEN",
+    "name": "Name",
+    "cedula": "Ausweisnummer",
+    "country": "Land",
+    "municipality": "Gemeinde",
+    "whatsapp": "WhatsApp",
+    "munis": "GEMEINDEN",
+    "passport_title": "✦  KAFFEEPASS",
+    "passport_sub": "Laden Sie Ihren Pass herunter und teilen Sie ihn",
+    "download_png": "Bild",
+    "download_pdf": "PDF"
   }
 }

@@ -92,7 +92,7 @@ export const HomeScreen = () => {
 
   const STAT_ITEMS = [
     { icon: '👥', val: globalStats.visitorCount, lbl: t('home.visitors_label', 'VISITANTES') },
-    { icon: '🏪', val: globalStats.activeStands, lbl: t('home.stands_label',   'STANDS ACTIVOS') },
+    { icon: '🏪', val: state.stands?.length ?? globalStats.activeStands, lbl: t('home.stands_label', 'STANDS ACTIVOS') },
     { icon: '🪙', val: puntos,                   lbl: t('home.pts_label',       'PUNTOS') },
     { icon: '✅', val: stampsCount,              lbl: t('home.stamps_label',    'SELLOS') },
   ];
@@ -134,6 +134,16 @@ export const HomeScreen = () => {
           <Text style={s.heroWelcome}>{t('home.hero_welcome', 'Bienvenidos al')}</Text>
           <Text style={s.heroTitle}>{'TOLIMA\nCORAZÓN CAFETERO'}</Text>
           <Text style={s.heroDeColombia}>{t('home.de_colombia', 'de Colombia')}</Text>
+          <TouchableOpacity style={s.perfilBtn} onPress={() => nav.navigate('Perfil' as any)} activeOpacity={0.8}>
+            {state.usuario?.fotoPerfil ? (
+              <Image source={{ uri: state.usuario.fotoPerfil }} style={s.perfilAvatar} />
+            ) : (
+              <LinearGradient colors={['#D4A520','#8B6308']} style={s.perfilAvatarFallback}>
+                <Text style={s.perfilInitial}>{(state.usuario?.nombre ?? 'C').charAt(0).toUpperCase()}</Text>
+              </LinearGradient>
+            )}
+            <Text style={s.perfilBtnTxt}>{t('home.mi_perfil', 'Mi perfil →')}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* ── Happy Hour banner ────────────────────────────────────────────── */}
@@ -337,16 +347,9 @@ export const HomeScreen = () => {
         >
           <Image source={require('../../../assets/tile-snake.png')} style={{ position: 'absolute', top: '-6%', left: '-6%', width: '112%', height: '112%', borderRadius: 18 }} resizeMode="cover" />
           <LinearGradient colors={['rgba(14,5,1,0.42)', 'rgba(80,35,0,0.88)']} style={StyleSheet.absoluteFillObject} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Text style={{ fontSize: 28 }}>🗺️</Text>
-            <View>
-              <Text style={s.turismoTitle}>{t('home.turismo_tile', 'TURISMO')}</Text>
-              <Text style={s.turismoSub}>{t('turismo.description', 'Lugares turísticos de Chaparral, Tolima')}</Text>
-            </View>
-          </View>
+          <Text style={s.turismoTitle}>{t('home.turismo_tile', 'TURISMO')}</Text>
           <View style={s.turismoArrow}>
-            <Text style={{ fontSize: 18, color: '#FFF', fontWeight: '900' }}>↗</Text>
-            <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', fontWeight: '700' }}>{t('turismo.source', 'Alcaldía')}</Text>
+            <Text style={{ fontSize: 22, color: '#FFF', fontWeight: '900' }}>↗</Text>
           </View>
         </TouchableOpacity>
 
@@ -428,14 +431,19 @@ const s = StyleSheet.create({
   bgPlants: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.10 },
 
   // Hero banner
-  heroBanner:     { borderRadius: 24, overflow: 'hidden', marginBottom: 16, padding: 22, paddingBottom: 26, borderWidth: 1.5, borderColor: T.borderMed, backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.14, shadowRadius: 14, elevation: 6, alignItems: 'center' },
+  heroBanner:     { marginBottom: 8, paddingVertical: 14, paddingHorizontal: 20, alignItems: 'center' },
   heroLogoCenter: { alignItems: 'center', marginBottom: 16 },
   heroLogoGrad:   { width: 80, height: 90, borderRadius: 22, alignItems: 'center', justifyContent: 'center', gap: 2, paddingTop: 12, paddingBottom: 10 },
   heroLogoImg:    { width: 40, height: 40 },
   heroChaparral:  { fontSize: 7, fontWeight: '900', color: '#FFF8E0', letterSpacing: 1.2, textTransform: 'uppercase', textAlign: 'center', marginTop: 4 },
-  heroWelcome:    { fontSize: 13, fontWeight: '600', color: T.coffee, letterSpacing: 1.5, fontStyle: 'italic', textAlign: 'center', marginBottom: 4 },
-  heroTitle:      { fontSize: 30, fontWeight: '900', color: T.dark, letterSpacing: 0.3, lineHeight: 34, marginBottom: 4, textAlign: 'center' },
-  heroDeColombia: { fontSize: 14, fontWeight: '600', color: T.coffee, letterSpacing: 2.5, fontStyle: 'italic', textAlign: 'center' },
+  heroWelcome:    { fontSize: 11, fontWeight: '500', color: T.muted, letterSpacing: 2, fontStyle: 'italic', textAlign: 'center', marginBottom: 2 },
+  heroTitle:      { fontSize: 22, fontWeight: '900', color: T.dark, letterSpacing: 0.5, lineHeight: 27, marginBottom: 3, textAlign: 'center' },
+  heroDeColombia: { fontSize: 11, fontWeight: '600', color: T.muted, letterSpacing: 3, fontStyle: 'italic', textAlign: 'center' },
+  perfilBtn:            { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 14, borderWidth: 1, borderColor: T.borderMed, borderRadius: 22, paddingHorizontal: 14, paddingVertical: 7, backgroundColor: 'rgba(255,253,248,0.7)' },
+  perfilAvatar:         { width: 28, height: 28, borderRadius: 14 },
+  perfilAvatarFallback: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  perfilInitial:        { fontSize: 13, fontWeight: '900', color: '#FFF8E0' },
+  perfilBtnTxt:         { fontSize: 11, fontWeight: '700', color: T.coffee, letterSpacing: 0.5 },
   salirBtn:       { backgroundColor: T.coffeeDark, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
   salirBtnBottom: { alignSelf: 'center', backgroundColor: T.coffeeDark, borderRadius: 24, paddingHorizontal: 40, paddingVertical: 13, marginTop: 10, marginBottom: 6 },
   salirText:      { color: '#FFF', fontWeight: '900', fontSize: 11, letterSpacing: 1 },

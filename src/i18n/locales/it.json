@@ -167,6 +167,7 @@
     "ver_detalle": "Vedi dettaglio",
     "hero_welcome": "Benvenuti al",
     "hero_chaparral": "Chaparral 2026",
+    "mi_perfil": "Il mio profilo →",
     "ranking_nav": "Classifica",
     "ranking_nav_sub": "Punteggio",
     "happy_hour_active": "✨ HAPPY HOUR — PUNTI DOPPI ✨",
@@ -411,5 +412,22 @@
     "footer_title": "🌿 INSIEME PER IL CAFFÈ DEL TOLIMA",
     "footer_text": "La Fiera Internazionale del Caffè di Chaparral 2026 è resa possibile dall'unione di enti pubblici e privati impegnati nello sviluppo sostenibile della cafficoltura del Tolima.",
     "website": "Sito Ufficiale"
+  },
+  "perfil": {
+    "title": "IL MIO PROFILO",
+    "change_photo": "📷  Cambia foto",
+    "default_name": "Amante del caffè",
+    "photo_native_msg": "Usa la fotocamera nelle impostazioni del dispositivo.",
+    "personal_data": "DATI PERSONALI",
+    "name": "Nome",
+    "cedula": "Nr. Documento",
+    "country": "Paese",
+    "municipality": "Comune",
+    "whatsapp": "WhatsApp",
+    "munis": "COMUNI",
+    "passport_title": "✦  PASSAPORTO CAFFÈ",
+    "passport_sub": "Scarica e condividi il tuo passaporto sui social media",
+    "download_png": "Immagine",
+    "download_pdf": "PDF"
   }
 }

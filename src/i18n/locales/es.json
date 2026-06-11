@@ -211,7 +211,8 @@
     "microlotes": "microlotes",
     "ver_detalle": "Ver detalle",
     "hero_welcome": "Bienvenidos al",
-    "hero_chaparral": "Chaparral 2026"
+    "hero_chaparral": "Chaparral 2026",
+    "mi_perfil": "Mi perfil →"
   },
   "passport": {
     "my_passport": "MI PASAPORTE",
@@ -439,5 +440,22 @@
     "intl_coffee": "Feria Internacional del Café · Tolima", "stats_title": "DATOS HISTÓRICOS",
     "about": "SOBRE ESTA EDICIÓN", "highlights": "MOMENTOS DESTACADOS",
     "footer": "Registro histórico de la Feria Internacional del Café del Tolima"
+  },
+  "perfil": {
+    "title": "MI PERFIL",
+    "change_photo": "📷  Cambiar foto",
+    "default_name": "Cafetero",
+    "photo_native_msg": "Usa la cámara desde los ajustes del dispositivo.",
+    "personal_data": "DATOS PERSONALES",
+    "name": "Nombre",
+    "cedula": "Cédula",
+    "country": "País",
+    "municipality": "Municipio",
+    "whatsapp": "WhatsApp",
+    "munis": "MUNICIPIOS",
+    "passport_title": "✦  PASAPORTE CAFETERO",
+    "passport_sub": "Descarga y comparte tu pasaporte en redes sociales",
+    "download_png": "Imagen",
+    "download_pdf": "PDF"
   }
 }

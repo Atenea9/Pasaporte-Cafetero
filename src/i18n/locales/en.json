@@ -206,7 +206,8 @@
     "microlotes": "micro-lots",
     "ver_detalle": "View detail",
     "hero_welcome": "Welcome to",
-    "hero_chaparral": "Chaparral 2026"
+    "hero_chaparral": "Chaparral 2026",
+    "mi_perfil": "My profile →"
   },
   "passport": {
     "my_passport": "MY PASSPORT",
@@ -425,5 +426,22 @@
     "intl_coffee": "International Coffee Fair · Tolima", "stats_title": "HISTORICAL DATA",
     "about": "ABOUT THIS EDITION", "highlights": "HIGHLIGHTS",
     "footer": "Historical record of the International Coffee Fair of Tolima"
+  },
+  "perfil": {
+    "title": "MY PROFILE",
+    "change_photo": "📷  Change photo",
+    "default_name": "Coffee Lover",
+    "photo_native_msg": "Use the camera from your device settings.",
+    "personal_data": "PERSONAL DATA",
+    "name": "Name",
+    "cedula": "ID Number",
+    "country": "Country",
+    "municipality": "Municipality",
+    "whatsapp": "WhatsApp",
+    "munis": "MUNICIPALITIES",
+    "passport_title": "✦  COFFEE PASSPORT",
+    "passport_sub": "Download and share your passport on social media",
+    "download_png": "Image",
+    "download_pdf": "PDF"
   }
 }
