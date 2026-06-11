@@ -20,6 +20,10 @@ export type VisitanteStackParamList = {
   MapaFeria: undefined;
   Auspiciadores: undefined;
   Catalogo: undefined;
+  Expositores: undefined;
+  Catacion: undefined;
+  Premiaciones: undefined;
+  AgendaAcademica: undefined;
 };
 
 export type ExpositorStackParamList = {

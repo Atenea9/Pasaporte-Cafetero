@@ -6,3 +6,4 @@
 - [OCR cédula label regex](ocr-cedula-label-regex.md) — `/Apell?i+dos?/i` required (double-l); FALSE_NAME must include CÉDULA, DE, month abbrevs.
 - [tintColor must be a prop not style](tintcolor-prop.md) — On RN web, tintColor inside StyleSheet makes images solid white; always pass as JSX prop.
 - [Horizontal ScrollView web height](hscrollview-web.md) — Horizontal ScrollViews collapse to 0 height on RN web without explicit minHeight + flexShrink:0.
+- [Visitor Home new sections pattern](visitor-home-sections.md) — 6 new screens added (Expositores, Catacion, Premiaciones, AgendaAcademica, Aliados, Tourism link); PROGRAM_TILES + turismoBanner added to HomeScreen; all 7 locale files updated.

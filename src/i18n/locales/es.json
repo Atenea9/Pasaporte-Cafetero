@@ -194,7 +194,18 @@
     "fair_venue": "Sede",
     "my_qr_title": "MI QR PERSONAL",
     "my_qr_sub": "Muéstralo al vendedor para registrar tus puntos",
-    "my_qr_id": "ID PASAPORTE"
+    "my_qr_id": "ID PASAPORTE",
+    "expositores_tile": "Expositores",
+    "expositores_tile_sub": "5 categorías",
+    "turismo_tile": "TURISMO",
+    "turismo_tile_sub": "Chaparral",
+    "catacion_tile": "Catación",
+    "catacion_tile_sub": "Permanente",
+    "premiaciones_tile": "Premiaciones",
+    "premiaciones_tile_sub": "Microlotes · Barismo",
+    "agenda_academica_tile": "Agenda Académica",
+    "agenda_academica_tile_sub": "Talleres y Ponentes",
+    "programs": "PROGRAMAS DE LA FERIA"
   },
   "passport": {
     "my_passport": "MI PASAPORTE",
@@ -378,5 +389,43 @@
     "notes": "Notas de cata", "history": "Historia de la finca",
     "bid_min_error": "Tu puja debe ser mayor a la puja actual.",
     "live_auction": "SUBASTA EN VIVO"
+  },
+  "expositores": {
+    "title": "EXPOSITORES", "subtitle": "Participantes de la Feria 2026",
+    "exhibitors": "expositores", "favorites": "Favoritos", "my_favs": "MIS FAV.",
+    "favorites_label": "favoritos", "no_favs": "Aún no tienes favoritos.\nToca el ❤️ en cualquier expositor.",
+    "no_results": "Sin resultados para esta categoría.",
+    "phone": "Teléfono", "email": "Correo", "website": "Página Web", "social": "REDES SOCIALES"
+  },
+  "turismo": {
+    "title": "TURISMO CHAPARRAL", "subtitle": "Lugares turísticos del municipio",
+    "description": "Lugares turísticos de Chaparral, Tolima",
+    "visit_btn": "VER SITIOS TURÍSTICOS", "source": "Alcaldía"
+  },
+  "catacion": {
+    "title": "CATACIÓN PERMANENTE", "subtitle": "Perfiles sensoriales · Chaparral 2026",
+    "intro": "Explore los perfiles sensoriales de los mejores cafés del Tolima en categorías especiales de catación.",
+    "sessions": "sesiones", "sessions_in": "sesiones en",
+    "producer": "PRODUCTOR", "more": "Ver perfil completo ↓", "less": "Ver menos ↑"
+  },
+  "premiaciones": {
+    "title": "PREMIACIONES", "subtitle": "Feria Internacional del Café · Chaparral 2026",
+    "hero_title": "✦ RECONOCIMIENTO A LA EXCELENCIA ✦",
+    "hero_sub": "3 categorías · 10 subcategorías · Premios en dinero y entregables",
+    "first": "1er Lugar", "second": "2do Lugar", "third": "3er Lugar",
+    "deliverables": "Entregables:",
+    "footer": "La ceremonia de premiación se realizará el Sábado 31 de mayo a las 6:00 PM en el escenario principal."
+  },
+  "agenda_academica": {
+    "title": "AGENDA ACADÉMICA", "subtitle": "Talleres y Conferencias · Chaparral 2026",
+    "workshops": "talleres", "sessions": "sesiones académicas",
+    "objective": "OBJETIVO", "teachers": "PONENTES", "sponsor": "PATROCINADOR"
+  },
+  "aliados": {
+    "title": "ALIADOS FERIA", "subtitle": "Entidades que hacen posible la Feria 2026",
+    "allies_section": "ALIADOS ESTRATÉGICOS", "sponsors_section": "PATROCINADORES",
+    "footer_title": "🌿 JUNTOS POR EL CAFÉ DEL TOLIMA",
+    "footer_text": "La Feria Internacional del Café de Chaparral 2026 es posible gracias a la unión de entidades públicas y privadas comprometidas con el desarrollo sostenible de la caficultura tolimense.",
+    "website": "Sitio Web Oficial"
   }
 }

@@ -189,7 +189,18 @@
     "fair_venue": "Venue",
     "my_qr_title": "MY PERSONAL QR",
     "my_qr_sub": "Show it to the vendor to earn points",
-    "my_qr_id": "PASSPORT ID"
+    "my_qr_id": "PASSPORT ID",
+    "expositores_tile": "Exhibitors",
+    "expositores_tile_sub": "5 categories",
+    "turismo_tile": "TOURISM",
+    "turismo_tile_sub": "Chaparral",
+    "catacion_tile": "Cupping",
+    "catacion_tile_sub": "Permanent",
+    "premiaciones_tile": "Awards",
+    "premiaciones_tile_sub": "Micro-lots · Barismo",
+    "agenda_academica_tile": "Academic Agenda",
+    "agenda_academica_tile_sub": "Workshops & Speakers",
+    "programs": "FAIR PROGRAMS"
   },
   "passport": {
     "my_passport": "MY PASSPORT",
@@ -364,5 +375,43 @@
     "notes": "Cupping notes", "history": "Farm history",
     "bid_min_error": "Your bid must be higher than the current bid.",
     "live_auction": "LIVE AUCTION"
+  },
+  "expositores": {
+    "title": "EXHIBITORS", "subtitle": "Fair 2026 Participants",
+    "exhibitors": "exhibitors", "favorites": "Favorites", "my_favs": "MY FAV.",
+    "favorites_label": "favorites", "no_favs": "No favorites yet.\nTap ❤️ on any exhibitor.",
+    "no_results": "No results for this category.",
+    "phone": "Phone", "email": "Email", "website": "Website", "social": "SOCIAL MEDIA"
+  },
+  "turismo": {
+    "title": "CHAPARRAL TOURISM", "subtitle": "Tourist sites in the municipality",
+    "description": "Tourist destinations in Chaparral, Tolima",
+    "visit_btn": "VIEW TOURIST SITES", "source": "Town Hall"
+  },
+  "catacion": {
+    "title": "PERMANENT CUPPING", "subtitle": "Sensory profiles · Chaparral 2026",
+    "intro": "Explore the sensory profiles of the finest Tolima coffees across special cupping categories.",
+    "sessions": "sessions", "sessions_in": "sessions in",
+    "producer": "PRODUCER", "more": "View full profile ↓", "less": "View less ↑"
+  },
+  "premiaciones": {
+    "title": "AWARDS", "subtitle": "International Coffee Fair · Chaparral 2026",
+    "hero_title": "✦ RECOGNIZING EXCELLENCE ✦",
+    "hero_sub": "3 categories · 10 subcategories · Cash prizes and deliverables",
+    "first": "1st Place", "second": "2nd Place", "third": "3rd Place",
+    "deliverables": "Deliverables:",
+    "footer": "The awards ceremony will be held on Saturday May 31 at 6:00 PM on the main stage."
+  },
+  "agenda_academica": {
+    "title": "ACADEMIC AGENDA", "subtitle": "Workshops & Conferences · Chaparral 2026",
+    "workshops": "workshops", "sessions": "academic sessions",
+    "objective": "OBJECTIVE", "teachers": "SPEAKERS", "sponsor": "SPONSOR"
+  },
+  "aliados": {
+    "title": "FAIR ALLIES", "subtitle": "Organizations that make the 2026 Fair possible",
+    "allies_section": "STRATEGIC ALLIES", "sponsors_section": "SPONSORS",
+    "footer_title": "🌿 TOGETHER FOR TOLIMA COFFEE",
+    "footer_text": "The International Coffee Fair of Chaparral 2026 is made possible by the union of public and private entities committed to the sustainable development of Tolima's coffee industry.",
+    "website": "Official Website"
   }
 }

@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Animated, Dimensions, SafeAreaView, StatusBar, Image,
+  Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -101,6 +101,13 @@ export const HomeScreen = () => {
     { icon: '📅', label: t('home.agenda', 'Agenda'),           sub: t('home.agenda_sub', '3 días'),      screen: 'Agenda'        as const, c1: '#1565C0', c2: '#1E88E5' },
     { icon: '🏛️', label: t('home.sponsors', 'Aliados'),       sub: t('home.sponsors_sub', 'Tolima'),    screen: 'Auspiciadores' as const, c1: '#5D4037', c2: '#8D6E63' },
     { icon: '🏅', label: t('nav.ranking', 'Ranking'),           sub: t('home.ranking_nav_sub', 'Tabla'), screen: 'Ranking'       as const, c1: T.amber,   c2: T.goldLight },
+  ];
+
+  const PROGRAM_TILES = [
+    { icon: '👔', label: t('home.expositores_tile', 'Expositores'),           sub: t('home.expositores_tile_sub', '5 categorías'),          screen: 'Expositores'    as const, c1: '#5D4037', c2: '#8D6E63' },
+    { icon: '☕', label: t('home.catacion_tile', 'Catación'),                 sub: t('home.catacion_tile_sub', 'Permanente'),               screen: 'Catacion'       as const, c1: '#E65100', c2: '#F57F17' },
+    { icon: '🏆', label: t('home.premiaciones_tile', 'Premiaciones'),        sub: t('home.premiaciones_tile_sub', 'Microlotes · Barismo'), screen: 'Premiaciones'   as const, c1: '#8B6308', c2: '#C8960C' },
+    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'),sub: t('home.agenda_academica_tile_sub', 'Talleres'),          screen: 'AgendaAcademica' as const, c1: '#1B5E20', c2: '#2E7D32' },
   ];
 
   return (
@@ -323,6 +330,40 @@ export const HomeScreen = () => {
           ))}
         </View>
 
+        {/* ── Turismo ───────────────────────────────────────────────────────── */}
+        <TouchableOpacity
+          style={s.turismoBanner}
+          onPress={() => Linking.openURL('https://www.chaparral-tolima.gov.co/MiMunicipio/Paginas/Turismo.aspx')}
+          activeOpacity={0.82}
+        >
+          <LinearGradient colors={['#1B5E20', '#2E7D32', '#388E3C']} style={StyleSheet.absoluteFillObject} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Text style={{ fontSize: 28 }}>🗺️</Text>
+            <View>
+              <Text style={s.turismoTitle}>{t('home.turismo_tile', 'TURISMO')}</Text>
+              <Text style={s.turismoSub}>{t('turismo.description', 'Lugares turísticos de Chaparral, Tolima')}</Text>
+            </View>
+          </View>
+          <View style={s.turismoArrow}>
+            <Text style={{ fontSize: 18, color: '#FFF', fontWeight: '900' }}>↗</Text>
+            <Text style={{ fontSize: 7, color: 'rgba(255,255,255,0.7)', fontWeight: '700' }}>{t('turismo.source', 'Alcaldía')}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {/* ── Programas de la Feria ─────────────────────────────────────────── */}
+        <Text style={[s.sectionTitle, { marginBottom: 12, marginTop: 6 }]}>{t('home.programs', 'PROGRAMAS DE LA FERIA')}</Text>
+        <View style={s.tileGrid}>
+          {PROGRAM_TILES.map(tile => (
+            <TouchableOpacity key={tile.screen} style={s.tile} onPress={() => nav.navigate(tile.screen as any)} activeOpacity={0.8}>
+              <LinearGradient colors={[tile.c1, tile.c2]} style={s.tileGrad}>
+                <Text style={s.tileIcon}>{tile.icon}</Text>
+                <Text style={s.tileLbl}>{tile.label}</Text>
+                <Text style={s.tileSub}>{tile.sub}</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {/* ── Ferias anteriores ─────────────────────────────────────────────── */}
         <Text style={[s.sectionTitle, { marginBottom: 12, marginTop: 6 }]}>{t('home.prev_fairs_title', 'FERIAS ANTERIORES')}</Text>
         <View style={s.feriasRow}>
@@ -478,6 +519,11 @@ const s = StyleSheet.create({
   tileIcon: { fontSize: 24 },
   tileLbl:  { fontSize: 14, fontWeight: '900', color: '#FFF' },
   tileSub:  { fontSize: 9, color: 'rgba(255,255,255,0.8)' },
+  // Tourism banner
+  turismoBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 14, overflow: 'hidden', justifyContent: 'space-between', shadowColor: '#1B5E20', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },
+  turismoTitle:  { fontSize: 13, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
+  turismoSub:    { fontSize: 10, color: 'rgba(255,255,255,0.75)', marginTop: 2, maxWidth: 200 },
+  turismoArrow:  { alignItems: 'center' as const, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: 8 },
 
   // Previous fairs
   feriasRow:    { flexDirection: 'row', gap: 10, marginBottom: 20 },

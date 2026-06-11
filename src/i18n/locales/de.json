@@ -361,5 +361,43 @@
     "notes": "Verkostungsnotizen", "history": "Farmgeschichte",
     "bid_min_error": "Ihr Gebot muss höher als das aktuelle Gebot sein.",
     "live_auction": "LIVE-AUKTION"
+  },
+  "expositores": {
+    "title": "AUSSTELLER", "subtitle": "Teilnehmer der Messe 2026",
+    "exhibitors": "Aussteller", "favorites": "Favoriten", "my_favs": "MEINE FAV.",
+    "favorites_label": "Favoriten", "no_favs": "Noch keine Favoriten.\nTippen Sie auf ❤️ bei jedem Aussteller.",
+    "no_results": "Keine Ergebnisse für diese Kategorie.",
+    "phone": "Telefon", "email": "E-Mail", "website": "Webseite", "social": "SOZIALE MEDIEN"
+  },
+  "turismo": {
+    "title": "TOURISMUS CHAPARRAL", "subtitle": "Tourismusorte der Gemeinde",
+    "description": "Touristenattraktionen in Chaparral, Tolima",
+    "visit_btn": "TOURISTENZIELE ANZEIGEN", "source": "Gemeindeverwaltung"
+  },
+  "catacion": {
+    "title": "PERMANENTE VERKOSTUNG", "subtitle": "Sensorische Profile · Chaparral 2026",
+    "intro": "Entdecken Sie die sensorischen Profile der besten Tolima-Kaffees in speziellen Verkostungskategorien.",
+    "sessions": "Sitzungen", "sessions_in": "Sitzungen in",
+    "producer": "PRODUZENT", "more": "Vollständiges Profil ansehen ↓", "less": "Weniger anzeigen ↑"
+  },
+  "premiaciones": {
+    "title": "PREISVERLEIHUNG", "subtitle": "Internationale Kaffeemesse · Chaparral 2026",
+    "hero_title": "✦ AUSZEICHNUNG DER EXZELLENZ ✦",
+    "hero_sub": "3 Kategorien · 10 Unterkategorien · Geldpreise und Sachleistungen",
+    "first": "1. Platz", "second": "2. Platz", "third": "3. Platz",
+    "deliverables": "Sachleistungen:",
+    "footer": "Die Preisverleihungszeremonie findet am Samstag, dem 31. Mai um 18:00 Uhr auf der Hauptbühne statt."
+  },
+  "agenda_academica": {
+    "title": "AKADEMISCHE AGENDA", "subtitle": "Workshops und Konferenzen · Chaparral 2026",
+    "workshops": "Workshops", "sessions": "akademische Sitzungen",
+    "objective": "ZIEL", "teachers": "REDNER", "sponsor": "SPONSOR"
+  },
+  "aliados": {
+    "title": "MESSEPARTNER", "subtitle": "Organisationen, die die Messe 2026 ermöglichen",
+    "allies_section": "STRATEGISCHE PARTNER", "sponsors_section": "SPONSOREN",
+    "footer_title": "🌿 GEMEINSAM FÜR DEN TOLIMA-KAFFEE",
+    "footer_text": "Die Internationale Kaffeemesse Chaparral 2026 wird durch den Zusammenschluss öffentlicher und privater Einrichtungen ermöglicht, die sich für die nachhaltige Entwicklung des Kaffeeanbaus in Tolima einsetzen.",
+    "website": "Offizielle Webseite"
   }
 }

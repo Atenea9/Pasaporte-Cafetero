@@ -364,5 +364,43 @@
     "notes": "杯测笔记", "history": "农场历史",
     "bid_min_error": "您的出价必须高于当前出价。",
     "live_auction": "实时拍卖"
+  },
+  "expositores": {
+    "title": "参展商", "subtitle": "2026年博览会参与者",
+    "exhibitors": "家参展商", "favorites": "收藏", "my_favs": "我的收藏",
+    "favorites_label": "收藏", "no_favs": "暂无收藏。\n点击任意参展商的 ❤️ 添加。",
+    "no_results": "该类别无结果。",
+    "phone": "电话", "email": "电子邮件", "website": "官方网站", "social": "社交媒体"
+  },
+  "turismo": {
+    "title": "查帕拉尔旅游", "subtitle": "市内旅游景点",
+    "description": "哥伦比亚托利马查帕拉尔旅游目的地",
+    "visit_btn": "查看旅游景点", "source": "市政府"
+  },
+  "catacion": {
+    "title": "常驻品鉴", "subtitle": "感官特征 · 查帕拉尔 2026",
+    "intro": "探索托利马顶级咖啡在特殊品鉴类别中的感官特征。",
+    "sessions": "场", "sessions_in": "场 —",
+    "producer": "生产商", "more": "查看完整特征 ↓", "less": "收起 ↑"
+  },
+  "premiaciones": {
+    "title": "颁奖典礼", "subtitle": "国际咖啡博览会 · 查帕拉尔 2026",
+    "hero_title": "✦ 卓越品质表彰 ✦",
+    "hero_sub": "3个类别 · 10个子类别 · 奖金和实物奖励",
+    "first": "第一名", "second": "第二名", "third": "第三名",
+    "deliverables": "奖励内容：",
+    "footer": "颁奖典礼将于5月31日（周六）下午6时在主舞台举行。"
+  },
+  "agenda_academica": {
+    "title": "学术议程", "subtitle": "研讨会与会议 · 查帕拉尔 2026",
+    "workshops": "场研讨会", "sessions": "场学术讲座",
+    "objective": "目标", "teachers": "演讲嘉宾", "sponsor": "赞助商"
+  },
+  "aliados": {
+    "title": "博览会合作伙伴", "subtitle": "支持2026年博览会的机构",
+    "allies_section": "战略合作伙伴", "sponsors_section": "赞助商",
+    "footer_title": "🌿 携手共促托利马咖啡发展",
+    "footer_text": "查帕拉尔2026国际咖啡博览会的举办离不开公私机构的共同努力，他们致力于托利马咖啡种植业的可持续发展。",
+    "website": "官方网站"
   }
 }

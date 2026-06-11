@@ -361,5 +361,43 @@
     "notes": "Notas de degustação", "history": "História da fazenda",
     "bid_min_error": "Seu lance deve ser maior que o lance atual.",
     "live_auction": "LEILÃO AO VIVO"
+  },
+  "expositores": {
+    "title": "EXPOSITORES", "subtitle": "Participantes da Feira 2026",
+    "exhibitors": "expositores", "favorites": "Favoritos", "my_favs": "MEUS FAV.",
+    "favorites_label": "favoritos", "no_favs": "Ainda sem favoritos.\nToque em ❤️ em qualquer expositor.",
+    "no_results": "Sem resultados para esta categoria.",
+    "phone": "Telefone", "email": "E-mail", "website": "Site Web", "social": "REDES SOCIAIS"
+  },
+  "turismo": {
+    "title": "TURISMO CHAPARRAL", "subtitle": "Locais turísticos do município",
+    "description": "Destinos turísticos de Chaparral, Tolima",
+    "visit_btn": "VER LOCAIS TURÍSTICOS", "source": "Prefeitura"
+  },
+  "catacion": {
+    "title": "DEGUSTAÇÃO PERMANENTE", "subtitle": "Perfis sensoriais · Chaparral 2026",
+    "intro": "Explore os perfis sensoriais dos melhores cafés do Tolima em categorias especiais de degustação.",
+    "sessions": "sessões", "sessions_in": "sessões em",
+    "producer": "PRODUTOR", "more": "Ver perfil completo ↓", "less": "Ver menos ↑"
+  },
+  "premiaciones": {
+    "title": "PREMIAÇÕES", "subtitle": "Feira Internacional de Café · Chaparral 2026",
+    "hero_title": "✦ RECONHECIMENTO À EXCELÊNCIA ✦",
+    "hero_sub": "3 categorias · 10 subcategorias · Prêmios em dinheiro e entregas",
+    "first": "1º Lugar", "second": "2º Lugar", "third": "3º Lugar",
+    "deliverables": "Entregáveis:",
+    "footer": "A cerimônia de premiação será realizada no sábado, 31 de maio às 18h no palco principal."
+  },
+  "agenda_academica": {
+    "title": "AGENDA ACADÊMICA", "subtitle": "Oficinas e Conferências · Chaparral 2026",
+    "workshops": "oficinas", "sessions": "sessões acadêmicas",
+    "objective": "OBJETIVO", "teachers": "PALESTRANTES", "sponsor": "PATROCINADOR"
+  },
+  "aliados": {
+    "title": "ALIADOS DA FEIRA", "subtitle": "Entidades que tornam a Feira 2026 possível",
+    "allies_section": "ALIADOS ESTRATÉGICOS", "sponsors_section": "PATROCINADORES",
+    "footer_title": "🌿 JUNTOS PELO CAFÉ DO TOLIMA",
+    "footer_text": "A Feira Internacional de Café de Chaparral 2026 é possível graças à união de entidades públicas e privadas comprometidas com o desenvolvimento sustentável da cafeicultura do Tolima.",
+    "website": "Site Oficial"
   }
 }
