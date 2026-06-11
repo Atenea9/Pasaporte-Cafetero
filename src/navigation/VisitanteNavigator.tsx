@@ -18,6 +18,7 @@ import ExpositoresScreen from '../screens/visitante/ExpositoresScreen';
 import CatacionScreen from '../screens/visitante/CatacionScreen';
 import PremiacionesScreen from '../screens/visitante/PremiacionesScreen';
 import AgendaAcademicaScreen from '../screens/visitante/AgendaAcademicaScreen';
+import FeriaAnteriorScreen from '../screens/visitante/FeriaAnteriorScreen';
 
 const Stack = createNativeStackNavigator<VisitanteStackParamList>();
 
@@ -45,6 +46,7 @@ export default function VisitanteNavigator() {
       <Stack.Screen name="Catacion"         component={CatacionScreen} />
       <Stack.Screen name="Premiaciones"     component={PremiacionesScreen} />
       <Stack.Screen name="AgendaAcademica"  component={AgendaAcademicaScreen} />
+      <Stack.Screen name="FeriaAnterior"    component={FeriaAnteriorScreen} />
     </Stack.Navigator>
   );
 }

@@ -24,6 +24,7 @@ export type VisitanteStackParamList = {
   Catacion: undefined;
   Premiaciones: undefined;
   AgendaAcademica: undefined;
+  FeriaAnterior: { fairKey: string };
 };
 
 export type ExpositorStackParamList = {

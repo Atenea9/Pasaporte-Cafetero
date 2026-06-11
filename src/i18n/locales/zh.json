@@ -164,6 +164,10 @@
     "agenda_sub": "3天日程",
     "sponsors": "赞助商",
     "sponsors_sub": "托利马省政府",
+    "aliados": "合作伙伴",
+    "de_colombia": "来自哥伦比亚",
+    "microlotes": "微批次",
+    "ver_detalle": "查看详情",
     "ranking_nav": "排名",
     "ranking_nav_sub": "积分榜",
     "happy_hour_active": "✨ 欢乐时光 — 积分双倍 ✨",
@@ -364,6 +368,12 @@
     "notes": "杯测笔记", "history": "农场历史",
     "bid_min_error": "您的出价必须高于当前出价。",
     "live_auction": "实时拍卖"
+  },
+  "feria_ant": {
+    "microlotes": "微批次数量", "expositores": "参展商数量", "max_subasta": "最高拍卖价",
+    "intl_coffee": "国际咖啡博览会 · 托利马", "stats_title": "历史数据",
+    "about": "关于本届博览会", "highlights": "精彩亮点",
+    "footer": "托利马国际咖啡博览会历史记录"
   },
   "expositores": {
     "title": "参展商", "subtitle": "2026年博览会参与者",

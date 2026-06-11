@@ -161,6 +161,10 @@
     "agenda_sub": "Programme 3 jours",
     "sponsors": "Sponsors",
     "sponsors_sub": "Gouvernorat du Tolima",
+    "aliados": "Alliés",
+    "de_colombia": "de Colombie",
+    "microlotes": "microlots",
+    "ver_detalle": "Voir détail",
     "ranking_nav": "Classement",
     "ranking_nav_sub": "Tableau des scores",
     "happy_hour_active": "✨ HAPPY HOUR — POINTS DOUBLES ✨",
@@ -362,6 +366,12 @@
     "bid_min_error": "Votre offre doit être supérieure à l'offre actuelle.",
     "live_auction": "ENCHÈRES EN DIRECT"
   },
+  "feria_ant": {
+    "microlotes": "Microlots reçus", "expositores": "Exposants participants", "max_subasta": "Prix max enchères",
+    "intl_coffee": "Foire Internationale du Café · Tolima", "stats_title": "DONNÉES HISTORIQUES",
+    "about": "À PROPOS DE CETTE ÉDITION", "highlights": "MOMENTS FORTS",
+    "footer": "Registre historique de la Foire Internationale du Café du Tolima"
+  },
   "expositores": {
     "title": "EXPOSANTS", "subtitle": "Participants de la Foire 2026",
     "exhibitors": "exposants", "favorites": "Favoris", "my_favs": "MES FAV.",
@@ -401,3 +411,4 @@
     "website": "Site Officiel"
   }
 }
+

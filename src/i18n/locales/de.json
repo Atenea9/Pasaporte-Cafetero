@@ -161,6 +161,10 @@
     "agenda_sub": "3-Tage-Programm",
     "sponsors": "Sponsoren",
     "sponsors_sub": "Gouvernement von Tolima",
+    "aliados": "Partner",
+    "de_colombia": "aus Kolumbien",
+    "microlotes": "Mikrolose",
+    "ver_detalle": "Details ansehen",
     "ranking_nav": "Rangliste",
     "ranking_nav_sub": "Punktestand",
     "happy_hour_active": "✨ HAPPY HOUR — DOPPELTE PUNKTE ✨",
@@ -361,6 +365,12 @@
     "notes": "Verkostungsnotizen", "history": "Farmgeschichte",
     "bid_min_error": "Ihr Gebot muss höher als das aktuelle Gebot sein.",
     "live_auction": "LIVE-AUKTION"
+  },
+  "feria_ant": {
+    "microlotes": "Eingegangene Mikrolose", "expositores": "Teilnehmende Aussteller", "max_subasta": "Max. Auktionspreis",
+    "intl_coffee": "Internationale Kaffeemesse · Tolima", "stats_title": "HISTORISCHE DATEN",
+    "about": "ÜBER DIESE AUSGABE", "highlights": "HIGHLIGHTS",
+    "footer": "Historisches Register der Internationalen Kaffeemesse Tolima"
   },
   "expositores": {
     "title": "AUSSTELLER", "subtitle": "Teilnehmer der Messe 2026",

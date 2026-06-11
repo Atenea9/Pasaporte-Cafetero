@@ -368,7 +368,7 @@ export const PasaporteScreen = () => {
               <View style={s.qrSection}>
                 <View style={s.qrBox}>
                   <QRCode
-                    value={`CF26-${(user?.uid?.slice(-8) || '00000000').toUpperCase()}`}
+                    value={`CF26-${(state.usuario?.cedula || user?.uid?.slice(-8) || '00000000').toUpperCase()}`}
                     size={82}
                     color={T.ink}
                     backgroundColor="transparent"

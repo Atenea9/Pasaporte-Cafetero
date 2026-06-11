@@ -205,7 +205,11 @@
     "premiaciones_tile_sub": "Microlotes · Barismo",
     "agenda_academica_tile": "Agenda Académica",
     "agenda_academica_tile_sub": "Talleres y Ponentes",
-    "programs": "PROGRAMAS DE LA FERIA"
+    "programs": "PROGRAMAS DE LA FERIA",
+    "aliados": "Aliados",
+    "de_colombia": "de Colombia",
+    "microlotes": "microlotes",
+    "ver_detalle": "Ver detalle"
   },
   "passport": {
     "my_passport": "MI PASAPORTE",
@@ -427,5 +431,11 @@
     "footer_title": "🌿 JUNTOS POR EL CAFÉ DEL TOLIMA",
     "footer_text": "La Feria Internacional del Café de Chaparral 2026 es posible gracias a la unión de entidades públicas y privadas comprometidas con el desarrollo sostenible de la caficultura tolimense.",
     "website": "Sitio Web Oficial"
+  },
+  "feria_ant": {
+    "microlotes": "Microlotes recibidos", "expositores": "Expositores participantes", "max_subasta": "Precio máx. subasta",
+    "intl_coffee": "Feria Internacional del Café · Tolima", "stats_title": "DATOS HISTÓRICOS",
+    "about": "SOBRE ESTA EDICIÓN", "highlights": "MOMENTOS DESTACADOS",
+    "footer": "Registro histórico de la Feria Internacional del Café del Tolima"
   }
 }

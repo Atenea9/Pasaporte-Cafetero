@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking,
+  Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking, ImageBackground,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -45,9 +45,10 @@ const PREMIO_LABEL: Record<string, string> = {
 };
 
 const PREV_FAIRS = [
-  { key: 'ibague', cityKey: 'fair_ibague_year', descKey: 'fair_ibague_desc', cityFall: 'Ibagué 2024', descFall: 'Primera edición', c1: '#1A3A2A', c2: '#2D6A4F' },
-  { key: 'libano', cityKey: 'fair_libano_year', descKey: 'fair_libano_desc', cityFall: 'Líbano 2025',  descFall: 'Segunda edición',  c1: '#2A1408', c2: '#7B4A2A' },
-] as const;
+  { key: 'ibague23',  city: 'Ibagué',  year: '2023', c1: '#1A3A2A', c2: '#2D6A4F', stats: { microlotes: 34, expositores: 62, maxSubasta: 4800000 } },
+  { key: 'planadas24',city: 'Planadas',year: '2024', c1: '#4A1A06', c2: '#8B3A1A', stats: { microlotes: 48, expositores: 78, maxSubasta: 6200000 } },
+  { key: 'libano25',  city: 'Líbano',  year: '2025', c1: '#0D2B45', c2: '#1A5276', stats: { microlotes: 55, expositores: 91, maxSubasta: 8100000 } },
+];
 
 export const HomeScreen = () => {
   const { t } = useTranslation();
@@ -97,45 +98,49 @@ export const HomeScreen = () => {
   ];
 
   const TILES = [
-    { icon: '🗺️', label: t('home.fair_map', 'Mapa'),          sub: t('home.fair_map_sub', 'Stands'),    screen: 'MapaFeria'     as const, c1: T.coffee,  c2: '#A0663C' },
-    { icon: '📅', label: t('home.agenda', 'Agenda'),           sub: t('home.agenda_sub', '3 días'),      screen: 'Agenda'        as const, c1: '#1565C0', c2: '#1E88E5' },
-    { icon: '🏛️', label: t('home.sponsors', 'Aliados'),       sub: t('home.sponsors_sub', 'Tolima'),    screen: 'Auspiciadores' as const, c1: '#5D4037', c2: '#8D6E63' },
-    { icon: '🏅', label: t('nav.ranking', 'Ranking'),           sub: t('home.ranking_nav_sub', 'Tabla'), screen: 'Ranking'       as const, c1: T.amber,   c2: T.goldLight },
+    { icon: '🗺️', label: t('home.fair_map', 'Mapa'),         sub: t('home.fair_map_sub', 'Stands'),   screen: 'MapaFeria'     as const, img: require('../../../assets/tile-jungle.png') },
+    { icon: '📅', label: t('home.agenda', 'Agenda'),          sub: t('home.agenda_sub', '3 días'),     screen: 'Agenda'        as const, img: require('../../../assets/tile-toucan.png') },
+    { icon: '🏛️', label: t('home.aliados', 'Aliados'),       sub: t('home.sponsors_sub', 'Tolima'),   screen: 'Auspiciadores' as const, img: require('../../../assets/tile-barranquero.png') },
+    { icon: '🏅', label: t('nav.ranking', 'Ranking'),          sub: t('home.ranking_nav_sub', 'Tabla'),screen: 'Ranking'       as const, img: require('../../../assets/tile-ocelot.png') },
   ];
 
   const PROGRAM_TILES = [
-    { icon: '👔', label: t('home.expositores_tile', 'Expositores'),           sub: t('home.expositores_tile_sub', '5 categorías'),          screen: 'Expositores'    as const, c1: '#5D4037', c2: '#8D6E63' },
-    { icon: '☕', label: t('home.catacion_tile', 'Catación'),                 sub: t('home.catacion_tile_sub', 'Permanente'),               screen: 'Catacion'       as const, c1: '#E65100', c2: '#F57F17' },
-    { icon: '🏆', label: t('home.premiaciones_tile', 'Premiaciones'),        sub: t('home.premiaciones_tile_sub', 'Microlotes · Barismo'), screen: 'Premiaciones'   as const, c1: '#8B6308', c2: '#C8960C' },
-    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'),sub: t('home.agenda_academica_tile_sub', 'Talleres'),          screen: 'AgendaAcademica' as const, c1: '#1B5E20', c2: '#2E7D32' },
+    { icon: '👔', label: t('home.expositores_tile', 'Expositores'),            sub: t('home.expositores_tile_sub', '5 categorías'),         screen: 'Expositores'     as const, img: require('../../../assets/tile-tapir.png') },
+    { icon: '☕', label: t('home.catacion_tile', 'Catación'),                  sub: t('home.catacion_tile_sub', 'Permanente'),              screen: 'Catacion'        as const, img: require('../../../assets/tile-redbird.png') },
+    { icon: '🏆', label: t('home.premiaciones_tile', 'Premiaciones'),         sub: t('home.premiaciones_tile_sub', 'Microlotes · Barismo'),screen: 'Premiaciones'    as const, img: require('../../../assets/tile-bear.png') },
+    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'), sub: t('home.agenda_academica_tile_sub', 'Talleres'),         screen: 'AgendaAcademica' as const, img: require('../../../assets/tile-barranquero.png') },
   ];
 
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
+      {/* Coffee-plant ambient background */}
+      <Image
+        source={require('../../../assets/tile-jungle.png')}
+        style={s.bgPlants}
+        resizeMode="cover"
+      />
       <Animated.ScrollView style={{ opacity: fadeAnim }} showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
-        {/* ── Header ─────────────────────────────────────────────────────── */}
-        <View style={s.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.greeting}>{t('home.greeting', '¡Hola,')} {displayName}! 👋</Text>
-            <View style={s.eventRow}>
-              <Text style={s.eventIcon}>🍒</Text>
-              <Text style={s.eventSub}>{t('login.fair_name', 'Feria Internacional de Café')} – Chaparral 2026</Text>
+        {/* ── Hero Banner ─────────────────────────────────────────────────── */}
+        <View style={s.heroBanner}>
+          <LinearGradient colors={['rgba(92,44,6,0.08)', 'rgba(200,150,12,0.06)']} style={StyleSheet.absoluteFill} />
+          <View style={s.heroTop}>
+            <View style={s.heroLogoWrap}>
+              <LinearGradient colors={['#D4A520','#8B6308']} style={s.heroLogoGrad}>
+                <Image source={require('../../../assets/logo-feria-icon.png')} style={s.heroLogoImg} resizeMode="contain" tintColor="#FFF8E0" />
+              </LinearGradient>
             </View>
             <TouchableOpacity onPress={logout} style={s.salirBtn} activeOpacity={0.8}>
-              <Text style={s.salirText}>{t('home.logout', 'SALIR')}  →</Text>
+              <Text style={s.salirText}>{t('home.logout', 'SALIR')} →</Text>
             </TouchableOpacity>
           </View>
-
-          {/* Fair logo medallion */}
-          <View style={s.medallion}>
-            <LinearGradient colors={['#D4A520', '#B8860B', '#8B6308', '#5C3A06']} style={s.medallionGrad}>
-              <View style={s.medallionRingOuter} />
-              <View style={s.medallionRingInner} />
-              <Image source={require('../../../assets/logo-feria-icon.png')} style={s.medallionLogo} resizeMode="contain" />
-              <Text style={s.medallionLabel}>{'CHAPARRAL\n2026'}</Text>
-            </LinearGradient>
+          <Text style={s.heroTitle}>{'TOLIMA CORAZÓN\nCAFETERO'}</Text>
+          <Text style={s.heroDeColombia}>{t('home.de_colombia', 'de Colombia')}</Text>
+          <View style={s.heroFooter}>
+            <View style={s.heroRule} />
+            <Text style={s.heroYearText}>{t('login.fair_name', 'Feria Internacional del Café')}  ·  Chaparral 2026</Text>
+            <View style={s.heroRule} />
           </View>
         </View>
 
@@ -320,12 +325,15 @@ export const HomeScreen = () => {
         <Text style={[s.sectionTitle, { marginBottom: 12 }]}>{t('home.explore', 'EXPLORAR LA FERIA')}</Text>
         <View style={s.tileGrid}>
           {TILES.map(tile => (
-            <TouchableOpacity key={tile.screen} style={s.tile} onPress={() => nav.navigate(tile.screen)} activeOpacity={0.8}>
-              <LinearGradient colors={[tile.c1, tile.c2]} style={s.tileGrad}>
-                <Text style={s.tileIcon}>{tile.icon}</Text>
-                <Text style={s.tileLbl}>{tile.label}</Text>
-                <Text style={s.tileSub}>{tile.sub}</Text>
-              </LinearGradient>
+            <TouchableOpacity key={tile.screen} style={s.tile} onPress={() => nav.navigate(tile.screen)} activeOpacity={0.85}>
+              <ImageBackground source={tile.img} style={s.tileGrad} imageStyle={s.tileImg}>
+                <View style={s.tileOverlay} />
+                <View style={s.tileCnt}>
+                  <Text style={s.tileIcon}>{tile.icon}</Text>
+                  <Text style={s.tileLbl}>{tile.label}</Text>
+                  <Text style={s.tileSub}>{tile.sub}</Text>
+                </View>
+              </ImageBackground>
             </TouchableOpacity>
           ))}
         </View>
@@ -354,30 +362,39 @@ export const HomeScreen = () => {
         <Text style={[s.sectionTitle, { marginBottom: 12, marginTop: 6 }]}>{t('home.programs', 'PROGRAMAS DE LA FERIA')}</Text>
         <View style={s.tileGrid}>
           {PROGRAM_TILES.map(tile => (
-            <TouchableOpacity key={tile.screen} style={s.tile} onPress={() => nav.navigate(tile.screen as any)} activeOpacity={0.8}>
-              <LinearGradient colors={[tile.c1, tile.c2]} style={s.tileGrad}>
-                <Text style={s.tileIcon}>{tile.icon}</Text>
-                <Text style={s.tileLbl}>{tile.label}</Text>
-                <Text style={s.tileSub}>{tile.sub}</Text>
-              </LinearGradient>
+            <TouchableOpacity key={tile.screen} style={s.tile} onPress={() => nav.navigate(tile.screen as any)} activeOpacity={0.85}>
+              <ImageBackground source={tile.img} style={s.tileGrad} imageStyle={s.tileImg}>
+                <View style={s.tileOverlay} />
+                <View style={s.tileCnt}>
+                  <Text style={s.tileIcon}>{tile.icon}</Text>
+                  <Text style={s.tileLbl}>{tile.label}</Text>
+                  <Text style={s.tileSub}>{tile.sub}</Text>
+                </View>
+              </ImageBackground>
             </TouchableOpacity>
           ))}
         </View>
 
         {/* ── Ferias anteriores ─────────────────────────────────────────────── */}
         <Text style={[s.sectionTitle, { marginBottom: 12, marginTop: 6 }]}>{t('home.prev_fairs_title', 'FERIAS ANTERIORES')}</Text>
-        <View style={s.feriasRow}>
-          {PREV_FAIRS.map(f => (
-            <View key={f.key} style={s.feriaCard}>
-              <LinearGradient colors={[f.c1, f.c2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.feriaGrad}>
-                <Image source={require('../../../assets/logo-feria-icon.png')} style={s.feriaLogo} resizeMode="contain" />
-                <Text style={s.feriaCity}>{t(`home.${f.cityKey}`, f.cityFall)}</Text>
-                <Text style={s.feriaFairName}>{t('home.fair_intl_coffee', 'Feria Internacional\nde Café')}</Text>
-                <Text style={s.feriaDesc}>{t(`home.${f.descKey}`, f.descFall)}</Text>
-              </LinearGradient>
-            </View>
-          ))}
-        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.feriasScroll}>
+          <View style={s.feriasInner}>
+            {PREV_FAIRS.map(f => (
+              <TouchableOpacity key={f.key} style={s.feriaCard} onPress={() => nav.navigate('FeriaAnterior' as any, { fairKey: f.key })} activeOpacity={0.85}>
+                <LinearGradient colors={[f.c1, f.c2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.feriaGrad}>
+                  <Image source={require('../../../assets/logo-feria-icon.png')} style={s.feriaLogo} resizeMode="contain" tintColor="rgba(255,255,255,0.8)" />
+                  <Text style={s.feriaCity}>{f.city}</Text>
+                  <Text style={s.feriaYear}>{f.year}</Text>
+                  <View style={s.feriaStatRow}>
+                    <Text style={s.feriaStatNum}>{f.stats.microlotes}</Text>
+                    <Text style={s.feriaStatLbl}>{t('home.microlotes', 'microlotes')}</Text>
+                  </View>
+                  <Text style={s.feriaArrow}>→ {t('home.ver_detalle', 'Ver detalle')}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
 
         {/* ── Passport levels ──────────────────────────────────────────────── */}
         <View style={s.section}>
@@ -410,22 +427,22 @@ const s = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: T.bg },
   scroll: { padding: 18, paddingTop: 14, paddingBottom: 44 },
 
-  // Header
-  header:     { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16, gap: 10 },
-  greeting:   { fontSize: 26, fontWeight: '900', color: T.dark, letterSpacing: 0.2 },
-  eventRow:   { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 4 },
-  eventIcon:  { fontSize: 12 },
-  eventSub:   { fontSize: 11, color: T.body, fontWeight: '600', flex: 1 },
-  salirBtn:   { marginTop: 10, alignSelf: 'flex-start', backgroundColor: T.coffeeDark, borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-  salirText:  { color: '#FFF', fontWeight: '900', fontSize: 12, letterSpacing: 1 },
+  // Background coffee plants
+  bgPlants: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.065 },
 
-  // Fair logo medallion
-  medallion:      { width: 90, height: 90 },
-  medallionGrad:  { flex: 1, borderRadius: 45, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 8 },
-  medallionRingOuter: { position: 'absolute', top: 3, left: 3, right: 3, bottom: 3, borderRadius: 42, borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' },
-  medallionRingInner: { position: 'absolute', top: 8, left: 8, right: 8, bottom: 8, borderRadius: 37, borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)' },
-  medallionLogo:  { width: 44, height: 44, tintColor: '#FFF8E0' },
-  medallionLabel: { fontSize: 6, fontWeight: '900', color: 'rgba(255,248,224,0.85)', letterSpacing: 0.8, marginTop: 2, textAlign: 'center', lineHeight: 9 },
+  // Hero banner
+  heroBanner:     { borderRadius: 24, overflow: 'hidden', marginBottom: 16, padding: 20, paddingBottom: 22, borderWidth: 1.5, borderColor: T.borderMed, backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 4 },
+  heroTop:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  heroLogoWrap:   { width: 48, height: 48 },
+  heroLogoGrad:   { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
+  heroLogoImg:    { width: 28, height: 28 },
+  heroTitle:      { fontSize: 31, fontWeight: '900', color: T.dark, letterSpacing: 0.3, lineHeight: 35, marginBottom: 5 },
+  heroDeColombia: { fontSize: 15, fontWeight: '600', color: T.coffee, letterSpacing: 2.5, marginBottom: 14, fontStyle: 'italic' },
+  heroFooter:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  heroRule:       { flex: 1, height: 1, backgroundColor: T.borderMed },
+  heroYearText:   { fontSize: 9, color: T.muted, fontWeight: '700', letterSpacing: 0.8, textAlign: 'center', flexShrink: 1 },
+  salirBtn:       { backgroundColor: T.coffeeDark, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
+  salirText:      { color: '#FFF', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
 
   // Happy hour
   hhBanner: { padding: 12, borderRadius: 14, alignItems: 'center', marginBottom: 16 },
@@ -513,12 +530,15 @@ const s = StyleSheet.create({
   barFill:      { height: '100%', borderRadius: 3 },
 
   // Explore tiles
-  tileGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
-  tile:     { width: (width - 46) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 4 },
-  tileGrad: { padding: 16, height: 100, justifyContent: 'space-between' },
-  tileIcon: { fontSize: 24 },
-  tileLbl:  { fontSize: 14, fontWeight: '900', color: '#FFF' },
-  tileSub:  { fontSize: 9, color: 'rgba(255,255,255,0.8)' },
+  tileGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  tile:        { width: (width - 46) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: '#1A0800', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.32, shadowRadius: 12, elevation: 7 },
+  tileGrad:    { height: 114, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 16 },
+  tileImg:     { borderRadius: 16 },
+  tileOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(14,5,1,0.52)', borderRadius: 16 },
+  tileCnt:     { padding: 12 },
+  tileIcon:    { fontSize: 22 },
+  tileLbl:     { fontSize: 13, fontWeight: '900', color: '#FFF', marginTop: 3 },
+  tileSub:     { fontSize: 8, color: 'rgba(255,240,200,0.78)' },
   // Tourism banner
   turismoBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 14, overflow: 'hidden', justifyContent: 'space-between', shadowColor: '#1B5E20', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },
   turismoTitle:  { fontSize: 13, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
@@ -526,11 +546,17 @@ const s = StyleSheet.create({
   turismoArrow:  { alignItems: 'center' as const, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 10, padding: 8 },
 
   // Previous fairs
-  feriasRow:    { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  feriaCard:    { flex: 1, borderRadius: 18, overflow: 'hidden', shadowColor: T.dark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.18, shadowRadius: 10, elevation: 5 },
-  feriaGrad:    { padding: 14, minHeight: 150, justifyContent: 'flex-end' },
-  feriaLogo:    { width: 28, height: 28, tintColor: 'rgba(255,255,255,0.85)', marginBottom: 6 },
-  feriaCity:    { fontSize: 16, fontWeight: '900', color: '#FFF', letterSpacing: 0.2 },
+  feriasScroll: { marginBottom: 20 },
+  feriasInner:  { flexDirection: 'row', gap: 10, paddingRight: 4 },
+  feriaCard:    { width: 148, borderRadius: 18, overflow: 'hidden', shadowColor: '#0D0500', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
+  feriaGrad:    { padding: 14, height: 185, justifyContent: 'flex-end' },
+  feriaLogo:    { width: 22, height: 22, marginBottom: 8 },
+  feriaCity:    { fontSize: 20, fontWeight: '900', color: '#FFF', letterSpacing: 0.2 },
+  feriaYear:    { fontSize: 13, color: 'rgba(255,255,255,0.65)', fontWeight: '700', marginBottom: 10 },
+  feriaStatRow: { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 5, marginBottom: 8 },
+  feriaStatNum: { fontSize: 22, fontWeight: '900', color: '#FFF' },
+  feriaStatLbl: { fontSize: 8, color: 'rgba(255,255,255,0.65)', lineHeight: 11 },
+  feriaArrow:   { fontSize: 9, color: 'rgba(255,255,255,0.5)', fontWeight: '700' },
   feriaFairName:{ fontSize: 9, color: 'rgba(255,255,255,0.6)', marginTop: 2, lineHeight: 13 },
   feriaDesc:    { fontSize: 9, color: 'rgba(255,255,255,0.45)', marginTop: 4, lineHeight: 13 },
 

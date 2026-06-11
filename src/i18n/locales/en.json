@@ -200,7 +200,11 @@
     "premiaciones_tile_sub": "Micro-lots · Barismo",
     "agenda_academica_tile": "Academic Agenda",
     "agenda_academica_tile_sub": "Workshops & Speakers",
-    "programs": "FAIR PROGRAMS"
+    "programs": "FAIR PROGRAMS",
+    "aliados": "Allies",
+    "de_colombia": "of Colombia",
+    "microlotes": "micro-lots",
+    "ver_detalle": "View detail"
   },
   "passport": {
     "my_passport": "MY PASSPORT",
@@ -413,5 +417,11 @@
     "footer_title": "🌿 TOGETHER FOR TOLIMA COFFEE",
     "footer_text": "The International Coffee Fair of Chaparral 2026 is made possible by the union of public and private entities committed to the sustainable development of Tolima's coffee industry.",
     "website": "Official Website"
+  },
+  "feria_ant": {
+    "microlotes": "Micro-lots received", "expositores": "Participating exhibitors", "max_subasta": "Max auction price",
+    "intl_coffee": "International Coffee Fair · Tolima", "stats_title": "HISTORICAL DATA",
+    "about": "ABOUT THIS EDITION", "highlights": "HIGHLIGHTS",
+    "footer": "Historical record of the International Coffee Fair of Tolima"
   }
 }
