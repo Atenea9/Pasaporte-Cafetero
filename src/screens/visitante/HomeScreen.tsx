@@ -125,16 +125,11 @@ export const HomeScreen = () => {
         {/* ── Hero Banner ─────────────────────────────────────────────────── */}
         <View style={s.heroBanner}>
           <LinearGradient colors={['rgba(92,44,6,0.08)', 'rgba(200,150,12,0.06)']} style={StyleSheet.absoluteFill} />
-          <View style={s.heroTop}>
-            <View style={s.heroLogoArea}>
-              <LinearGradient colors={['#D4A520','#8B6308']} style={s.heroLogoGrad}>
-                <Image source={require('../../../assets/logo-feria-icon.png')} style={s.heroLogoImg} resizeMode="contain" tintColor="#FFF8E0" />
-              </LinearGradient>
+          <View style={s.heroLogoCenter}>
+            <LinearGradient colors={['#E8C030','#C8960C','#8B6308']} style={s.heroLogoGrad}>
+              <Image source={require('../../../assets/logo-feria-icon.png')} style={s.heroLogoImg} resizeMode="contain" tintColor="#FFF8E0" />
               <Text style={s.heroChaparral}>{t('home.hero_chaparral', 'Chaparral 2026')}</Text>
-            </View>
-            <TouchableOpacity onPress={logout} style={s.salirBtn} activeOpacity={0.8}>
-              <Text style={s.salirText}>{t('home.logout', 'SALIR')} →</Text>
-            </TouchableOpacity>
+            </LinearGradient>
           </View>
           <Text style={s.heroWelcome}>{t('home.hero_welcome', 'Bienvenidos al')}</Text>
           <Text style={s.heroTitle}>{'TOLIMA\nCORAZÓN CAFETERO'}</Text>
@@ -151,9 +146,6 @@ export const HomeScreen = () => {
         {/* ── Stats scroll ─────────────────────────────────────────────────── */}
         <View style={s.statsScroll}>
           <LinearGradient colors={[T.parchment, '#FFFBF0', T.parchment]} style={StyleSheet.absoluteFill} />
-          {/* Scroll curl decorations */}
-          <View style={s.scrollCurlTop} />
-          <View style={s.scrollCurlBot} />
           <View style={s.statsRow}>
             {STAT_ITEMS.map((item, i) => (
               <React.Fragment key={i}>
@@ -343,7 +335,7 @@ export const HomeScreen = () => {
           onPress={() => Linking.openURL('https://www.chaparral-tolima.gov.co/MiMunicipio/Paginas/Turismo.aspx')}
           activeOpacity={0.82}
         >
-          <Image source={require('../../../assets/tile-snake.png')} style={[StyleSheet.absoluteFill, { borderRadius: 16 }]} resizeMode="cover" />
+          <Image source={require('../../../assets/tile-snake.png')} style={{ position: 'absolute', top: '-6%', left: '-6%', width: '112%', height: '112%', borderRadius: 18 }} resizeMode="cover" />
           <LinearGradient colors={['rgba(14,5,1,0.42)', 'rgba(80,35,0,0.88)']} style={StyleSheet.absoluteFillObject} />
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <Text style={{ fontSize: 28 }}>🗺️</Text>
@@ -384,9 +376,12 @@ export const HomeScreen = () => {
             {PREV_FAIRS.map(f => (
               <TouchableOpacity key={f.key} style={s.feriaCard} onPress={() => nav.navigate('FeriaAnterior' as any, { fairKey: f.key })} activeOpacity={0.85}>
                 <LinearGradient colors={[f.c1, f.c2]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={s.feriaGrad}>
-                  <Text style={s.feriaCity}>{f.city}</Text>
-                  <Text style={s.feriaYear}>{f.year}</Text>
-                  <Text style={s.feriaArrow}>→ {t('home.ver_detalle', 'Ver detalle')}</Text>
+                  <Image source={require('../../../assets/logo-feria-icon.png')} style={s.feriaLogo} resizeMode="contain" tintColor="rgba(255,255,255,0.78)" />
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={s.feriaCity}>{f.city}</Text>
+                    <Text style={s.feriaYear}>{f.year}</Text>
+                    <Text style={s.feriaArrow}>→ {t('home.ver_detalle', 'Ver detalle')}</Text>
+                  </View>
                 </LinearGradient>
               </TouchableOpacity>
             ))}
@@ -412,6 +407,11 @@ export const HomeScreen = () => {
           })}
         </View>
 
+        {/* ── Salir ───────────────────────────────────────────────────────── */}
+        <TouchableOpacity onPress={logout} style={s.salirBtnBottom} activeOpacity={0.8}>
+          <Text style={s.salirText}>{t('home.logout', 'SALIR')} →</Text>
+        </TouchableOpacity>
+
       </Animated.ScrollView>
     </SafeAreaView>
   );
@@ -428,16 +428,16 @@ const s = StyleSheet.create({
   bgPlants: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: 0.10 },
 
   // Hero banner
-  heroBanner:     { borderRadius: 24, overflow: 'hidden', marginBottom: 16, padding: 20, paddingBottom: 22, borderWidth: 1.5, borderColor: T.borderMed, backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 4 },
-  heroTop:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  heroLogoArea:   { alignItems: 'center', gap: 4 },
-  heroLogoGrad:   { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  heroLogoImg:    { width: 30, height: 30 },
-  heroChaparral:  { fontSize: 8, fontWeight: '900', color: T.amberDark, letterSpacing: 1.5, textTransform: 'uppercase' },
-  heroWelcome:    { fontSize: 13, fontWeight: '600', color: T.coffee, letterSpacing: 1.5, fontStyle: 'italic', marginBottom: 3 },
-  heroTitle:      { fontSize: 30, fontWeight: '900', color: T.dark, letterSpacing: 0.3, lineHeight: 34, marginBottom: 4 },
-  heroDeColombia: { fontSize: 14, fontWeight: '600', color: T.coffee, letterSpacing: 2.5, fontStyle: 'italic' },
+  heroBanner:     { borderRadius: 24, overflow: 'hidden', marginBottom: 16, padding: 22, paddingBottom: 26, borderWidth: 1.5, borderColor: T.borderMed, backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.14, shadowRadius: 14, elevation: 6, alignItems: 'center' },
+  heroLogoCenter: { alignItems: 'center', marginBottom: 16 },
+  heroLogoGrad:   { width: 80, height: 90, borderRadius: 22, alignItems: 'center', justifyContent: 'center', gap: 2, paddingTop: 12, paddingBottom: 10 },
+  heroLogoImg:    { width: 40, height: 40 },
+  heroChaparral:  { fontSize: 7, fontWeight: '900', color: '#FFF8E0', letterSpacing: 1.2, textTransform: 'uppercase', textAlign: 'center', marginTop: 4 },
+  heroWelcome:    { fontSize: 13, fontWeight: '600', color: T.coffee, letterSpacing: 1.5, fontStyle: 'italic', textAlign: 'center', marginBottom: 4 },
+  heroTitle:      { fontSize: 30, fontWeight: '900', color: T.dark, letterSpacing: 0.3, lineHeight: 34, marginBottom: 4, textAlign: 'center' },
+  heroDeColombia: { fontSize: 14, fontWeight: '600', color: T.coffee, letterSpacing: 2.5, fontStyle: 'italic', textAlign: 'center' },
   salirBtn:       { backgroundColor: T.coffeeDark, borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
+  salirBtnBottom: { alignSelf: 'center', backgroundColor: T.coffeeDark, borderRadius: 24, paddingHorizontal: 40, paddingVertical: 13, marginTop: 10, marginBottom: 6 },
   salirText:      { color: '#FFF', fontWeight: '900', fontSize: 11, letterSpacing: 1 },
 
   // Happy hour
@@ -445,15 +445,13 @@ const s = StyleSheet.create({
   hhText:   { color: T.dark, fontWeight: '900', fontSize: 13, letterSpacing: 1 },
 
   // Stats scroll
-  statsScroll:    { borderRadius: 16, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: T.parchDark, shadowColor: T.dark, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 6, elevation: 3 },
-  scrollCurlTop:  { height: 6, backgroundColor: T.parchDark, borderTopLeftRadius: 16, borderTopRightRadius: 16, opacity: 0.5 },
-  scrollCurlBot:  { height: 6, backgroundColor: T.parchDark, borderBottomLeftRadius: 16, borderBottomRightRadius: 16, opacity: 0.5 },
-  statsRow:       { flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 8 },
-  statItem:       { flex: 1, alignItems: 'center', gap: 2 },
-  statIcon:       { fontSize: 20, marginBottom: 2 },
-  statNum:        { fontSize: 22, fontWeight: '900', color: T.dark },
-  statLbl:        { fontSize: 7, color: T.muted, textTransform: 'uppercase', textAlign: 'center', letterSpacing: 0.5, fontWeight: '700' },
-  statDiv:        { width: 1, backgroundColor: T.parchDark, marginVertical: 4 },
+  statsScroll:    { borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 1.5, borderColor: T.borderMed, shadowColor: T.dark, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.12, shadowRadius: 10, elevation: 5 },
+  statsRow:       { flexDirection: 'row', paddingVertical: 18, paddingHorizontal: 8 },
+  statItem:       { flex: 1, alignItems: 'center', gap: 3 },
+  statIcon:       { fontSize: 18, marginBottom: 2 },
+  statNum:        { fontSize: 24, fontWeight: '900', color: T.amberDark },
+  statLbl:        { fontSize: 7, color: T.muted, textTransform: 'uppercase', textAlign: 'center', letterSpacing: 0.8, fontWeight: '700' },
+  statDiv:        { width: 1, backgroundColor: T.borderMed, marginVertical: 8 },
 
   // Level card
   levelCard:     { borderRadius: 20, borderWidth: 2, borderColor: T.borderMed, padding: 16, marginBottom: 16, overflow: 'hidden', backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.12, shadowRadius: 10, elevation: 5 },
@@ -543,10 +541,11 @@ const s = StyleSheet.create({
   feriasScroll: { marginBottom: 20 },
   feriasInner:  { flexDirection: 'row', gap: 10, paddingRight: 4 },
   feriaCard:    { width: 128, borderRadius: 16, overflow: 'hidden', shadowColor: '#0D0500', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.35, shadowRadius: 12, elevation: 6 },
-  feriaGrad:    { padding: 14, height: 148, justifyContent: 'flex-end' },
-  feriaCity:    { fontSize: 20, fontWeight: '900', color: '#FFF', letterSpacing: 0.2 },
-  feriaYear:    { fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: '700', marginBottom: 12 },
-  feriaArrow:   { fontSize: 9, color: 'rgba(255,255,255,0.9)', fontWeight: '900', letterSpacing: 0.5, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.22)', paddingTop: 8 },
+  feriaGrad:    { padding: 14, height: 148, justifyContent: 'space-between', alignItems: 'center' },
+  feriaLogo:    { width: 38, height: 38 },
+  feriaCity:    { fontSize: 18, fontWeight: '900', color: '#FFF', letterSpacing: 0.2, textAlign: 'center' },
+  feriaYear:    { fontSize: 12, color: 'rgba(255,255,255,0.75)', fontWeight: '700', marginBottom: 6, textAlign: 'center' },
+  feriaArrow:   { fontSize: 9, color: 'rgba(255,255,255,0.9)', fontWeight: '900', letterSpacing: 0.5, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.22)', paddingTop: 7, textAlign: 'center', width: '100%' },
 
   // Passport levels
   nivelRow:    { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: 12, borderWidth: 1, borderColor: T.border, marginBottom: 8, backgroundColor: T.card },
