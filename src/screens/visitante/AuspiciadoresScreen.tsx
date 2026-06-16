@@ -1,3 +1,4 @@
+import CopyrightFooter from '../../components/CopyrightFooter';
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -223,6 +224,7 @@ export default function AuspiciadoresScreen() {
           <Text style={s.footerTitle}>{t('aliados.footer_title', '🌿 JUNTOS POR EL CAFÉ DEL TOLIMA')}</Text>
           <Text style={s.footerText}>{t('aliados.footer_text', 'La Feria Internacional del Café de Chaparral 2026 es posible gracias a la unión de entidades públicas y privadas comprometidas con el desarrollo sostenible de la caficultura tolimense.')}</Text>
         </View>
+        <CopyrightFooter />
       </ScrollView>
     </SafeAreaView>
   );

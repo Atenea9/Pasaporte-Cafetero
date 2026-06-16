@@ -1,3 +1,4 @@
+import CopyrightFooter from '../../components/CopyrightFooter';
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,

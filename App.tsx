@@ -62,10 +62,6 @@ export default function App() {
           <NavigationContainer linking={linking}>
             <RootNavigator />
           </NavigationContainer>
-          {/* Copyright footer — visible en todas las pantallas */}
-          <View style={appStyles.copyright}>
-            <Text style={appStyles.copyrightText}>© APEX 2026 · TODOS LOS DERECHOS RESERVADOS</Text>
-          </View>
         </View>
       </AuthProvider>
     </AppProvider>
@@ -73,7 +69,5 @@ export default function App() {
 }
 
 const appStyles = StyleSheet.create({
-  root:          { flex: 1 },
-  copyright:     { backgroundColor: '#2C1A0E', paddingVertical: 5, alignItems: 'center', justifyContent: 'center' },
-  copyrightText: { color: '#C8960C', fontSize: 9, fontWeight: '800', letterSpacing: 2 } as any,
+  root: { flex: 1 },
 });

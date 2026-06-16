@@ -1,3 +1,4 @@
+import CopyrightFooter from '../../components/CopyrightFooter';
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -91,6 +92,7 @@ export default function AgendaScreen() {
             {eventos.filter(e => e.tipo === 'subasta').length > 0 ? ' · 🔴 Incluye subasta en vivo' : ''}
           </Text>
         </View>
+        <CopyrightFooter />
       </ScrollView>
     </SafeAreaView>
   );

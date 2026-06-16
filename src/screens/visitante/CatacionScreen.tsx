@@ -1,3 +1,4 @@
+import CopyrightFooter from '../../components/CopyrightFooter';
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -309,7 +310,7 @@ export default function CatacionScreen() {
             </TouchableOpacity>
           );
         })}
-        <View style={{height: 40}} />
+        <CopyrightFooter />
       </ScrollView>
     </SafeAreaView>
   );

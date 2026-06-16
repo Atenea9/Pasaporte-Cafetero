@@ -1,3 +1,4 @@
+import CopyrightFooter from '../../components/CopyrightFooter';
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
@@ -540,6 +541,7 @@ export const PasaporteScreen = () => {
           </PassportPage>
         )}
 
+        <CopyrightFooter />
       </ScrollView>
     </SafeAreaView>
   );

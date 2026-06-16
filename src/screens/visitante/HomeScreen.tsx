@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking,
 } from 'react-native';
+import CopyrightFooter from '../../components/CopyrightFooter';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, G, Circle, Ellipse } from 'react-native-svg';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -178,17 +179,17 @@ export const HomeScreen = () => {
   ];
 
   const TILES = [
-    { icon: '🗺️', label: t('home.fair_map', 'Mapa'),         sub: t('home.fair_map_sub', 'Stands'),   screen: 'MapaFeria'     as const, img: require('../../../assets/tile-jungle.png') },
-    { icon: '📅', label: t('home.agenda', 'Agenda'),          sub: t('home.agenda_sub', '3 días'),     screen: 'Agenda'        as const, img: require('../../../assets/tile-toucan.png') },
-    { icon: '🏛️', label: t('home.aliados', 'Aliados'),       sub: t('home.sponsors_sub', 'Tolima'),   screen: 'Auspiciadores' as const, img: require('../../../assets/tile-barranquero.png') },
-    { icon: '🏅', label: t('nav.ranking', 'Ranking'),          sub: t('home.ranking_nav_sub', 'Tabla'),screen: 'Ranking'       as const, img: require('../../../assets/tile-ocelot.png') },
+    { icon: '🗺️', label: t('home.fair_map', 'Mapa'),         sub: t('home.fair_map_sub', 'Stands'),   screen: 'MapaFeria'     as const, img: require('../../../assets/tile-jungle.jpg') },
+    { icon: '📅', label: t('home.agenda', 'Agenda'),          sub: t('home.agenda_sub', '3 días'),     screen: 'Agenda'        as const, img: require('../../../assets/tile-toucan.jpg') },
+    { icon: '🏛️', label: t('home.aliados', 'Aliados'),       sub: t('home.sponsors_sub', 'Tolima'),   screen: 'Auspiciadores' as const, img: require('../../../assets/tile-barranquero.jpg') },
+    { icon: '🏅', label: t('nav.ranking', 'Ranking'),          sub: t('home.ranking_nav_sub', 'Tabla'),screen: 'Ranking'       as const, img: require('../../../assets/tile-ocelot.jpg') },
   ];
 
   const PROGRAM_TILES = [
-    { icon: '👔', label: t('home.expositores_tile', 'Expositores'),            sub: t('home.expositores_tile_sub', '5 categorías'),         screen: 'Expositores'     as const, img: require('../../../assets/tile-tapir.png') },
-    { icon: '☕', label: t('home.catacion_tile', 'Catación'),                  sub: t('home.catacion_tile_sub', 'Permanente'),              screen: 'Catacion'        as const, img: require('../../../assets/tile-redbird.png') },
-    { icon: '🏆', label: t('home.premiaciones_tile', 'Premiaciones'),         sub: t('home.premiaciones_tile_sub', 'Microlotes · Barismo'),screen: 'Premiaciones'    as const, img: require('../../../assets/tile-bear.png') },
-    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'), sub: t('home.agenda_academica_tile_sub', 'Talleres'),         screen: 'AgendaAcademica' as const, img: require('../../../assets/tile-deer.png') },
+    { icon: '👔', label: t('home.expositores_tile', 'Expositores'),            sub: t('home.expositores_tile_sub', '5 categorías'),         screen: 'Expositores'     as const, img: require('../../../assets/tile-tapir.jpg') },
+    { icon: '☕', label: t('home.catacion_tile', 'Catación'),                  sub: t('home.catacion_tile_sub', 'Permanente'),              screen: 'Catacion'        as const, img: require('../../../assets/tile-redbird.jpg') },
+    { icon: '🏆', label: t('home.premiaciones_tile', 'Premiaciones'),         sub: t('home.premiaciones_tile_sub', 'Microlotes · Barismo'),screen: 'Premiaciones'    as const, img: require('../../../assets/tile-bear.jpg') },
+    { icon: '📚', label: t('home.agenda_academica_tile', 'Agenda Académica'), sub: t('home.agenda_academica_tile_sub', 'Talleres'),         screen: 'AgendaAcademica' as const, img: require('../../../assets/tile-deer.jpg') },
   ];
 
   return (
@@ -421,7 +422,7 @@ export const HomeScreen = () => {
           onPress={() => Linking.openURL('https://www.chaparral-tolima.gov.co/MiMunicipio/Paginas/Turismo.aspx')}
           activeOpacity={0.82}
         >
-          <Image source={require('../../../assets/tile-snake.png')} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 16 }} resizeMode="cover" />
+          <Image source={require('../../../assets/tile-snake.jpg')} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 16 }} resizeMode="cover" />
           <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.44)']} style={StyleSheet.absoluteFillObject} />
           <View>
             <Text style={s.turismoTitle}>{t('home.turismo_tile', 'TURISMO')}</Text>
@@ -494,6 +495,7 @@ export const HomeScreen = () => {
           <Text style={s.salirText}>{t('home.logout', 'SALIR')} →</Text>
         </TouchableOpacity>
 
+        <CopyrightFooter />
       </Animated.ScrollView>
     </SafeAreaView>
   );
@@ -613,8 +615,8 @@ const s = StyleSheet.create({
   // Explore tiles
   tileGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   tile:        { width: (width - 46) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: '#1A0800', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.38, shadowRadius: 14, elevation: 8 },
-  tileGrad:    { height: 138, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 16, position: 'relative', backgroundColor: '#1A0E06' },
-  tileImg:     { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  tileGrad:    { height: 148, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 16, position: 'relative', backgroundColor: '#1A0E06' },
+  tileImg:     { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
   tileOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 16 },
   tileCnt:     { padding: 10, zIndex: 2, alignItems: 'center' },
   tileLbl:     { fontSize: 15, fontWeight: '900', color: '#FFF', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
