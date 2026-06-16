@@ -117,6 +117,7 @@ function appReducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         ...restored,
+        stands: STANDS,                                 // siempre usar datos frescos de mockData
         usuario: restored.usuario ?? state.usuario,
         catalogoProductos: restored.catalogoProductos ?? [],
       };

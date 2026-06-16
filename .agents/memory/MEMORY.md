@@ -7,3 +7,6 @@
 - [tintColor must be a prop not style](tintcolor-prop.md) — On RN web, tintColor inside StyleSheet makes images solid white; always pass as JSX prop.
 - [Horizontal ScrollView web height](hscrollview-web.md) — Horizontal ScrollViews collapse to 0 height on RN web without explicit minHeight + flexShrink:0.
 - [Visitor Home new sections pattern](visitor-home-sections.md) — 6 new screens added (Expositores, Catacion, Premiaciones, AgendaAcademica, Aliados, Tourism link); PROGRAM_TILES + turismoBanner added to HomeScreen; all 7 locale files updated.
+- [Tile image absoluteFillObject](tile-image-fill.md) — On RN web, absolute-positioned tile images need top/left/right/bottom:0 (not percentage strings); add dark backgroundColor to container for instant load.
+- [AppContext stands always fresh](appcontext-stands.md) — RESTORE_STATE must override stands with fresh STANDS import; never restore stands from AsyncStorage cache.
+- [Copyright footer in App.tsx](copyright-footer.md) — Global copyright bar placed as sibling of NavigationContainer inside a flex:1 View wrapper in App.tsx — appears on every screen.

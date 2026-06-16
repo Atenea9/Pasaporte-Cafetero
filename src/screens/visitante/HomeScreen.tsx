@@ -166,10 +166,12 @@ export const HomeScreen = () => {
     .sort((a: any, b: any) => (b.ventas ?? 0) - (a.ventas ?? 0))
     .slice(0, 4);
 
-  const activeStandsCount = state.stands?.filter((s: any) => s.activo !== false).length ?? globalStats.activeStands;
+  const activeStandsCount = (state.stands ?? []).filter((s: any) => s.activo !== false).length;
+  // Visitantes en vivo: total de ventas de todos los stands (representa tráfico real de la feria)
+  const visitorCount = (state.stands ?? []).reduce((sum: number, s: any) => sum + (s.ventas ?? 0), 0);
 
   const STAT_ITEMS = [
-    { icon: '👥', val: globalStats.visitorCount,  lbl: t('home.visitors_label', 'VISITANTES') },
+    { icon: '👥', val: visitorCount,              lbl: t('home.visitors_label', 'VISITANTES') },
     { icon: '🏪', val: activeStandsCount,          lbl: t('home.stands_label', 'STANDS ACTIVOS') },
     { icon: '🪙', val: puntos,                     lbl: t('home.pts_label',       'PUNTOS') },
     { icon: '✅', val: stampsCount,                lbl: t('home.stamps_label',    'SELLOS') },
@@ -420,7 +422,7 @@ export const HomeScreen = () => {
           activeOpacity={0.82}
         >
           <Image source={require('../../../assets/tile-snake.png')} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 16 }} resizeMode="cover" />
-          <LinearGradient colors={['rgba(14,5,1,0.18)', 'rgba(60,22,0,0.72)']} style={StyleSheet.absoluteFillObject} />
+          <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.44)']} style={StyleSheet.absoluteFillObject} />
           <View>
             <Text style={s.turismoTitle}>{t('home.turismo_tile', 'TURISMO')}</Text>
             <Text style={s.turismoSub}>Chaparral, Tolima</Text>
@@ -611,8 +613,8 @@ const s = StyleSheet.create({
   // Explore tiles
   tileGrid:    { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   tile:        { width: (width - 46) / 2, borderRadius: 16, overflow: 'hidden', shadowColor: '#1A0800', shadowOffset: { width: 0, height: 5 }, shadowOpacity: 0.38, shadowRadius: 14, elevation: 8 },
-  tileGrad:    { height: 138, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 16, position: 'relative' },
-  tileImg:     { position: 'absolute', top: '-5%', left: '-5%', width: '110%', height: '110%' },
+  tileGrad:    { height: 138, justifyContent: 'flex-end', overflow: 'hidden', borderRadius: 16, position: 'relative', backgroundColor: '#1A0E06' },
+  tileImg:     { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   tileOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 16 },
   tileCnt:     { padding: 10, zIndex: 2, alignItems: 'center' },
   tileLbl:     { fontSize: 15, fontWeight: '900', color: '#FFF', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
