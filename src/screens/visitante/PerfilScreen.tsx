@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, Platform,
-  SafeAreaView, StatusBar, ScrollView, Alert,
+  SafeAreaView, StatusBar, ScrollView, Alert, Modal, Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -41,6 +41,8 @@ export default function PerfilScreen() {
   const { t } = useTranslation();
   const nav = useNavigation();
   const { state, dispatch } = useApp();
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   const usuario      = state.usuario;
   const puntos       = usuario?.puntos ?? 0;
@@ -192,17 +194,9 @@ export default function PerfilScreen() {
       ctx.fillText('Tolima Corazón Cafetero de Colombia', W / 2, 1858);
       ctx.fillText('www.feriacafechaparral.gov.co', W / 2, 1898);
 
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pasaporte-cafetero-${displayName.replace(/\s+/g, '-').toLowerCase()}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
-      }, 'image/png');
+      const dataUrl = canvas.toDataURL('image/png');
+      setPreviewUri(dataUrl);
+      setShowPreview(true);
     };
 
     if (usuario?.fotoPerfil) {
@@ -417,6 +411,87 @@ body { background: linear-gradient(160deg,#F7EECE 0%,#EDD89E 50%,#D4BA6E 100%);
         </View>
 
       </ScrollView>
+
+      {/* ── Image preview modal ────────────────────────────────────────────── */}
+      <Modal
+        visible={showPreview}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPreview(false)}
+      >
+        <View style={s.modalOverlay}>
+          <View style={s.modalCard}>
+            <LinearGradient colors={['#2C1006', '#5C2E12']} style={StyleSheet.absoluteFill} />
+
+            <Text style={s.modalTitle}>✦ VISTA PREVIA ✦</Text>
+            <Text style={s.modalSub}>Tu pasaporte cafetero</Text>
+
+            {/* Preview image */}
+            {previewUri && (
+              <View style={s.previewWrap}>
+                <Image source={{ uri: previewUri }} style={s.previewImg} resizeMode="contain" />
+              </View>
+            )}
+
+            {/* Download button */}
+            <TouchableOpacity
+              style={s.modalDownloadBtn}
+              activeOpacity={0.82}
+              onPress={() => {
+                if (!previewUri) return;
+                const a = document.createElement('a');
+                a.href = previewUri;
+                a.download = `pasaporte-cafetero-${displayName.replace(/\s+/g, '-').toLowerCase()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }}
+            >
+              <LinearGradient colors={['#E8C030', '#C8960C', '#9B7010']} style={StyleSheet.absoluteFill} />
+              <Text style={s.modalDownloadIco}>⬇</Text>
+              <Text style={s.modalDownloadTxt}>Descargar PNG</Text>
+            </TouchableOpacity>
+
+            {/* Share label */}
+            <Text style={s.shareLbl}>COMPARTIR EN REDES</Text>
+
+            {/* Social buttons row */}
+            <View style={s.socialRow}>
+              {[
+                { label: '📲 WhatsApp', color: '#25D366', bg: '#1A9E4A',
+                  url: `https://api.whatsapp.com/send?text=¡Mira mi Pasaporte Cafetero de la Feria Internacional del Café Chaparral 2026! ${encodeURIComponent(`${displayName} · ${puntos} puntos · ${stampsCount} sellos`)}` },
+                { label: '🐦 X / Twitter', color: '#1DA1F2', bg: '#0C7ABF',
+                  url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(`¡Obtuve mi Pasaporte Cafetero en la #FeriaDelCafé Chaparral 2026! ${puntos} puntos · ${stampsCount} sellos ☕`)}` },
+                { label: '📘 Facebook', color: '#1877F2', bg: '#0C5BC4',
+                  url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://feriacafechaparral.gov.co')}&quote=${encodeURIComponent(`¡Mira mi Pasaporte Cafetero! ${displayName} · ${puntos} puntos`)}` },
+                { label: '📸 Instagram', color: '#E1306C', bg: '#C13584',
+                  url: null },
+              ].map((net, i) => (
+                <TouchableOpacity
+                  key={i}
+                  style={[s.socialBtn, { backgroundColor: net.bg }]}
+                  activeOpacity={0.82}
+                  onPress={() => {
+                    if (net.url) {
+                      Linking.openURL(net.url);
+                    } else {
+                      Alert.alert('Instagram', 'Descarga la imagen y compártela directamente en Instagram.');
+                    }
+                  }}
+                >
+                  <Text style={s.socialBtnTxt}>{net.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Close */}
+            <TouchableOpacity style={s.modalClose} onPress={() => setShowPreview(false)} activeOpacity={0.7}>
+              <Text style={s.modalCloseTxt}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -464,4 +539,20 @@ const s = StyleSheet.create({
   dlBtnIco:{ fontSize: 24 },
   dlBtnTxt:{ fontSize: 13, fontWeight: '900', color: '#3A1C08', letterSpacing: 0.5 },
   dlBtnSub:{ fontSize: 8,  color: 'rgba(58,28,8,0.65)', letterSpacing: 0.5 },
+
+  modalOverlay:     { flex: 1, backgroundColor: 'rgba(0,0,0,0.82)', justifyContent: 'center', alignItems: 'center', padding: 16 },
+  modalCard:        { width: '100%', maxWidth: 400, borderRadius: 24, overflow: 'hidden', padding: 22, alignItems: 'center', borderWidth: 1.5, borderColor: '#6A4A18' },
+  modalTitle:       { fontSize: 13, fontWeight: '900', color: '#E8C030', letterSpacing: 2.5, marginBottom: 3, textAlign: 'center' },
+  modalSub:         { fontSize: 11, color: 'rgba(255,240,200,0.6)', marginBottom: 14, letterSpacing: 0.5 },
+  previewWrap:      { width: '100%', aspectRatio: 9 / 16, borderRadius: 12, overflow: 'hidden', marginBottom: 14, borderWidth: 1, borderColor: '#6A4A18' },
+  previewImg:       { width: '100%', height: '100%' },
+  modalDownloadBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, borderRadius: 16, overflow: 'hidden', paddingVertical: 12, paddingHorizontal: 28, marginBottom: 18 },
+  modalDownloadIco: { fontSize: 16, color: '#3A1C08' },
+  modalDownloadTxt: { fontSize: 13, fontWeight: '900', color: '#3A1C08', letterSpacing: 0.5 },
+  shareLbl:         { fontSize: 8, fontWeight: '900', color: 'rgba(255,240,200,0.45)', letterSpacing: 2.5, marginBottom: 10 },
+  socialRow:        { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginBottom: 18 },
+  socialBtn:        { borderRadius: 14, paddingVertical: 10, paddingHorizontal: 14 },
+  socialBtnTxt:     { fontSize: 12, fontWeight: '700', color: '#FFF', letterSpacing: 0.3 },
+  modalClose:       { paddingVertical: 10, paddingHorizontal: 28, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  modalCloseTxt:    { fontSize: 12, color: 'rgba(255,255,255,0.55)', letterSpacing: 1 },
 } as any);

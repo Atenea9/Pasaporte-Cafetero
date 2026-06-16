@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking,
+  Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking, Platform,
 } from 'react-native';
 import CopyrightFooter from '../../components/CopyrightFooter';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -505,7 +505,7 @@ export default HomeScreen;
 
 // ─── Styles ──────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: T.bg },
+  safe:   { flex: 1, backgroundColor: T.bg, ...(Platform.OS === 'web' ? { overflow: 'hidden' } as any : {}) },
   scroll: { padding: 18, paddingTop: 14, paddingBottom: 44 },
 
   // Background coffee plants

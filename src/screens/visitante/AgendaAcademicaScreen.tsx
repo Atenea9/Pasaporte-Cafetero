@@ -175,7 +175,7 @@ export default function AgendaAcademicaScreen() {
         </View>
       )}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
         <Text style={s.resultsLabel}>{list.length} {t('agenda_academica.sessions', 'sesiones académicas')}</Text>
 
         {list.map(taller => {

@@ -326,6 +326,7 @@ export const LoginScreen = () => {
           <View style={s.footerLine} />
           <Text style={s.footerTxt}>© 2026 Gobernación del Tolima</Text>
           <Text style={s.footerSub}>Comité de Cafeteros del Tolima · Alcaldía de Chaparral</Text>
+          <Text style={s.footerApex}>©APEX 2026</Text>
         </View>
 
       </ScrollView>
@@ -535,8 +536,9 @@ const s = StyleSheet.create({
   adminTriggerTxt:{ color: C.muted, fontSize: 10, fontWeight: '700', letterSpacing: 2 },
 
   // Footer
-  footer:    { alignItems: 'center', gap: 5, marginTop: 8 },
-  footerLine:{ width: 40, height: 1, backgroundColor: C.border, opacity: 0.5, marginBottom: 4 },
-  footerTxt: { fontSize: 11, color: C.muted, opacity: 0.85 },
-  footerSub: { fontSize: 9, color: C.muted, opacity: 0.55, textAlign: 'center' },
+  footer:     { alignItems: 'center', gap: 5, marginTop: 8 },
+  footerLine: { width: 40, height: 1, backgroundColor: C.border, opacity: 0.5, marginBottom: 4 },
+  footerTxt:  { fontSize: 11, color: C.muted, opacity: 0.85 },
+  footerSub:  { fontSize: 9, color: C.muted, opacity: 0.55, textAlign: 'center' },
+  footerApex: { fontSize: 9, color: C.muted, opacity: 0.4, letterSpacing: 1.5, fontWeight: '600', marginTop: 4 },
 });

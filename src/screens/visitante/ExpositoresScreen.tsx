@@ -163,7 +163,7 @@ export default function ExpositoresScreen() {
       </View>
 
       {/* ── List ───────────────────────────────────────────────────────────── */}
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
         {list.length === 0 ? (
           <View style={s.emptyState}>
             <Text style={s.emptyIcon}>{showFavs ? '🤍' : '🔍'}</Text>

@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, Animated,
+  SafeAreaView, StatusBar,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -144,12 +144,6 @@ export default function PremiacionesScreen() {
   const [expandedCat, setExpandedCat] = useState<string | null>('microlotes');
   const [expandedSub, setExpandedSub] = useState<string | null>(null);
 
-  // Scroll animation for hero text
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const heroTranslate = scrollY.interpolate({ inputRange: [0, 80], outputRange: [0, -18], extrapolate: 'clamp' });
-  const heroScale     = scrollY.interpolate({ inputRange: [0, 80], outputRange: [1, 0.94], extrapolate: 'clamp' });
-  const heroOpacity   = scrollY.interpolate({ inputRange: [0, 60], outputRange: [1, 0.7],  extrapolate: 'clamp' });
-
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="light-content" backgroundColor={T.bg} />
@@ -170,37 +164,36 @@ export default function PremiacionesScreen() {
         </View>
       </LinearGradient>
 
-      {/* ── Hero ceremony banner ───────────────────────────────────────────── */}
-      <LinearGradient colors={['#5C3800','#8B6308','#C8960C','#E8C030','#C8960C','#8B6308']} start={{x:0,y:0}} end={{x:1,y:0}} style={s.hero}>
-        <Animated.View style={[s.heroInner, { transform: [{ translateY: heroTranslate }, { scale: heroScale }], opacity: heroOpacity }]}>
-          <Text style={s.heroEyebrow}>✦ CEREMONIA OFICIAL ✦</Text>
-          <Text style={s.heroTitle}>RECONOCIMIENTO{'\n'}A LA EXCELENCIA</Text>
-          <View style={s.heroDivider} />
-          <View style={s.heroCeremony}>
-            <View style={s.heroCeremonyItem}>
-              <Text style={s.heroCeremonyLabel}>FECHA</Text>
-              <Text style={s.heroCeremonyVal}>16 AGO 2026</Text>
-            </View>
-            <View style={s.heroCeremonyDot} />
-            <View style={s.heroCeremonyItem}>
-              <Text style={s.heroCeremonyLabel}>HORA</Text>
-              <Text style={s.heroCeremonyVal}>5:00 PM</Text>
-            </View>
-            <View style={s.heroCeremonyDot} />
-            <View style={s.heroCeremonyItem}>
-              <Text style={s.heroCeremonyLabel}>LUGAR</Text>
-              <Text style={s.heroCeremonyVal}>Escenario Principal</Text>
-            </View>
-          </View>
-        </Animated.View>
-      </LinearGradient>
-
-      <Animated.ScrollView
+      <ScrollView
+        style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.scroll}
-        scrollEventThrottle={16}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
       >
+        {/* ── Hero ceremony banner (scrolls with content) ─────────────────── */}
+        <LinearGradient colors={['#5C3800','#8B6308','#C8960C','#E8C030','#C8960C','#8B6308']} start={{x:0,y:0}} end={{x:1,y:0}} style={s.hero}>
+          <View style={s.heroInner}>
+            <Text style={s.heroEyebrow}>✦ CEREMONIA OFICIAL ✦</Text>
+            <Text style={s.heroTitle}>RECONOCIMIENTO{'\n'}A LA EXCELENCIA</Text>
+            <View style={s.heroDivider} />
+            <View style={s.heroCeremony}>
+              <View style={s.heroCeremonyItem}>
+                <Text style={s.heroCeremonyLabel}>FECHA</Text>
+                <Text style={s.heroCeremonyVal}>16 AGO 2026</Text>
+              </View>
+              <View style={s.heroCeremonyDot} />
+              <View style={s.heroCeremonyItem}>
+                <Text style={s.heroCeremonyLabel}>HORA</Text>
+                <Text style={s.heroCeremonyVal}>5:00 PM</Text>
+              </View>
+              <View style={s.heroCeremonyDot} />
+              <View style={s.heroCeremonyItem}>
+                <Text style={s.heroCeremonyLabel}>LUGAR</Text>
+                <Text style={s.heroCeremonyVal}>Escenario Principal</Text>
+              </View>
+            </View>
+          </View>
+        </LinearGradient>
+
 
         {/* ── Stats strip ────────────────────────────────────────────────── */}
         <View style={s.statsStrip}>
@@ -335,7 +328,7 @@ export default function PremiacionesScreen() {
         </LinearGradient>
 
         <CopyrightFooter />
-      </Animated.ScrollView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
