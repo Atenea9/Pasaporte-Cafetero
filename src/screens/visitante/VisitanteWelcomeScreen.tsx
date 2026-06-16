@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
-  SafeAreaView, StatusBar,
+  SafeAreaView, StatusBar, Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -76,12 +76,14 @@ export default function VisitanteWelcomeScreen() {
           {/* Login */}
           <TouchableOpacity style={s.optCard} onPress={() => nav.navigate('Login')} activeOpacity={0.85}>
             <LinearGradient colors={[T.coffeeDark, T.coffee]} style={s.optGrad}>
-              <View style={s.optIcon}>
-                <Text style={s.optEmoji}>🪪</Text>
-              </View>
+              <Image
+                source={require('../../../assets/animal-visitante.png')}
+                style={s.optBtnImg}
+                resizeMode="contain"
+              />
               <View style={s.optText}>
-                <Text style={s.optTitle}>{t('welcomeScreen.have_passport', 'Ya tengo pasaporte')}</Text>
-                <Text style={s.optSub}>{t('welcomeScreen.login_sub', 'Ingresa con tu cédula o teléfono')}</Text>
+                <Text style={s.optTitle}>{t('welcomeScreen.have_passport', 'YA TENGO PASAPORTE')}</Text>
+                <Text style={s.optSub}>{t('welcomeScreen.login_sub', 'INGRESA CON TU CÉDULA O TELÉFONO')}</Text>
               </View>
               <Text style={s.optArrow}>›</Text>
             </LinearGradient>
@@ -90,12 +92,14 @@ export default function VisitanteWelcomeScreen() {
           {/* Register */}
           <TouchableOpacity style={s.optCardOutline} onPress={() => nav.navigate('Registro')} activeOpacity={0.85}>
             <View style={s.optGradOutline}>
-              <View style={[s.optIcon, s.optIconOutline]}>
-                <Text style={s.optEmoji}>📝</Text>
-              </View>
+              <Image
+                source={require('../../../assets/bear-mascot.png')}
+                style={s.optBtnImg}
+                resizeMode="contain"
+              />
               <View style={s.optText}>
-                <Text style={[s.optTitle, { color: T.dark }]}>{t('welcomeScreen.create_passport', 'Crear mi pasaporte')}</Text>
-                <Text style={[s.optSub, { color: T.muted }]}>{t('welcomeScreen.register_sub', 'Regístrate gratis en 30 segundos')}</Text>
+                <Text style={[s.optTitle, { color: T.dark }]}>{t('welcomeScreen.create_passport', 'CREAR MI PASAPORTE')}</Text>
+                <Text style={[s.optSub, { color: T.muted }]}>{t('welcomeScreen.register_sub', 'REGÍSTRATE GRATIS EN 30 SEGUNDOS')}</Text>
               </View>
               <Text style={[s.optArrow, { color: T.amber }]}>›</Text>
             </View>
@@ -146,12 +150,10 @@ const s = StyleSheet.create({
   optCardOutline:   { borderRadius: 18, borderWidth: 1.5, borderColor: T.border, marginBottom: 14, backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
   optGrad:          { flexDirection: 'row', alignItems: 'center', padding: 18, gap: 14 },
   optGradOutline:   { flexDirection: 'row', alignItems: 'center', padding: 18, gap: 14 },
-  optIcon:          { width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center' },
-  optIconOutline:   { backgroundColor: T.amberPale },
-  optEmoji:         { fontSize: 26 },
+  optBtnImg:        { width: 64, height: 64 },
   optText:          { flex: 1 },
-  optTitle:         { fontSize: 16, fontWeight: '900', color: '#FFF', marginBottom: 3 },
-  optSub:           { fontSize: 12, color: 'rgba(255,255,255,0.8)' },
+  optTitle:         { fontSize: 18, fontWeight: '900', color: '#FFF', marginBottom: 4, letterSpacing: 0.5 },
+  optSub:           { fontSize: 13, color: 'rgba(255,255,255,0.82)', letterSpacing: 0.3 },
   optArrow:         { fontSize: 30, color: 'rgba(255,255,255,0.7)', fontWeight: '300' },
 
   benefitsBox:      { backgroundColor: T.card, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: T.border },

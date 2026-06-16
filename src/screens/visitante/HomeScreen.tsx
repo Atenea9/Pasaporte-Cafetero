@@ -4,13 +4,14 @@ import {
   Animated, Dimensions, SafeAreaView, StatusBar, Image, Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Path, G, Circle, Ellipse } from 'react-native-svg';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import QRCode from 'react-native-qrcode-svg';
 import { useAuth } from '../../contexts/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { mockDbService } from '../../services/mockDb.service';
-import { NIVELES, getTopStands, getNivelActual, getNivelSiguiente } from '../../data/mockData';
+import { NIVELES, getNivelActual, getNivelSiguiente } from '../../data/mockData';
 import type { VisitanteNavProp } from '../../navigation/types';
 
 // ─── Theme tokens ─────────────────────────────────────────────────────────────
@@ -35,7 +36,79 @@ const T = {
   goldLight:  '#D4A520',
 };
 
-const { width } = Dimensions.get('window');
+const { width, height: screenHeight } = Dimensions.get('window');
+
+// ─── Decoración SVG: hojas y ramas de café ────────────────────────────────────
+const CoffeePlantBg = () => {
+  const w = width;
+  const h = screenHeight;
+  // Path de hoja: punta arriba y abajo, forma de hoja de café
+  const leaf = (hw: number, hh: number) =>
+    `M 0,${hh} C ${-hw},${hh * 0.5} ${-hw},${-hh * 0.5} 0,${-hh} C ${hw},${-hh * 0.5} ${hw},${hh * 0.5} 0,${hh} Z`;
+  return (
+    <Svg width={w} height={h} style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' } as any}>
+      <G opacity={0.14}>
+        {/* ── Esquina superior izquierda ── */}
+        <G transform="translate(-8, 8)">
+          <Path d="M 18 140 Q 35 90 48 12" stroke="#2A5E2A" strokeWidth="2.5" fill="none" />
+          <G transform="translate(25,108) rotate(-55)"><Path d={leaf(13,34)} fill="#3A7A3A" /><Path d="M 0 34 L 0 -34" stroke="#1E4E1E" strokeWidth="0.9" /></G>
+          <G transform="translate(36,72) rotate(-25)"><Path d={leaf(11,28)} fill="#4A8C4A" /><Path d="M 0 28 L 0 -28" stroke="#1E4E1E" strokeWidth="0.9" /></G>
+          <G transform="translate(44,40) rotate(5)"><Path d={leaf(9,22)} fill="#3A7A3A" /></G>
+          <G transform="translate(46,18) rotate(20)"><Path d={leaf(7,17)} fill="#4A8C4A" /></G>
+          <Circle cx="30" cy="65" r="4.5" fill="#C0392B" opacity={0.72} />
+          <Circle cx="22" cy="58" r="3" fill="#E74C3C" opacity={0.55} />
+          <Circle cx="36" cy="55" r="3.5" fill="#C0392B" opacity={0.6} />
+        </G>
+        {/* ── Esquina superior derecha ── */}
+        <G transform={`translate(${w + 8}, 8) scale(-1,1)`}>
+          <Path d="M 18 140 Q 35 90 48 12" stroke="#2A5E2A" strokeWidth="2.5" fill="none" />
+          <G transform="translate(25,108) rotate(-55)"><Path d={leaf(13,34)} fill="#4A8C4A" /><Path d="M 0 34 L 0 -34" stroke="#1E4E1E" strokeWidth="0.9" /></G>
+          <G transform="translate(36,72) rotate(-25)"><Path d={leaf(11,28)} fill="#3A7A3A" /><Path d="M 0 28 L 0 -28" stroke="#1E4E1E" strokeWidth="0.9" /></G>
+          <G transform="translate(44,40) rotate(5)"><Path d={leaf(9,22)} fill="#4A8C4A" /></G>
+          <Circle cx="30" cy="65" r="4" fill="#C0392B" opacity={0.68} />
+          <Circle cx="22" cy="58" r="3" fill="#E74C3C" opacity={0.5} />
+        </G>
+        {/* ── Borde izquierdo medio ── */}
+        <G transform={`translate(-14, ${h * 0.32})`}>
+          <G transform="rotate(-65)"><Path d={leaf(15,40)} fill="#2D6A2D" /><Path d="M 0 40 L 0 -40" stroke="#1A4A1A" strokeWidth="1.1" /></G>
+        </G>
+        <G transform={`translate(-10, ${h * 0.32 + 68})`}>
+          <G transform="rotate(-42)"><Path d={leaf(12,30)} fill="#4A8C4A" /></G>
+        </G>
+        <G transform={`translate(8, ${h * 0.32 + 120})`}>
+          <G transform="rotate(-20)"><Path d={leaf(10,24)} fill="#3A7A3A" /></G>
+        </G>
+        {/* ── Borde derecho medio ── */}
+        <G transform={`translate(${w + 14}, ${h * 0.42})`}>
+          <G transform="rotate(55)"><Path d={leaf(15,40)} fill="#2D6A2D" /><Path d="M 0 40 L 0 -40" stroke="#1A4A1A" strokeWidth="1.1" /></G>
+        </G>
+        <G transform={`translate(${w + 10}, ${h * 0.42 + 70})`}>
+          <G transform="rotate(38)"><Path d={leaf(12,30)} fill="#3A7A3A" /></G>
+        </G>
+        {/* ── Esquina inferior izquierda ── */}
+        <G transform={`translate(-6, ${h - 90})`}>
+          <Path d="M 22 80 Q 40 45 50 5" stroke="#2A5E2A" strokeWidth="2" fill="none" />
+          <G transform="translate(28,60) rotate(-50)"><Path d={leaf(11,28)} fill="#4A8C4A" /><Path d="M 0 28 L 0 -28" stroke="#1E4E1E" strokeWidth="0.9" /></G>
+          <G transform="translate(40,32) rotate(-15)"><Path d={leaf(9,22)} fill="#3A7A3A" /></G>
+          <Circle cx="36" cy="48" r="3.5" fill="#C0392B" opacity={0.65} />
+          <Circle cx="26" cy="42" r="3" fill="#E74C3C" opacity={0.5} />
+        </G>
+        {/* ── Esquina inferior derecha ── */}
+        <G transform={`translate(${w + 6}, ${h - 90}) scale(-1,1)`}>
+          <Path d="M 22 80 Q 40 45 50 5" stroke="#2A5E2A" strokeWidth="2" fill="none" />
+          <G transform="translate(28,60) rotate(-50)"><Path d={leaf(11,28)} fill="#3A7A3A" /><Path d="M 0 28 L 0 -28" stroke="#1E4E1E" strokeWidth="0.9" /></G>
+          <G transform="translate(40,32) rotate(-15)"><Path d={leaf(9,22)} fill="#4A8C4A" /></G>
+          <Circle cx="36" cy="48" r="3.5" fill="#C0392B" opacity={0.62} />
+        </G>
+        {/* ── Hojas sueltas dispersas ── */}
+        <G transform={`translate(${w * 0.08}, ${h * 0.62}) rotate(18)`}><Path d={leaf(8,20)} fill="#3A7A3A" /></G>
+        <G transform={`translate(${w * 0.92}, ${h * 0.25}) rotate(-22)`}><Path d={leaf(8,20)} fill="#4A8C4A" /></G>
+        <G transform={`translate(${w * 0.05}, ${h * 0.80}) rotate(-10)`}><Path d={leaf(7,17)} fill="#2D6A2D" /></G>
+        <G transform={`translate(${w * 0.95}, ${h * 0.70}) rotate(12)`}><Path d={leaf(7,17)} fill="#3A7A3A" /></G>
+      </G>
+    </Svg>
+  );
+};
 
 const PREMIO_LABEL: Record<string, string> = {
   cafe:              '☕ Café Especial',
@@ -88,13 +161,18 @@ export const HomeScreen = () => {
     || 'Cafetero';
 
   const passportId = `CF26-${(state.usuario?.cedula || user?.uid?.slice(-8) || '00000000').toUpperCase()}`;
-  const topStands  = getTopStands(4);
+  // Top stands en vivo desde el estado de la app (se actualiza con cada venta registrada)
+  const topStands = [...(state.stands ?? [])]
+    .sort((a: any, b: any) => (b.ventas ?? 0) - (a.ventas ?? 0))
+    .slice(0, 4);
+
+  const activeStandsCount = state.stands?.filter((s: any) => s.activo !== false).length ?? globalStats.activeStands;
 
   const STAT_ITEMS = [
-    { icon: '👥', val: globalStats.visitorCount, lbl: t('home.visitors_label', 'VISITANTES') },
-    { icon: '🏪', val: state.stands?.length ?? globalStats.activeStands, lbl: t('home.stands_label', 'STANDS ACTIVOS') },
-    { icon: '🪙', val: puntos,                   lbl: t('home.pts_label',       'PUNTOS') },
-    { icon: '✅', val: stampsCount,              lbl: t('home.stamps_label',    'SELLOS') },
+    { icon: '👥', val: globalStats.visitorCount,  lbl: t('home.visitors_label', 'VISITANTES') },
+    { icon: '🏪', val: activeStandsCount,          lbl: t('home.stands_label', 'STANDS ACTIVOS') },
+    { icon: '🪙', val: puntos,                     lbl: t('home.pts_label',       'PUNTOS') },
+    { icon: '✅', val: stampsCount,                lbl: t('home.stamps_label',    'SELLOS') },
   ];
 
   const TILES = [
@@ -114,12 +192,8 @@ export const HomeScreen = () => {
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
-      {/* Coffee-plant ambient background */}
-      <Image
-        source={require('../../../assets/tile-jungle.png')}
-        style={s.bgPlants}
-        resizeMode="cover"
-      />
+      {/* Decoración de fondo: plantas y hojas de café */}
+      <CoffeePlantBg />
       <Animated.ScrollView style={{ opacity: fadeAnim }} showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
         {/* ── Hero Banner ─────────────────────────────────────────────────── */}
@@ -345,9 +419,12 @@ export const HomeScreen = () => {
           onPress={() => Linking.openURL('https://www.chaparral-tolima.gov.co/MiMunicipio/Paginas/Turismo.aspx')}
           activeOpacity={0.82}
         >
-          <Image source={require('../../../assets/tile-snake.png')} style={{ position: 'absolute', top: '-6%', left: '-6%', width: '112%', height: '112%', borderRadius: 18 }} resizeMode="cover" />
-          <LinearGradient colors={['rgba(14,5,1,0.42)', 'rgba(80,35,0,0.88)']} style={StyleSheet.absoluteFillObject} />
-          <Text style={s.turismoTitle}>{t('home.turismo_tile', 'TURISMO')}</Text>
+          <Image source={require('../../../assets/tile-snake.png')} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', borderRadius: 16 }} resizeMode="cover" />
+          <LinearGradient colors={['rgba(14,5,1,0.18)', 'rgba(60,22,0,0.72)']} style={StyleSheet.absoluteFillObject} />
+          <View>
+            <Text style={s.turismoTitle}>{t('home.turismo_tile', 'TURISMO')}</Text>
+            <Text style={s.turismoSub}>Chaparral, Tolima</Text>
+          </View>
           <View style={s.turismoArrow}>
             <Text style={{ fontSize: 22, color: '#FFF', fontWeight: '900' }}>↗</Text>
           </View>
@@ -538,7 +615,7 @@ const s = StyleSheet.create({
   tileImg:     { position: 'absolute', top: '-5%', left: '-5%', width: '110%', height: '110%' },
   tileOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 16 },
   tileCnt:     { padding: 10, zIndex: 2, alignItems: 'center' },
-  tileLbl:     { fontSize: 12, fontWeight: '900', color: '#FFF', textAlign: 'center', textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 5 },
+  tileLbl:     { fontSize: 15, fontWeight: '900', color: '#FFF', textAlign: 'center', textTransform: 'uppercase', letterSpacing: 0.5, textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6 },
   // Tourism banner
   turismoBanner: { flexDirection: 'row', alignItems: 'center', borderRadius: 16, padding: 16, marginBottom: 14, overflow: 'hidden', justifyContent: 'space-between', shadowColor: '#5C2A00', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 6 },
   turismoTitle:  { fontSize: 13, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
