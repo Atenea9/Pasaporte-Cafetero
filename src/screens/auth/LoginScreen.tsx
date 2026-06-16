@@ -324,8 +324,6 @@ export const LoginScreen = () => {
         {/* ── Footer ── */}
         <View style={s.footer}>
           <View style={s.footerLine} />
-          <Text style={s.footerTxt}>© 2026 Gobernación del Tolima</Text>
-          <Text style={s.footerSub}>Comité de Cafeteros del Tolima · Alcaldía de Chaparral</Text>
           <Text style={s.footerApex}>©APEX 2026</Text>
         </View>
 
@@ -540,5 +538,5 @@ const s = StyleSheet.create({
   footerLine: { width: 40, height: 1, backgroundColor: C.border, opacity: 0.5, marginBottom: 4 },
   footerTxt:  { fontSize: 11, color: C.muted, opacity: 0.85 },
   footerSub:  { fontSize: 9, color: C.muted, opacity: 0.55, textAlign: 'center' },
-  footerApex: { fontSize: 9, color: C.muted, opacity: 0.4, letterSpacing: 1.5, fontWeight: '600', marginTop: 4 },
+  footerApex: { fontSize: 12, color: C.amber, opacity: 0.75, letterSpacing: 2, fontWeight: '800' },
 });
