@@ -53,6 +53,12 @@ export type CompradorStackParamList = {
   MapaFeria: undefined;
   Auspiciadores: undefined;
   Catalogo: undefined;
+  Top40Cafes: undefined;
+  Expositores: undefined;
+  Catacion: undefined;
+  Premiaciones: undefined;
+  AgendaAcademica: undefined;
+  FeriaAnterior: { fairKey: string };
 };
 
 export type AdminStackParamList = {
