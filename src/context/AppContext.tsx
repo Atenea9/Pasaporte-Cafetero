@@ -53,6 +53,54 @@ export interface CatalogoProducto {
   municipioId?: string;
 }
 
+export interface CafeExpositor {
+  id: string;
+  nombre: string;
+  marca: string;
+  variedad: string;
+  proceso: string;
+  altitud: string;
+  municipioOrigen: string;
+  precio: string;
+  unidad: string;
+  descripcion: string;
+  scaScore?: string;
+  disponible: boolean;
+  esMicrolote: boolean;
+}
+
+export interface ProductoStand {
+  id: string;
+  nombre: string;
+  categoria: string;
+  descripcion: string;
+  precio: string;
+  disponible: boolean;
+}
+
+export interface ExpositorPerfil {
+  nombre: string;
+  cedula: string;
+  whatsapp: string;
+  email: string;
+  cargo: string;
+  tipo: 'stand' | 'subasta';
+  standId: string;
+  standNombre: string;
+  standSeccion: string;
+  standNumero: string;
+  municipioId: string;
+  descripcionStand: string;
+  horario: string;
+  cafes: CafeExpositor[];
+  productos: ProductoStand[];
+  nombreFinca: string;
+  hectareasCafe: string;
+  certificaciones: string[];
+  altitudFinca: string;
+  creadoEn: number;
+}
+
 export interface AppState {
   usuario: Usuario | null;
   transacciones: Transaccion[];
@@ -60,6 +108,7 @@ export interface AppState {
   happyHour: boolean;
   notificaciones: Notificacion[];
   catalogoProductos: CatalogoProducto[];
+  expositorPerfil: ExpositorPerfil | null;
 }
 
 type Action =
@@ -74,7 +123,13 @@ type Action =
   | { type: 'AGREGAR_PRODUCTO'; payload: CatalogoProducto }
   | { type: 'EDITAR_PRODUCTO'; payload: CatalogoProducto }
   | { type: 'ELIMINAR_PRODUCTO'; payload: string }
-  | { type: 'TOGGLE_DISPONIBLE_PRODUCTO'; payload: string };
+  | { type: 'TOGGLE_DISPONIBLE_PRODUCTO'; payload: string }
+  | { type: 'SET_EXPOSITOR_PERFIL'; payload: ExpositorPerfil }
+  | { type: 'AGREGAR_CAFE_EXPOSITOR'; payload: CafeExpositor }
+  | { type: 'EDITAR_CAFE_EXPOSITOR'; payload: CafeExpositor }
+  | { type: 'TOGGLE_DISPONIBLE_CAFE'; payload: string }
+  | { type: 'AGREGAR_PRODUCTO_EXPOSITOR'; payload: ProductoStand }
+  | { type: 'BORRAR_EXPOSITOR_PERFIL' };
 
 const initialState: AppState = {
   usuario: null,
@@ -83,6 +138,7 @@ const initialState: AppState = {
   happyHour: false,
   notificaciones: [],
   catalogoProductos: [],
+  expositorPerfil: null,
 };
 
 function appReducer(state: AppState, action: Action): AppState {
@@ -117,11 +173,28 @@ function appReducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         ...restored,
-        stands: STANDS,                                 // siempre usar datos frescos de mockData
+        stands: STANDS,
         usuario: restored.usuario ?? state.usuario,
         catalogoProductos: restored.catalogoProductos ?? [],
+        expositorPerfil: restored.expositorPerfil ?? null,
       };
     }
+    case 'SET_EXPOSITOR_PERFIL':
+      return { ...state, expositorPerfil: action.payload };
+    case 'BORRAR_EXPOSITOR_PERFIL':
+      return { ...state, expositorPerfil: null };
+    case 'AGREGAR_CAFE_EXPOSITOR':
+      if (!state.expositorPerfil) return state;
+      return { ...state, expositorPerfil: { ...state.expositorPerfil, cafes: [...state.expositorPerfil.cafes, action.payload] } };
+    case 'EDITAR_CAFE_EXPOSITOR':
+      if (!state.expositorPerfil) return state;
+      return { ...state, expositorPerfil: { ...state.expositorPerfil, cafes: state.expositorPerfil.cafes.map(c => c.id === action.payload.id ? action.payload : c) } };
+    case 'TOGGLE_DISPONIBLE_CAFE':
+      if (!state.expositorPerfil) return state;
+      return { ...state, expositorPerfil: { ...state.expositorPerfil, cafes: state.expositorPerfil.cafes.map(c => c.id === action.payload ? { ...c, disponible: !c.disponible } : c) } };
+    case 'AGREGAR_PRODUCTO_EXPOSITOR':
+      if (!state.expositorPerfil) return state;
+      return { ...state, expositorPerfil: { ...state.expositorPerfil, productos: [...state.expositorPerfil.productos, action.payload] } };
     case 'AGREGAR_PRODUCTO':
       return { ...state, catalogoProductos: [...state.catalogoProductos, action.payload] };
     case 'EDITAR_PRODUCTO':

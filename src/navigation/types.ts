@@ -29,6 +29,9 @@ export type VisitanteStackParamList = {
 };
 
 export type ExpositorStackParamList = {
+  ExpositorWelcome: undefined;
+  ExpositorLogin: { tipo: 'stand' | 'subasta' };
+  ExpositorRegistro: { tipo: 'stand' | 'subasta'; cedula?: string };
   Dashboard: undefined;
   StandDashboard: undefined;
   StandCatalog: undefined;

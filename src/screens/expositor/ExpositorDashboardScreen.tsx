@@ -6,6 +6,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../contexts/AuthContext';
+import { useApp } from '../../context/AppContext';
 import type { ExpositorNavProp } from '../../navigation/types';
 
 const { width } = Dimensions.get('window');
@@ -20,6 +21,8 @@ const T = {
 export default function ExpositorDashboardScreen() {
   const nav = useNavigation<ExpositorNavProp>();
   const { user, logout } = useAuth();
+  const { state, dispatch } = useApp();
+  const perfil = state.expositorPerfil;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -58,10 +61,23 @@ export default function ExpositorDashboardScreen() {
         <View style={s.header}>
           <View style={s.headerLeft}>
             <Text style={s.headerGreeting}>Bienvenido,</Text>
-            <Text style={s.headerName}>{user?.name?.split(' ')[0] || 'Expositor'} 👋</Text>
+            <Text style={s.headerName}>{(perfil?.nombre || user?.name || 'Expositor').split(' ')[0]} 👋</Text>
+            {perfil && (
+              <View style={s.tipoBadge}>
+                <Text style={s.tipoBadgeTxt}>
+                  {perfil.tipo === 'stand' ? '🏪' : '☕'} {perfil.tipo === 'stand' ? perfil.standNombre || 'Mi Stand' : perfil.nombreFinca || 'Mi Finca'}
+                </Text>
+              </View>
+            )}
             <Text style={s.headerSub}>Feria Internacional del Café · Chaparral 2026</Text>
           </View>
-          <TouchableOpacity onPress={logout} style={s.logoutBtn}>
+          <TouchableOpacity
+            onPress={() => {
+              dispatch({ type: 'BORRAR_EXPOSITOR_PERFIL' });
+              nav.replace('ExpositorWelcome');
+            }}
+            style={s.logoutBtn}
+          >
             <Text style={s.logoutText}>Salir</Text>
           </TouchableOpacity>
         </View>
@@ -133,6 +149,8 @@ const s = StyleSheet.create({
   headerLeft:     { flex: 1 },
   headerGreeting: { fontSize: 13, color: T.muted, marginBottom: 2 },
   headerName:     { fontSize: 24, fontWeight: '900', color: T.dark },
+  tipoBadge:      { backgroundColor: T.greenPale, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginTop: 4, alignSelf: 'flex-start' },
+  tipoBadgeTxt:   { fontSize: 11, fontWeight: '700', color: T.green },
   headerSub:      { fontSize: 11, color: T.muted, marginTop: 3 },
   logoutBtn:      { backgroundColor: T.card, paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: T.border, marginLeft: 12 },
   logoutText:     { color: T.accent, fontWeight: '700', fontSize: 13 },
