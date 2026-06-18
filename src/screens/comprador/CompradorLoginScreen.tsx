@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
   SafeAreaView, StatusBar, KeyboardAvoidingView, Platform,
-  Alert, ScrollView, ActivityIndicator,
+  ScrollView, ActivityIndicator, Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import type { CompradorNavProp } from '../../navigation/types';
 import LangSelector from '../../components/LangSelector';
+import { useApp } from '../../context/AppContext';
 
 const T = {
   bg:         '#FBF7ED',
@@ -17,56 +18,96 @@ const T = {
   body:       '#5C3520',
   muted:      '#9B7B5A',
   amber:      '#C8960C',
+  amberLight: '#E8B820',
   amberPale:  '#FBF0C8',
   coffee:     '#7B4A2A',
   coffeeDark: '#5C3520',
   border:     '#EDD9A8',
-  blue:       '#1565C0',
-  blueDark:   '#0D47A1',
+  green:      '#2D5A1E',
+  greenPale:  '#E8F2E4',
+  red:        '#C0392B',
+  redPale:    '#FDECEA',
 };
 
+type Result = null | 'checking' | 'found' | 'not-found';
+
 export default function CompradorLoginScreen() {
-  const nav = useNavigation<CompradorNavProp>();
-  const { t } = useTranslation();
+  const nav              = useNavigation<CompradorNavProp>();
+  const { t }           = useTranslation();
+  const { state }       = useApp();
   const [identifier, setIdentifier] = useState('');
-  const [loading,    setLoading]    = useState(false);
-  const [mode,       setMode]       = useState<'cedula' | 'phone'>('cedula');
+  const [mode, setMode]             = useState<'cedula' | 'phone'>('cedula');
+  const [result, setResult]         = useState<Result>(null);
+  const [foundName, setFoundName]   = useState('');
+
+  const checkAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const fadeAnim  = useRef(new Animated.Value(0)).current;
 
   const handleBack = () => {
     if (nav.canGoBack()) nav.goBack();
     else nav.navigate('Welcome');
   };
 
-  const handleLogin = async () => {
-    if (!identifier.trim()) {
-      Alert.alert(t('common.required', 'Campo requerido'), t('login.field_error_buyer', 'Ingresa tu identificación o número de teléfono.'));
-      return;
-    }
-    setLoading(true);
-    try {
-      nav.navigate('Registro');
-    } catch {
-      Alert.alert(t('common.error', 'Error'), t('login.not_found_buyer', 'No encontramos tu perfil. ¿Deseas registrarte?'));
-    } finally {
-      setLoading(false);
-    }
+  const showResult = (r: 'found' | 'not-found') => {
+    setResult(r);
+    checkAnim.setValue(0);
+    slideAnim.setValue(20);
+    fadeAnim.setValue(0);
+    Animated.parallel([
+      Animated.spring(checkAnim, { toValue: 1, friction: 5, useNativeDriver: true }),
+      Animated.timing(slideAnim,  { toValue: 0, duration: 300, useNativeDriver: true }),
+      Animated.timing(fadeAnim,   { toValue: 1, duration: 300, useNativeDriver: true }),
+    ]).start();
   };
 
-  const idLabel = mode === 'cedula'
-    ? t('login.buyer_cedula_label', 'CÉDULA / PASAPORTE / DOCUMENTO')
+  const handleLogin = () => {
+    const id = identifier.trim();
+    if (!id) { setResult(null); return; }
+
+    setResult('checking');
+
+    setTimeout(() => {
+      const u = state.usuario;
+      let isRegistered = false;
+
+      if (u) {
+        if (mode === 'cedula') {
+          isRegistered = u.cedula?.trim() === id ||
+            u.cedula?.trim().replace(/[^0-9]/g, '') === id.replace(/[^0-9]/g, '');
+        } else {
+          const norm = (n: string) => n.replace(/\D/g, '').slice(-9);
+          isRegistered = norm(u.whatsapp ?? '') === norm(id);
+        }
+      }
+
+      if (isRegistered && u) {
+        setFoundName(u.nombre);
+        showResult('found');
+        setTimeout(() => nav.navigate('Dashboard'), 1600);
+      } else {
+        showResult('not-found');
+        setTimeout(() => nav.navigate('Registro'), 1800);
+      }
+    }, 600);
+  };
+
+  const isChecking = result === 'checking';
+
+  const cedulaLabel = mode === 'cedula'
+    ? t('login.cedula_label', 'NÚMERO DE CÉDULA / DOCUMENTO')
     : t('login.phone_label', 'NÚMERO DE TELÉFONO / WHATSAPP');
 
   const placeholder = mode === 'cedula'
-    ? t('login.buyer_id_placeholder', 'Ej: A12345678 · 1107654321')
-    : t('login.buyer_phone_placeholder', 'Ej: +12025550123');
+    ? t('login.cedula_placeholder', 'Ej: 1107654321')
+    : t('login.phone_placeholder', 'Ej: +573156789012');
 
   return (
     <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
 
-      {/* Language selector */}
       <View style={s.langBar}>
-        <LangSelector />
+        <LangSelector light />
       </View>
 
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -77,50 +118,93 @@ export default function CompradorLoginScreen() {
             <Text style={s.backText}>{t('common.back', '‹ Volver')}</Text>
           </TouchableOpacity>
 
-          <LinearGradient colors={[T.blueDark, T.blue]} style={s.headerStrip}>
-            <Text style={s.headerEmoji}>🌍</Text>
+          <LinearGradient colors={[T.coffeeDark, T.coffee]} style={s.headerStrip}>
+            <Text style={s.headerEmoji}>☕</Text>
             <Text style={s.headerTitle}>{t('login.sign_in', 'Iniciar sesión')}</Text>
-            <Text style={s.headerSub}>{t('login.subtitle_buyer', 'Ingresa con tu cédula o teléfono como comprador internacional')}</Text>
+            <Text style={s.headerSub}>{t('login.subtitle_buyer', 'Ingresa con tu cédula o teléfono registrado')}</Text>
           </LinearGradient>
 
           <View style={s.toggle}>
             {(['cedula', 'phone'] as const).map(m => (
-              <TouchableOpacity key={m} style={[s.toggleBtn, mode === m && s.toggleBtnActive]} onPress={() => setMode(m)}>
+              <TouchableOpacity
+                key={m}
+                style={[s.toggleBtn, mode === m && s.toggleBtnActive]}
+                onPress={() => { setMode(m); setResult(null); }}
+              >
                 <Text style={[s.toggleText, mode === m && s.toggleTextActive]}>
-                  {m === 'cedula' ? `🪪 ${t('login.cedula_tab', 'Cédula')} / ID` : `📱 ${t('login.phone_tab', 'Teléfono')}`}
+                  {m === 'cedula' ? `🪪 ${t('login.cedula_tab', 'Cédula')}` : `📱 ${t('login.phone_tab', 'Teléfono')}`}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
 
           <View style={s.inputGroup}>
-            <Text style={s.label}>{idLabel}</Text>
+            <Text style={s.label}>{cedulaLabel}</Text>
             <TextInput
-              style={s.input}
+              style={[
+                s.input,
+                result === 'found'     && s.inputFound,
+                result === 'not-found' && s.inputNotFound,
+              ]}
               value={identifier}
-              onChangeText={setIdentifier}
+              onChangeText={v => { setIdentifier(v); setResult(null); }}
               placeholder={placeholder}
               placeholderTextColor={T.muted}
-              keyboardType={mode === 'phone' ? 'phone-pad' : 'default'}
+              keyboardType={mode === 'phone' ? 'phone-pad' : 'numeric'}
               autoFocus
+              editable={!isChecking && result === null}
             />
           </View>
 
-          <TouchableOpacity style={[s.loginBtn, loading && { opacity: 0.7 }]} onPress={handleLogin} disabled={loading} activeOpacity={0.85}>
-            <LinearGradient colors={[T.blueDark, T.blue]} style={s.loginGrad}>
-              {loading ? <ActivityIndicator color="#FFF" /> : <Text style={s.loginBtnText}>{t('login.enter_btn', 'INGRESAR')}</Text>}
-            </LinearGradient>
-          </TouchableOpacity>
+          {(result === 'found' || result === 'not-found') && (
+            <Animated.View style={[
+              s.resultCard,
+              result === 'found' ? s.resultCardFound : s.resultCardNotFound,
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: checkAnim }] },
+            ]}>
+              <Animated.Text style={[s.resultIcon, { transform: [{ scale: checkAnim }] }]}>
+                {result === 'found' ? '✅' : '⚠️'}
+              </Animated.Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.resultTitle, result === 'found' ? s.resultTitleFound : s.resultTitleNotFound]}>
+                  {result === 'found' ? '¡Bienvenido de vuelta!' : 'Pasaporte no encontrado'}
+                </Text>
+                <Text style={s.resultSub}>
+                  {result === 'found' ? foundName : 'Te llevaremos a crear tu pasaporte…'}
+                </Text>
+              </View>
+            </Animated.View>
+          )}
 
-          <View style={s.divider}>
-            <View style={s.divLine} />
-            <Text style={s.divText}>{t('login.no_buyer', '¿Nuevo comprador?')}</Text>
-            <View style={s.divLine} />
-          </View>
+          {(result === null || result === 'checking') && (
+            <TouchableOpacity
+              style={[s.loginBtn, (isChecking || !identifier.trim()) && { opacity: 0.65 }]}
+              onPress={handleLogin}
+              disabled={isChecking || !identifier.trim()}
+              activeOpacity={0.85}
+            >
+              <LinearGradient colors={[T.coffeeDark, T.coffee]} style={s.loginGrad}>
+                {isChecking
+                  ? <ActivityIndicator color="#FFF" />
+                  : <Text style={s.loginBtnText}>{t('login.enter_passport', 'INGRESAR AL PASAPORTE')}</Text>
+                }
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
 
-          <TouchableOpacity style={s.createBtn} onPress={() => nav.navigate('Registro')} activeOpacity={0.85}>
-            <Text style={s.createBtnText}>{t('login.register_buyer', '📝 Registrarme como comprador')}</Text>
-          </TouchableOpacity>
+          {result === null && (
+            <>
+              <View style={s.divider}>
+                <View style={s.divLine} />
+                <Text style={s.divText}>{t('login.no_passport', '¿No tienes pasaporte?')}</Text>
+                <View style={s.divLine} />
+              </View>
+
+              <TouchableOpacity style={s.createBtn} onPress={() => nav.navigate('Registro')} activeOpacity={0.85}>
+                <Text style={s.createBtnText}>{t('login.create_free', '📝 Crear mi pasaporte gratis')}</Text>
+              </TouchableOpacity>
+            </>
+          )}
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -129,37 +213,48 @@ export default function CompradorLoginScreen() {
 }
 
 const s = StyleSheet.create({
-  safe:            { flex: 1, backgroundColor: T.bg },
-  langBar:         { position: 'absolute', top: 12, right: 16, zIndex: 20 },
-  scroll:          { flexGrow: 1, padding: 24, paddingTop: 8 },
+  safe:    { flex: 1, backgroundColor: T.bg },
+  langBar: { position: 'absolute', top: 12, right: 16, zIndex: 20 },
+  scroll:  { flexGrow: 1, padding: 24, paddingTop: 8 },
 
-  backBtn:         { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 20, alignSelf: 'flex-start', padding: 8, marginLeft: -8, marginTop: 40 },
-  backIcon:        { fontSize: 28, color: T.blue, lineHeight: 32, fontWeight: '300' },
-  backText:        { fontSize: 15, color: T.blue, fontWeight: '600' },
+  backBtn:  { flexDirection: 'row', alignItems: 'center', gap: 2, marginBottom: 20, alignSelf: 'flex-start', padding: 8, marginLeft: -8, marginTop: 40 },
+  backIcon: { fontSize: 28, color: T.coffee, lineHeight: 32, fontWeight: '300' },
+  backText: { fontSize: 15, color: T.coffee, fontWeight: '600' },
 
-  headerStrip:     { borderRadius: 20, padding: 28, alignItems: 'center', marginBottom: 28, gap: 6 },
-  headerEmoji:     { fontSize: 48 },
-  headerTitle:     { fontSize: 26, fontWeight: '900', color: '#FFF' },
-  headerSub:       { fontSize: 12, color: 'rgba(255,255,255,0.8)', textAlign: 'center', lineHeight: 18, paddingHorizontal: 10 },
+  headerStrip: { borderRadius: 20, padding: 28, alignItems: 'center', marginBottom: 28, gap: 6 },
+  headerEmoji: { fontSize: 48 },
+  headerTitle: { fontSize: 26, fontWeight: '900', color: '#FFF' },
+  headerSub:   { fontSize: 12, color: 'rgba(255,255,255,0.8)', textAlign: 'center', lineHeight: 18, paddingHorizontal: 10 },
 
-  toggle:          { flexDirection: 'row', backgroundColor: T.border, borderRadius: 14, padding: 4, marginBottom: 24 },
-  toggleBtn:       { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
-  toggleBtnActive: { backgroundColor: T.blue },
-  toggleText:      { fontSize: 13, fontWeight: '700', color: T.muted },
-  toggleTextActive:{ color: '#FFF' },
+  toggle:           { flexDirection: 'row', backgroundColor: T.border, borderRadius: 14, padding: 4, marginBottom: 24 },
+  toggleBtn:        { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
+  toggleBtnActive:  { backgroundColor: T.coffee },
+  toggleText:       { fontSize: 13, fontWeight: '700', color: T.muted },
+  toggleTextActive: { color: '#FFF' },
 
-  inputGroup:      { marginBottom: 24 },
-  label:           { fontSize: 10, fontWeight: '800', color: T.blue, letterSpacing: 1.2, marginBottom: 8 },
-  input:           { backgroundColor: T.card, borderWidth: 1.5, borderColor: T.border, borderRadius: 14, padding: 16, fontSize: 16, color: T.dark },
+  inputGroup: { marginBottom: 20 },
+  label:      { fontSize: 10, fontWeight: '800', color: T.amber, letterSpacing: 1.2, marginBottom: 8 },
+  input:      { backgroundColor: T.card, borderWidth: 1.5, borderColor: T.border, borderRadius: 14, padding: 16, fontSize: 16, color: T.dark },
+  inputFound:    { borderColor: T.green, backgroundColor: T.greenPale },
+  inputNotFound: { borderColor: T.red,  backgroundColor: T.redPale },
 
-  loginBtn:        { borderRadius: 16, overflow: 'hidden', marginBottom: 4, shadowColor: T.blueDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 },
-  loginGrad:       { padding: 18, alignItems: 'center' },
-  loginBtnText:    { fontSize: 15, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
+  resultCard:         { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1.5 },
+  resultCardFound:    { backgroundColor: T.greenPale, borderColor: T.green + '60' },
+  resultCardNotFound: { backgroundColor: T.redPale,   borderColor: T.red  + '40' },
+  resultIcon:         { fontSize: 36 },
+  resultTitle:        { fontSize: 15, fontWeight: '900' },
+  resultTitleFound:   { color: T.green },
+  resultTitleNotFound:{ color: T.red },
+  resultSub:          { fontSize: 12, color: T.muted, marginTop: 2 },
 
-  divider:         { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 24 },
-  divLine:         { flex: 1, height: 1, backgroundColor: T.border },
-  divText:         { fontSize: 12, color: T.muted, flexShrink: 0 },
+  loginBtn:     { borderRadius: 16, overflow: 'hidden', marginBottom: 4, shadowColor: T.coffeeDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 },
+  loginGrad:    { padding: 18, alignItems: 'center' },
+  loginBtnText: { fontSize: 15, fontWeight: '900', color: '#FFF', letterSpacing: 1 },
 
-  createBtn:       { backgroundColor: T.card, borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1.5, borderColor: T.amber },
-  createBtnText:   { fontSize: 15, fontWeight: '700', color: T.amber },
+  divider:  { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 24 },
+  divLine:  { flex: 1, height: 1, backgroundColor: T.border },
+  divText:  { fontSize: 12, color: T.muted, flexShrink: 0 },
+
+  createBtn:    { backgroundColor: T.card, borderRadius: 16, padding: 18, alignItems: 'center', borderWidth: 1.5, borderColor: T.amber },
+  createBtnText:{ fontSize: 15, fontWeight: '700', color: T.amber },
 });

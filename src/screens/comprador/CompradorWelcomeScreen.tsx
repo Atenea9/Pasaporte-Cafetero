@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
-  SafeAreaView, StatusBar,
+  SafeAreaView, StatusBar, Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
@@ -18,12 +18,12 @@ const T = {
   body:       '#5C3520',
   muted:      '#9B7B5A',
   amber:      '#C8960C',
+  amberLight: '#E8B820',
   amberPale:  '#FBF0C8',
   coffee:     '#7B4A2A',
   coffeeDark: '#5C3520',
+  coffeePale: '#F0E0CC',
   border:     '#EDD9A8',
-  blue:       '#1565C0',
-  bluePale:   '#E3F0FF',
 };
 
 export default function CompradorWelcomeScreen() {
@@ -42,47 +42,45 @@ export default function CompradorWelcomeScreen() {
     ]).start();
   }, [state.usuario, user]);
 
-  const features = [
-    t('welcomeScreen.feature_1', '🏆 Catálogo de microlotes y análisis SCA'),
-    t('welcomeScreen.feature_2', '💰 Subasta en tiempo real con pujas en USD'),
-    t('welcomeScreen.feature_3', '📊 Perfiles detallados de cada finca cafetera'),
-    t('welcomeScreen.feature_4', '🗺️ Mapa de stands y agenda del evento'),
-  ];
-
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="light-content" backgroundColor={T.blue} />
+      <StatusBar barStyle="dark-content" backgroundColor={T.bg} />
 
-      {/* Top bar: back button left, language selector right */}
       <View style={s.topBar}>
         <TouchableOpacity style={s.backBtn} onPress={logout} activeOpacity={0.8}>
           <Text style={s.backIcon}>‹</Text>
-          <Text style={s.backText}>{t('common.back', '‹ Volver').replace('‹ ', '')}</Text>
+          <Text style={s.backText}>{t('common.back', 'Volver')}</Text>
         </TouchableOpacity>
-        <LangSelector />
+        <LangSelector style={s.langBtn} light />
       </View>
 
       <Animated.View style={[s.container, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
-        {/* Hero — international blue + amber badge */}
-        <LinearGradient colors={['#0D47A1', '#1565C0', '#1976D2']} style={s.hero}>
+        <LinearGradient colors={[T.coffeeDark, T.coffee, '#A0663C']} style={s.hero}>
           <LinearGradient colors={[T.amberPale, '#FFF8DC']} style={s.heroBadge}>
-            <Text style={s.heroBadgeText}>☕ SPECIALTY COFFEE AUCTION</Text>
+            <Text style={s.heroBadgeText}>☕ COMPRADOR INTERNACIONAL</Text>
           </LinearGradient>
           <Text style={s.heroEmoji}>🌍</Text>
-          <Text style={s.heroTitle}>{t('welcomeScreen.comprador_title', 'COMPRADOR\nINTERNACIONAL')}</Text>
-          <Text style={s.heroSub}>{t('welcomeScreen.comprador_sub', 'Subasta Internacional de Café\nCharrarral, Tolima · Colombia 2026')}</Text>
+          <Text style={s.heroTitle}>{t('welcomeScreen.comprador_title', 'PASAPORTE\nCAFETERO').toUpperCase()}</Text>
+          <Text style={s.heroSub}>Feria Internacional del Café{'\n'}Chaparral, Tolima 2026</Text>
+          <View style={s.heroDecor}>
+            <Text style={s.heroDecorText}>14 · 15 · 16 AGO 2026</Text>
+          </View>
         </LinearGradient>
 
         <View style={s.body}>
           <Text style={s.bodyTitle}>{t('welcomeScreen.how_to_enter', '¿Cómo deseas ingresar?')}</Text>
 
           <TouchableOpacity style={s.optCard} onPress={() => nav.navigate('Login')} activeOpacity={0.85}>
-            <LinearGradient colors={['#1565C0', '#0D47A1']} style={s.optGrad}>
-              <View style={s.optIcon}><Text style={s.optEmoji}>🪪</Text></View>
+            <LinearGradient colors={[T.coffeeDark, T.coffee]} style={s.optGrad}>
+              <Image
+                source={require('../../../assets/animal-visitante.png')}
+                style={s.optBtnImg}
+                resizeMode="contain"
+              />
               <View style={s.optText}>
-                <Text style={s.optTitle}>{t('welcomeScreen.have_access', 'Ya tengo acceso')}</Text>
-                <Text style={s.optSub}>{t('welcomeScreen.login_sub', 'Ingresa con tu cédula o teléfono')}</Text>
+                <Text style={s.optTitle}>{t('welcomeScreen.have_passport', 'YA TENGO PASAPORTE')}</Text>
+                <Text style={s.optSub}>{t('welcomeScreen.login_sub', 'INGRESA CON TU CÉDULA O TELÉFONO')}</Text>
               </View>
               <Text style={s.optArrow}>›</Text>
             </LinearGradient>
@@ -90,20 +88,30 @@ export default function CompradorWelcomeScreen() {
 
           <TouchableOpacity style={s.optCardOutline} onPress={() => nav.navigate('Registro')} activeOpacity={0.85}>
             <View style={s.optGradOutline}>
-              <View style={[s.optIcon, s.optIconOutline]}><Text style={s.optEmoji}>📝</Text></View>
+              <Image
+                source={require('../../../assets/bear-mascot.png')}
+                style={s.optBtnImg}
+                resizeMode="contain"
+              />
               <View style={s.optText}>
-                <Text style={[s.optTitle, { color: T.dark }]}>{t('welcomeScreen.register_as_buyer', 'Registrarme como comprador')}</Text>
-                <Text style={[s.optSub, { color: T.muted }]}>{t('welcomeScreen.buyer_sub', 'Accede a los catálogos y subastas')}</Text>
+                <Text style={[s.optTitle, { color: T.dark }]}>{t('welcomeScreen.create_passport', 'CREAR MI PASAPORTE')}</Text>
+                <Text style={[s.optSub, { color: T.muted }]}>{t('welcomeScreen.register_sub', 'REGÍSTRATE GRATIS EN 30 SEGUNDOS')}</Text>
               </View>
               <Text style={[s.optArrow, { color: T.amber }]}>›</Text>
             </View>
           </TouchableOpacity>
 
-          <View style={s.infoBox}>
-            <Text style={s.infoTitle}>{t('welcomeScreen.exclusive_access', 'Acceso exclusivo a:')}</Text>
-            {features.map((f, i) => (
-              <View key={i} style={s.infoRow}>
-                <Text style={s.infoText}>{f}</Text>
+          <View style={s.benefitsBox}>
+            <Text style={s.benefitsTitle}>{t('welcomeScreen.exclusive_access', 'Acceso exclusivo a:')}</Text>
+            {[
+              { icon: '🏆', text: t('welcomeScreen.feature_1', 'Catálogo de microlotes y análisis SCA') },
+              { icon: '💰', text: t('welcomeScreen.feature_2', 'Subasta en tiempo real con pujas en USD') },
+              { icon: '📊', text: t('welcomeScreen.feature_3', 'Perfiles detallados de cada finca cafetera') },
+              { icon: '🗺️', text: t('welcomeScreen.feature_4', 'Mapa de stands y agenda del evento') },
+            ].map((b, i) => (
+              <View key={i} style={s.benefitItem}>
+                <Text style={s.benefitIcon}>{b.icon}</Text>
+                <Text style={s.benefitText}>{b.text}</Text>
               </View>
             ))}
           </View>
@@ -114,33 +122,39 @@ export default function CompradorWelcomeScreen() {
 }
 
 const s = StyleSheet.create({
-  safe:            { flex: 1, backgroundColor: T.bg },
-  container:       { flex: 1 },
-  topBar:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
-  backBtn:         { flexDirection: 'row', alignItems: 'center', gap: 2, padding: 4 },
-  backIcon:        { fontSize: 28, color: T.blue, lineHeight: 32, fontWeight: '300' },
-  backText:        { fontSize: 15, color: T.blue, fontWeight: '600' },
-  hero:            { paddingTop: 24, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
-  heroBadge:       { borderRadius: 30, paddingHorizontal: 16, paddingVertical: 6, borderWidth: 1, borderColor: 'rgba(200,150,12,0.3)', marginBottom: 4 },
-  heroBadgeText:   { color: T.coffeeDark, fontSize: 9, fontWeight: '900', letterSpacing: 2 },
-  heroEmoji:       { fontSize: 50 },
-  heroTitle:       { fontSize: 30, fontWeight: '900', color: '#FFF', textAlign: 'center', letterSpacing: 2, lineHeight: 34 },
-  heroSub:         { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center', lineHeight: 20 },
-  body:            { flex: 1, padding: 20, paddingTop: 24 },
-  bodyTitle:       { fontSize: 15, fontWeight: '700', color: T.dark, textAlign: 'center', marginBottom: 18 },
-  optCard:         { borderRadius: 18, overflow: 'hidden', marginBottom: 14, shadowColor: '#1565C0', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.22, shadowRadius: 10, elevation: 5 },
-  optCardOutline:  { borderRadius: 18, borderWidth: 1.5, borderColor: T.border, marginBottom: 14, backgroundColor: T.card },
-  optGrad:         { flexDirection: 'row', alignItems: 'center', padding: 18, gap: 14 },
-  optGradOutline:  { flexDirection: 'row', alignItems: 'center', padding: 18, gap: 14 },
-  optIcon:         { width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(255,255,255,0.22)', alignItems: 'center', justifyContent: 'center' },
-  optIconOutline:  { backgroundColor: T.bluePale },
-  optEmoji:        { fontSize: 26 },
-  optText:         { flex: 1 },
-  optTitle:        { fontSize: 16, fontWeight: '900', color: '#FFF', marginBottom: 3 },
-  optSub:          { fontSize: 12, color: 'rgba(255,255,255,0.8)' },
-  optArrow:        { fontSize: 30, color: 'rgba(255,255,255,0.7)', fontWeight: '300' },
-  infoBox:         { backgroundColor: T.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: T.border },
-  infoTitle:       { fontSize: 11, fontWeight: '800', color: T.blue, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 12 },
-  infoRow:         { paddingVertical: 7, borderBottomWidth: 1, borderBottomColor: T.border },
-  infoText:        { fontSize: 13, color: T.body },
+  safe:             { flex: 1, backgroundColor: T.bg },
+  container:        { flex: 1 },
+  topBar:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4, zIndex: 10 },
+  backBtn:          { flexDirection: 'row', alignItems: 'center', gap: 2, paddingVertical: 6, paddingHorizontal: 4 },
+  backIcon:         { fontSize: 26, color: T.coffee, lineHeight: 30, fontWeight: '300' },
+  backText:         { fontSize: 14, color: T.coffee, fontWeight: '700' },
+  langBtn:          {},
+
+  hero:             { paddingTop: 56, paddingBottom: 32, paddingHorizontal: 24, alignItems: 'center', gap: 10 },
+  heroBadge:        { borderRadius: 30, paddingHorizontal: 16, paddingVertical: 6, borderWidth: 1, borderColor: T.border + '80', marginBottom: 4 },
+  heroBadgeText:    { color: T.coffeeDark, fontSize: 9, fontWeight: '900', letterSpacing: 3 },
+  heroEmoji:        { fontSize: 50 },
+  heroTitle:        { fontSize: 34, fontWeight: '900', color: '#FFF', letterSpacing: 4, lineHeight: 36, textAlign: 'center' },
+  heroSub:          { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center', lineHeight: 20 },
+  heroDecor:        { marginTop: 4, backgroundColor: T.amberPale, paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20 },
+  heroDecorText:    { color: T.coffeeDark, fontSize: 11, fontWeight: '800', letterSpacing: 1.5 },
+
+  body:             { flex: 1, padding: 20, paddingTop: 24 },
+  bodyTitle:        { fontSize: 15, fontWeight: '700', color: T.dark, textAlign: 'center', marginBottom: 18 },
+
+  optCard:          { borderRadius: 18, overflow: 'hidden', marginBottom: 14, shadowColor: T.coffeeDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 5 },
+  optCardOutline:   { borderRadius: 18, borderWidth: 1.5, borderColor: T.border, marginBottom: 14, backgroundColor: T.card, shadowColor: T.dark, shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4, elevation: 2 },
+  optGrad:          { flexDirection: 'row', alignItems: 'center', padding: 18, gap: 14 },
+  optGradOutline:   { flexDirection: 'row', alignItems: 'center', padding: 18, gap: 14 },
+  optBtnImg:        { width: 64, height: 64 },
+  optText:          { flex: 1 },
+  optTitle:         { fontSize: 18, fontWeight: '900', color: '#FFF', marginBottom: 4, letterSpacing: 0.5 },
+  optSub:           { fontSize: 13, color: 'rgba(255,255,255,0.82)', letterSpacing: 0.3 },
+  optArrow:         { fontSize: 30, color: 'rgba(255,255,255,0.7)', fontWeight: '300' },
+
+  benefitsBox:      { backgroundColor: T.card, borderRadius: 16, padding: 18, borderWidth: 1, borderColor: T.border },
+  benefitsTitle:    { fontSize: 11, fontWeight: '800', color: T.amber, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 14 },
+  benefitItem:      { flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 10 },
+  benefitIcon:      { fontSize: 20, marginTop: -2 },
+  benefitText:      { flex: 1, fontSize: 13, color: T.body, lineHeight: 19 },
 });
