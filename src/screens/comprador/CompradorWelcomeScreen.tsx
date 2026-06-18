@@ -29,18 +29,18 @@ const T = {
 export default function CompradorWelcomeScreen() {
   const nav = useNavigation<CompradorNavProp>();
   const { state } = useApp();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const { t } = useTranslation();
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
-    if (state.usuario) { nav.navigate('Dashboard'); return; }
+    if (state.usuario || user) { nav.navigate('Dashboard'); return; }
     Animated.parallel([
       Animated.timing(fadeAnim,  { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
-  }, [state.usuario]);
+  }, [state.usuario, user]);
 
   const features = [
     t('welcomeScreen.feature_1', '🏆 Catálogo de microlotes y análisis SCA'),

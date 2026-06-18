@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { CompradorStackParamList } from './types';
+import { useAuth } from '../contexts/AuthContext';
 import CompradorWelcomeScreen from '../screens/comprador/CompradorWelcomeScreen';
 import CompradorLoginScreen from '../screens/comprador/CompradorLoginScreen';
 import { CompradorRegistroScreen } from '../screens/comprador/CompradorRegistroScreen';
@@ -16,9 +17,11 @@ import CatalogPublicoScreen from '../screens/CatalogPublicoScreen';
 
 const Stack = createNativeStackNavigator<CompradorStackParamList>();
 
-export const CompradorNavigator = () => (
+export const CompradorNavigator = () => {
+  const { user } = useAuth();
+  return (
   <Stack.Navigator
-    initialRouteName="Welcome"
+    initialRouteName={user ? 'Dashboard' : 'Welcome'}
     screenOptions={{
       headerShown: false,
       animation: Platform.OS === 'web' ? 'none' : 'slide_from_right',
@@ -36,6 +39,7 @@ export const CompradorNavigator = () => (
     <Stack.Screen name="Auspiciadores"      component={AuspiciadoresScreen} />
     <Stack.Screen name="Catalogo"           component={CatalogPublicoScreen} />
   </Stack.Navigator>
-);
+  );
+};
 
 export default CompradorNavigator;

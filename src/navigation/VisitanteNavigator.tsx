@@ -2,6 +2,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { VisitanteStackParamList } from './types';
+import { useAuth } from '../contexts/AuthContext';
 
 import VisitanteWelcomeScreen from '../screens/visitante/VisitanteWelcomeScreen';
 import VisitanteLoginScreen from '../screens/visitante/VisitanteLoginScreen';
@@ -24,9 +25,11 @@ import PerfilScreen        from '../screens/visitante/PerfilScreen';
 const Stack = createNativeStackNavigator<VisitanteStackParamList>();
 
 export default function VisitanteNavigator() {
+  const { user } = useAuth();
+
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
+      initialRouteName={user ? 'Inicio' : 'Welcome'}
       screenOptions={{
         headerShown: false,
         animation: Platform.OS === 'web' ? 'none' : 'slide_from_right',
