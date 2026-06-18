@@ -61,13 +61,24 @@ export default function CompradorLoginScreen() {
     ]).start();
   };
 
+  const pendingTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  React.useEffect(() => {
+    return () => { pendingTimers.current.forEach(clearTimeout); };
+  }, []);
+
+  const schedule = (fn: () => void, ms: number) => {
+    const id = setTimeout(fn, ms);
+    pendingTimers.current.push(id);
+    return id;
+  };
+
   const handleLogin = () => {
     const id = identifier.trim();
     if (!id) { setResult(null); return; }
 
     setResult('checking');
 
-    setTimeout(() => {
+    schedule(() => {
       const u = state.usuario;
       let isRegistered = false;
 
@@ -86,13 +97,13 @@ export default function CompradorLoginScreen() {
       if (isRegistered && u && isComprador) {
         setFoundName(u.nombre);
         showResult('found');
-        setTimeout(() => nav.navigate('Dashboard'), 1600);
+        schedule(() => nav.navigate('Dashboard'), 1600);
       } else if (isRegistered && u && !isComprador) {
         showResult('visitor-blocked' as any);
-        setTimeout(() => setResult(null), 3000);
+        schedule(() => setResult(null), 3000);
       } else {
         showResult('not-found');
-        setTimeout(() => nav.navigate('Registro'), 1800);
+        schedule(() => nav.navigate('Registro'), 1800);
       }
     }, 600);
   };

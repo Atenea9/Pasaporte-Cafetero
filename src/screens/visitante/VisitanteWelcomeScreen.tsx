@@ -35,12 +35,12 @@ export default function VisitanteWelcomeScreen() {
   const slideAnim = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
-    if (state.usuario || user) { nav.navigate('Inicio'); return; }
+    if (state.usuario) { nav.navigate('Inicio'); return; }
     Animated.parallel([
       Animated.timing(fadeAnim,  { toValue: 1, duration: 600, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
     ]).start();
-  }, [state.usuario, user]);
+  }, [state.usuario]);
 
   return (
     <SafeAreaView style={s.safe}>

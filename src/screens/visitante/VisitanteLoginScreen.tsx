@@ -61,17 +61,24 @@ export default function VisitanteLoginScreen() {
     ]).start();
   };
 
+  const pendingTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => {
+    return () => { pendingTimers.current.forEach(clearTimeout); };
+  }, []);
+
+  const schedule = (fn: () => void, ms: number) => {
+    const id = setTimeout(fn, ms);
+    pendingTimers.current.push(id);
+    return id;
+  };
+
   const handleLogin = () => {
     const id = identifier.trim();
-    if (!id) {
-      setResult(null);
-      return;
-    }
+    if (!id) { setResult(null); return; }
 
     setResult('checking');
 
-    // Small delay to show checking state
-    setTimeout(() => {
+    schedule(() => {
       const u = state.usuario;
       let isRegistered = false;
 
@@ -79,7 +86,6 @@ export default function VisitanteLoginScreen() {
         if (mode === 'cedula') {
           isRegistered = u.cedula?.trim() === id || u.cedula?.trim().replace(/[^0-9]/g, '') === id.replace(/[^0-9]/g, '');
         } else {
-          // Phone mode — match against whatsapp, ignoring country code variations
           const normalise = (n: string) => n.replace(/\D/g, '').slice(-9);
           isRegistered = normalise(u.whatsapp ?? '') === normalise(id);
         }
@@ -88,10 +94,10 @@ export default function VisitanteLoginScreen() {
       if (isRegistered && u) {
         setFoundName(u.nombre);
         showResult('found');
-        setTimeout(() => nav.navigate('Inicio'), 1600);
+        schedule(() => nav.navigate('Inicio'), 1600);
       } else {
         showResult('not-found');
-        setTimeout(() => {
+        schedule(() => {
           nav.navigate('Registro', { cedula: mode === 'cedula' ? id : undefined, fromLogin: true });
         }, 1800);
       }
