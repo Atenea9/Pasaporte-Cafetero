@@ -81,10 +81,15 @@ export default function CompradorLoginScreen() {
         }
       }
 
-      if (isRegistered && u) {
+      const isComprador = u?.nivel?.toLowerCase().includes('comprador');
+
+      if (isRegistered && u && isComprador) {
         setFoundName(u.nombre);
         showResult('found');
         setTimeout(() => nav.navigate('Dashboard'), 1600);
+      } else if (isRegistered && u && !isComprador) {
+        showResult('visitor-blocked' as any);
+        setTimeout(() => setResult(null), 3000);
       } else {
         showResult('not-found');
         setTimeout(() => nav.navigate('Registro'), 1800);
@@ -93,6 +98,7 @@ export default function CompradorLoginScreen() {
   };
 
   const isChecking = result === 'checking';
+  const isBlocked  = (result as string) === 'visitor-blocked';
 
   const cedulaLabel = mode === 'cedula'
     ? t('login.cedula_label', 'NÚMERO DE CÉDULA / DOCUMENTO')
@@ -156,21 +162,25 @@ export default function CompradorLoginScreen() {
             />
           </View>
 
-          {(result === 'found' || result === 'not-found') && (
+          {(result === 'found' || result === 'not-found' || isBlocked) && (
             <Animated.View style={[
               s.resultCard,
-              result === 'found' ? s.resultCardFound : s.resultCardNotFound,
+              result === 'found' ? s.resultCardFound : isBlocked ? s.resultCardBlocked : s.resultCardNotFound,
               { opacity: fadeAnim, transform: [{ translateY: slideAnim }, { scale: checkAnim }] },
             ]}>
               <Animated.Text style={[s.resultIcon, { transform: [{ scale: checkAnim }] }]}>
-                {result === 'found' ? '✅' : '⚠️'}
+                {result === 'found' ? '✅' : isBlocked ? '🚫' : '⚠️'}
               </Animated.Text>
               <View style={{ flex: 1 }}>
-                <Text style={[s.resultTitle, result === 'found' ? s.resultTitleFound : s.resultTitleNotFound]}>
-                  {result === 'found' ? '¡Bienvenido de vuelta!' : 'Pasaporte no encontrado'}
+                <Text style={[s.resultTitle, result === 'found' ? s.resultTitleFound : isBlocked ? s.resultTitleBlocked : s.resultTitleNotFound]}>
+                  {result === 'found' ? '¡Bienvenido de vuelta!' : isBlocked ? 'Acceso exclusivo' : 'Pasaporte no encontrado'}
                 </Text>
                 <Text style={s.resultSub}>
-                  {result === 'found' ? foundName : 'Te llevaremos a crear tu pasaporte…'}
+                  {result === 'found'
+                    ? foundName
+                    : isBlocked
+                    ? 'Este perfil es de Visitante. Regístrate como Comprador para acceder.'
+                    : 'Te llevaremos a crear tu pasaporte…'}
                 </Text>
               </View>
             </Animated.View>
@@ -241,10 +251,12 @@ const s = StyleSheet.create({
   resultCard:         { flexDirection: 'row', alignItems: 'center', gap: 14, borderRadius: 16, padding: 16, marginBottom: 20, borderWidth: 1.5 },
   resultCardFound:    { backgroundColor: T.greenPale, borderColor: T.green + '60' },
   resultCardNotFound: { backgroundColor: T.redPale,   borderColor: T.red  + '40' },
+  resultCardBlocked:  { backgroundColor: '#FFF3E0',   borderColor: '#E65100' + '60' },
   resultIcon:         { fontSize: 36 },
   resultTitle:        { fontSize: 15, fontWeight: '900' },
   resultTitleFound:   { color: T.green },
   resultTitleNotFound:{ color: T.red },
+  resultTitleBlocked: { color: '#E65100' },
   resultSub:          { fontSize: 12, color: T.muted, marginTop: 2 },
 
   loginBtn:     { borderRadius: 16, overflow: 'hidden', marginBottom: 4, shadowColor: T.coffeeDark, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 6 },
